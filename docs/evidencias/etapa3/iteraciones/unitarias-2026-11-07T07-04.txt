@@ -1,0 +1,62 @@
+# Pruebas unitarias — 2026-11-07T07:04:43Z
+## packages/shared + apps/devices (Node v20.20.2, local)
+
+ RUN  v4.1.12 C:/Users/buitr/smartcity-iot/packages/shared
+
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  02:04:49
+   Duration  605ms (transform 100ms, setup 0ms, import 299ms, tests 24ms, environment 0ms)
+
+
+> @scbga/devices@0.1.0 test
+> vitest run --testTimeout=60000
+
+
+ RUN  v4.1.12 C:/Users/buitr/smartcity-iot/apps/devices
+
+
+ Test Files  2 passed (2)
+      Tests  16 passed (16)
+   Start at  02:04:51
+   Duration  6.87s (transform 231ms, setup 0ms, import 2.34s, tests 4.56s, environment 0ms)
+
+## infra/nodered (funciones de Node-RED)
+
+ RUN  v4.1.12 C:/Users/buitr/smartcity-iot/infra/nodered
+
+ ✓ test/functions.test.mjs > Node-RED · telemetría → line protocol > genera una fila ancha con tags, campos float/string y timestamp en ms 4ms
+ ✓ test/functions.test.mjs > Node-RED · telemetría → line protocol > rechaza suplantación: device_id distinto del tópico 1ms
+ ✓ test/functions.test.mjs > Node-RED · telemetría → line protocol > rechaza timestamps futuros o demasiado antiguos 1ms
+ ✓ test/functions.test.mjs > Node-RED · telemetría → line protocol > acepta datos de IDEAM con días de retraso (≤ 10 días) 1ms
+ ✓ test/functions.test.mjs > Node-RED · telemetría → line protocol > neutraliza intentos de inyección en line protocol 2ms
+ ✓ test/functions.test.mjs > Node-RED · telemetría → line protocol > descarta valores no finitos y mensajes sin variables válidas 1ms
+ ✓ test/functions.test.mjs > Node-RED · estado de conexión > registra el LWT como offline con el motivo 1ms
+ ✓ test/functions.test.mjs > Node-RED · incidentes sintéticos > escribe el evento con tags y campos válidos 1ms
+ ✓ test/functions.test.mjs > Node-RED · incidentes sintéticos > rechaza incidentes no marcados como sintéticos 1ms
+ ✓ test/functions.test.mjs > Node-RED · incidentes sintéticos > descarta solo el evento con números no válidos (no envenena el lote) 1ms
+ ✓ test/functions.test.mjs > Node-RED · incidentes sintéticos > tags vacíos o con saltos de línea no rompen la línea 1ms
+ ✓ test/functions.test.mjs > Node-RED · cola de escritura con reintento > reencola las líneas si InfluxDB no responde y las reenvía en el siguiente lote 1ms
+ ✓ test/functions.test.mjs > Node-RED · cola de escritura con reintento > reencola también ante 5xx y descarta (sin bucle infinito) ante 4xx 1ms
+ ✓ test/functions.test.mjs > Node-RED · cola de escritura con reintento > limita la cola pendiente a 20 000 líneas 4ms
+ ✓ test/functions.test.mjs > Node-RED · regla 1: restricción por calidad del aire > activa con AQI ≥ 150, no repite órdenes y libera con AQI < 100 (histéresis) 2ms
+ ✓ test/functions.test.mjs > Node-RED · regla 1: restricción por calidad del aire > ignora mensajes sin AQI numérico 0ms
+ ✓ test/functions.test.mjs > Node-RED · regla 2: alumbrado adaptativo con lluvia > sube DEV07 al 100 % con lluvia ≥ 1 mm y vuelve al 60 % con < 0,2 mm 2ms
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  02:04:59
+   Duration  342ms (transform 34ms, setup 0ms, import 72ms, tests 27ms, environment 0ms)
+
+## apps/backend (Node 24, etapa 'test' del Dockerfile)
+#2 [internal] load metadata for docker.io/library/node:24-alpine
+#5 [build  1/12] FROM docker.io/library/node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8
+#5 resolve docker.io/library/node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8 0.0s done
+#5 [build  1/12] FROM docker.io/library/node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8
+#17 1.915  ✓ src/schemas.test.ts (11 tests) 47ms
+#17 1.928  Test Files  1 passed (1)
+#17 1.928       Tests  11 passed (11)
+#17 3.644  ✓ src/backend.test.ts (9 tests) 139ms
+#17 3.653  Test Files  1 passed (1)
+#17 3.653       Tests  9 passed (9)

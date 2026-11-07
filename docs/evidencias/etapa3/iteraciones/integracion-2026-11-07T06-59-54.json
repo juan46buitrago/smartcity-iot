@@ -1,0 +1,39 @@
+{
+  "proyecto": "SmartCityBGA",
+  "etapa": 3,
+  "tipo": "integración",
+  "inicio": "2026-11-07T06:59:54.066Z",
+  "fin": "2026-11-07T07:00:50.193Z",
+  "entorno": "docker compose local (Windows 11, Docker Desktop)",
+  "resumen": {
+    "pasan": 0,
+    "fallan": 1,
+    "omitidas": 0
+  },
+  "recursos_al_final": [
+    "smartcitybga-web-1\t13.36MiB / 64MiB\t0.02%",
+    "smartcitybga-backend-1\t49.05MiB / 256MiB\t2.66%",
+    "smartcitybga-devices-1\t42.68MiB / 192MiB\t0.06%",
+    "smartcitybga-grafana-1\t58.16MiB / 256MiB\t0.84%",
+    "smartcitybga-nodered-1\t64.96MiB / 256MiB\t0.19%",
+    "smartcitybga-mosquitto-1\t2.195MiB / 64MiB\t0.09%",
+    "smartcitybga-influxdb-1\t91.32MiB / 1.5GiB\t0.37%",
+    "proyecto-microservicios-servicio-monitoreo-1\t56.5MiB / 7.385GiB\t0.11%",
+    "proyecto-microservicios-api-gateway-1\t59.55MiB / 7.385GiB\t0.11%",
+    "proyecto-microservicios-servicio-ordenes-1\t47.89MiB / 7.385GiB\t0.11%",
+    "proyecto-microservicios-servicio-inventario-1\t46.59MiB / 7.385GiB\t0.15%",
+    "proyecto-microservicios-servicio-pagos-1\t40.79MiB / 7.385GiB\t0.09%",
+    "proyecto-microservicios-servicio-notificaciones-1\t39.9MiB / 7.385GiB\t0.14%",
+    "proyecto-microservicios-servicio-catalogo-1\t43.14MiB / 7.385GiB\t0.13%"
+  ],
+  "pruebas": [
+    {
+      "id": "CTL-01",
+      "area": "Control",
+      "nombre": "Orden → ack → config retenida en los 10 dispositivos (vía API)",
+      "resultado": "FALLA",
+      "duracion_s": 53.8,
+      "error": "alguna orden no se confirmó: [{\"dispositivo\":\"DEV01\",\"http\":401,\"ida y vuelta (ms)\":5,\"versión antes→después\":\"0→undefined\",\"config retenida publicada\":false},{\"dispositivo\":\"DEV02\",\"http\":401,\"ida y vuelta (ms)\":5,\"versión antes→después\":\"0→undefined\",\"config retenida publicada\":false},{\"dispositivo\":\"DEV03\",\"http\":401,\"ida y vuelta (ms)\":5,\"versión antes→después\":\"4→undefined\",\"config retenida publicada\":false},{\"dispositivo\":\"DEV04\",\"http\":401,\"ida y vuelta (ms)\":5,\"versión antes→después\":\"0→undefined\",\"config retenida publicada\":false},{\"dispositivo\":\"DEV05\",\"http\":401,\"ida y vuelta (ms)\":5,\"versión antes→después\":\"0→undefined\",\"config retenida publicada\":false},{\"dispositivo\":\"DEV06\",\"http\":401,\"ida y vuelta (ms)\":4,\"versión antes→después\":\"0→undefined\",\"config retenida publicada\":false},{\"dispositivo\":\"DEV07\",\"http\":401,\"ida y vuelta (ms)\":6,\"versión antes→después\":\"3→undefined\",\"config retenida publicada\":false},{\"dispositivo\":\"DEV08\",\"http\":401,\"ida y vuelta (ms)\":4,\"versión antes→después\":\"0→undefined\",\"config retenida publicada\":false},{\"dispositivo\":\"DEV09\",\"http\":401,\"ida y vuelta (ms)\":5,\"versión antes→después\":\"0→undefined\",\"config retenida publicada\":false},{\"dispositivo\":\"DEV10\",\"http\":401,\"ida y vuelta (ms)\":4,\"versión antes→después\":\"0→undefined\",\"config retenida publicada\":false}]"
+    }
+  ]
+}

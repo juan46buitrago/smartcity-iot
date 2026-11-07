@@ -1,0 +1,55 @@
+{
+  "proyecto": "SmartCityBGA",
+  "etapa": 3,
+  "tipo": "integración",
+  "inicio": "2026-11-07T07:13:36.506Z",
+  "fin": "2026-11-07T07:14:45.581Z",
+  "entorno": "docker compose local (Windows 11, Docker Desktop)",
+  "resumen": {
+    "pasan": 1,
+    "fallan": 0,
+    "omitidas": 0
+  },
+  "recursos_al_final": [
+    "smartcitybga-devices-1\t39.11MiB / 192MiB\t0.00%",
+    "smartcitybga-nodered-1\t56.23MiB / 256MiB\t0.00%",
+    "smartcitybga-web-1\t13.3MiB / 64MiB\t0.00%",
+    "smartcitybga-backend-1\t45.5MiB / 256MiB\t0.00%",
+    "smartcitybga-grafana-1\t58.42MiB / 256MiB\t0.12%",
+    "smartcitybga-mosquitto-1\t1.43MiB / 64MiB\t0.04%",
+    "smartcitybga-influxdb-1\t75.57MiB / 1.5GiB\t0.09%",
+    "proyecto-microservicios-servicio-monitoreo-1\t56.73MiB / 7.385GiB\t4.62%",
+    "proyecto-microservicios-api-gateway-1\t60.93MiB / 7.385GiB\t2.39%",
+    "proyecto-microservicios-servicio-ordenes-1\t47.4MiB / 7.385GiB\t0.63%",
+    "proyecto-microservicios-servicio-inventario-1\t46.69MiB / 7.385GiB\t0.38%",
+    "proyecto-microservicios-servicio-pagos-1\t41MiB / 7.385GiB\t0.68%",
+    "proyecto-microservicios-servicio-notificaciones-1\t39.96MiB / 7.385GiB\t0.45%",
+    "proyecto-microservicios-servicio-catalogo-1\t43.05MiB / 7.385GiB\t0.42%"
+  ],
+  "pruebas": [
+    {
+      "id": "LWT-01",
+      "area": "LWT",
+      "nombre": "Corte de red: LWT de los 10, órdenes bloqueadas y sin pérdida de lecturas (almacenar y reenviar)",
+      "resultado": "PASA",
+      "duracion_s": 67.3,
+      "evidencia": {
+        "LWT recibidos": 10,
+        "tiempo hasta el último LWT (s)": "45.2",
+        "esperado (1,5 × keepalive 30 s)": "≤ 45 s + ciclo de revisión del broker",
+        "ejemplo de LWT": {
+          "device_id": "DEV02",
+          "timestamp": "2026-11-07T07:13:26.682Z",
+          "connection": "offline",
+          "reason": "conexión perdida (LWT)",
+          "firmware": "scbga-vdev/1.0"
+        },
+        "orden a DEV03 desconectado": "409 DEV03 está desconectado; la orden no se envió",
+        "tiempo hasta 10/10 en línea (s)": "5.1",
+        "duración del corte (s)": "45.3",
+        "lecturas DEV03 tomadas durante el corte y guardadas en InfluxDB": "4 (esperadas ≈ 4)",
+        "hueco máximo DEV03 (s)": "10.0"
+      }
+    }
+  ]
+}

@@ -1,0 +1,233 @@
+# SmartCityBGA — servicios base (comunes a desarrollo y producción).
+# Ningún servicio publica puertos aquí: ver docker-compose.override.yml (local, solo 127.0.0.1)
+# y docker-compose.prod.yml (solo 80/443 vía Nginx).
+name: smartcitybga
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-common: &common
+  restart: unless-stopped
+  logging: *logging
+  networks: [iot]
+
+# Cada servicio recibe SOLO las variables que necesita (mínimo privilegio).
+x-mqtt-device-pass: &mqtt-device-pass
+  MQTT_PASS_DEV01: ${MQTT_PASS_DEV01:?}
+  MQTT_PASS_DEV02: ${MQTT_PASS_DEV02:?}
+  MQTT_PASS_DEV03: ${MQTT_PASS_DEV03:?}
+  MQTT_PASS_DEV04: ${MQTT_PASS_DEV04:?}
+  MQTT_PASS_DEV05: ${MQTT_PASS_DEV05:?}
+  MQTT_PASS_DEV06: ${MQTT_PASS_DEV06:?}
+  MQTT_PASS_DEV07: ${MQTT_PASS_DEV07:?}
+  MQTT_PASS_DEV08: ${MQTT_PASS_DEV08:?}
+  MQTT_PASS_DEV09: ${MQTT_PASS_DEV09:?}
+  MQTT_PASS_DEV10: ${MQTT_PASS_DEV10:?}
+
+services:
+  mosquitto:
+    <<: *common
+    image: eclipse-mosquitto:2.0.20
+    entrypoint: ["/bin/sh", "/docker-entrypoint-scbga.sh"]
+    environment:
+      <<: *mqtt-device-pass
+      MQTT_PASS_BACKEND: ${MQTT_PASS_BACKEND:?}
+      MQTT_PASS_NODERED: ${MQTT_PASS_NODERED:?}
+    volumes:
+      - ./infra/mosquitto/config:/mosquitto/config:ro
+      - ./infra/mosquitto/docker-entrypoint.sh:/docker-entrypoint-scbga.sh:ro
+      - mosquitto-data:/mosquitto/data
+    mem_limit: 64m
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -h localhost -u backend -P \"$$MQTT_PASS_BACKEND\" -t '$$SYS/broker/uptime' -C 1 -W 5 >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  influxdb:
+    <<: *common
+    image: influxdb:2.7.11-alpine
+    environment:
+      TZ: ${TZ:-America/Bogota}
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_ADMIN_USER}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_ADMIN_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET_RAW}
+      DOCKER_INFLUXDB_INIT_RETENTION: 30d
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_ADMIN_TOKEN}
+      INFLUXD_REPORTING_DISABLED: "true"
+      INFLUXD_STORAGE_CACHE_MAX_MEMORY_SIZE: "268435456"
+      GOMEMLIMIT: 1200MiB
+    volumes:
+      - influx-data:/var/lib/influxdb2
+      - influx-config:/etc/influxdb2
+      - ./infra/influxdb/init:/docker-entrypoint-initdb.d:ro
+    mem_limit: 1536m
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  devices:
+    <<: *common
+    build:
+      context: .
+      dockerfile: apps/devices/Dockerfile
+    image: smartcitybga/devices:local
+    environment:
+      <<: *mqtt-device-pass
+      TZ: ${TZ:-America/Bogota}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      MQTT_URL: mqtt://mosquitto:1883
+      DEVICES_STATE_FILE: /app/data/devices-state.json
+      SIM_SEED: ${SIM_SEED:-}
+      GPS_SOURCE: ${GPS_SOURCE:-simulated_route}
+      GPS_USAGE_AUTHORIZED: ${GPS_USAGE_AUTHORIZED:-false}
+      GPS_FALLBACK_TO_SIMULATED: ${GPS_FALLBACK_TO_SIMULATED:-false}
+      GPS_API_BASE_URL: ${GPS_API_BASE_URL:-}
+      GPS_VEHICLE_PATH: ${GPS_VEHICLE_PATH:-}
+      GPS_API_USER: ${GPS_API_USER:-}
+      GPS_API_PASS: ${GPS_API_PASS:-}
+      IDEAM_STATION: ${IDEAM_STATION:-0023197700}
+      IDEAM_APP_TOKEN: ${IDEAM_APP_TOKEN:-}
+    volumes:
+      - devices-data:/app/data
+    mem_limit: 192m
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+
+  nodered:
+    <<: *common
+    build:
+      context: infra/nodered
+    image: smartcitybga/nodered:local
+    environment:
+      TZ: ${TZ:-America/Bogota}
+      MQTT_PASS_NODERED: ${MQTT_PASS_NODERED:?}
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_ORG: ${INFLUX_ORG}
+      INFLUX_BUCKET_RAW: ${INFLUX_BUCKET_RAW}
+      INFLUX_WRITE_TOKEN: ${INFLUX_WRITE_TOKEN:?ejecute infra/scripts/setup.sh}
+      NODERED_ADMIN_USER: ${NODERED_ADMIN_USER}
+      NODERED_ADMIN_HASH: ${NODERED_ADMIN_HASH:?}
+      NODERED_CREDENTIAL_SECRET: ${NODERED_CREDENTIAL_SECRET:?}
+    volumes:
+      - nodered-data:/data
+      - ./infra/nodered/flows:/flows-src:ro
+    mem_limit: 256m
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:1880/nodered/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  backend:
+    <<: *common
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    image: smartcitybga/backend:local
+    environment:
+      TZ: ${TZ:-America/Bogota}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DB_FILE: /app/data/smartcity.sqlite
+      PORT: "3000"
+      MQTT_URL: mqtt://mosquitto:1883
+      MQTT_PASS_BACKEND: ${MQTT_PASS_BACKEND:?}
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_ORG: ${INFLUX_ORG}
+      INFLUX_BUCKET_RAW: ${INFLUX_BUCKET_RAW}
+      INFLUX_BUCKET_AGG: ${INFLUX_BUCKET_AGG}
+      INFLUX_READ_TOKEN: ${INFLUX_READ_TOKEN:?ejecute infra/scripts/setup.sh}
+      JWT_SECRET: ${JWT_SECRET:?}
+      ADMIN_USER: ${ADMIN_USER}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?}
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+    volumes:
+      - backend-data:/app/data
+    mem_limit: 256m
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  grafana:
+    <<: *common
+    image: grafana/grafana-oss:11.3.1
+    environment:
+      TZ: ${TZ:-America/Bogota}
+      INFLUX_ORG: ${INFLUX_ORG}
+      INFLUX_READ_TOKEN: ${INFLUX_READ_TOKEN:?}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_SECURITY_COOKIE_SAMESITE: strict
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    mem_limit: 256m
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  web:
+    <<: *common
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    image: smartcitybga/web:local
+    mem_limit: 64m
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  iot:
+    driver: bridge
+
+volumes:
+  mosquitto-data:
+  influx-data:
+  influx-config:
+  devices-data:
+  nodered-data:
+  backend-data:
+  grafana-data:

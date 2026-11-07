@@ -1,0 +1,434 @@
+{
+  "proyecto": "SmartCityBGA",
+  "etapa": 3,
+  "tipo": "integración",
+  "inicio": "2026-11-07T06:57:43.001Z",
+  "fin": "2026-11-07T06:59:34.904Z",
+  "entorno": "docker compose local (Windows 11, Docker Desktop)",
+  "resumen": {
+    "pasan": 20,
+    "fallan": 2,
+    "omitidas": 6
+  },
+  "recursos_al_final": [
+    "smartcitybga-web-1\t13.36MiB / 64MiB\t0.00%",
+    "smartcitybga-backend-1\t48.18MiB / 256MiB\t0.00%",
+    "smartcitybga-devices-1\t42.73MiB / 192MiB\t0.00%",
+    "smartcitybga-grafana-1\t58.16MiB / 256MiB\t0.10%",
+    "smartcitybga-nodered-1\t64.97MiB / 256MiB\t0.00%",
+    "smartcitybga-mosquitto-1\t2.195MiB / 64MiB\t0.06%",
+    "smartcitybga-influxdb-1\t97.13MiB / 1.5GiB\t0.13%",
+    "proyecto-microservicios-servicio-monitoreo-1\t56.5MiB / 7.385GiB\t0.13%",
+    "proyecto-microservicios-api-gateway-1\t59.55MiB / 7.385GiB\t0.15%",
+    "proyecto-microservicios-servicio-ordenes-1\t47.89MiB / 7.385GiB\t0.12%",
+    "proyecto-microservicios-servicio-inventario-1\t46.59MiB / 7.385GiB\t0.12%",
+    "proyecto-microservicios-servicio-pagos-1\t40.8MiB / 7.385GiB\t0.12%",
+    "proyecto-microservicios-servicio-notificaciones-1\t39.9MiB / 7.385GiB\t0.12%",
+    "proyecto-microservicios-servicio-catalogo-1\t43.14MiB / 7.385GiB\t0.11%"
+  ],
+  "pruebas": [
+    {
+      "id": "INF-01",
+      "area": "Infraestructura",
+      "nombre": "Los 7 servicios están en ejecución y los que tienen healthcheck están sanos",
+      "resultado": "PASA",
+      "duracion_s": 0.3,
+      "evidencia": [
+        {
+          "servicio": "backend",
+          "estado": "running",
+          "salud": "healthy"
+        },
+        {
+          "servicio": "devices",
+          "estado": "running",
+          "salud": "(sin healthcheck)"
+        },
+        {
+          "servicio": "grafana",
+          "estado": "running",
+          "salud": "healthy"
+        },
+        {
+          "servicio": "influxdb",
+          "estado": "running",
+          "salud": "healthy"
+        },
+        {
+          "servicio": "mosquitto",
+          "estado": "running",
+          "salud": "healthy"
+        },
+        {
+          "servicio": "nodered",
+          "estado": "running",
+          "salud": "healthy"
+        },
+        {
+          "servicio": "web",
+          "estado": "running",
+          "salud": "healthy"
+        }
+      ]
+    },
+    {
+      "id": "INF-02",
+      "area": "Infraestructura",
+      "nombre": "/api/health informa MQTT, InfluxDB y SQLite operativos",
+      "resultado": "PASA",
+      "duracion_s": 0.1,
+      "evidencia": {
+        "status": 200,
+        "body": {
+          "status": "ok",
+          "mqtt": true,
+          "influxdb": true,
+          "sqlite": true,
+          "uptime_s": 420,
+          "mqtt_messages": {
+            "received": 252,
+            "rejected": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "SEC-01",
+      "area": "Seguridad",
+      "nombre": "En local todos los puertos publicados están ligados solo a 127.0.0.1",
+      "resultado": "PASA",
+      "duracion_s": 0.3,
+      "evidencia": [
+        {
+          "servicio": "backend",
+          "ip": "127.0.0.1",
+          "puerto": 3100,
+          "destino": 3000
+        },
+        {
+          "servicio": "influxdb",
+          "ip": "127.0.0.1",
+          "puerto": 8086,
+          "destino": 8086
+        },
+        {
+          "servicio": "mosquitto",
+          "ip": "127.0.0.1",
+          "puerto": 1883,
+          "destino": 1883
+        },
+        {
+          "servicio": "web",
+          "ip": "127.0.0.1",
+          "puerto": 8380,
+          "destino": 80
+        }
+      ]
+    },
+    {
+      "id": "SEC-02",
+      "area": "Seguridad",
+      "nombre": "En la configuración de producción (sin override) solo nginx publica puertos",
+      "resultado": "FALLA",
+      "duracion_s": 0.2,
+      "error": "servicios con puertos: "
+    },
+    {
+      "id": "SEC-03",
+      "area": "Seguridad",
+      "nombre": "Nginx envía cabeceras de seguridad (CSP, anti-clickjacking, nosniff, referrer)",
+      "resultado": "PASA",
+      "duracion_s": 0,
+      "evidencia": {
+        "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org; font-src 'self'; connect-src 'self' ws: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        "x-frame-options": "DENY",
+        "x-content-type-options": "nosniff",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "permissions-policy": null,
+        "server": "nginx"
+      }
+    },
+    {
+      "id": "SEC-04",
+      "area": "Seguridad",
+      "nombre": "Node-RED, Grafana e InfluxDB rechazan peticiones sin credenciales",
+      "resultado": "PASA",
+      "duracion_s": 0,
+      "evidencia": {
+        "GET /nodered/flows": 401,
+        "GET /grafana/api/search": 401,
+        "GET influxdb /api/v2/buckets": 401
+      }
+    },
+    {
+      "id": "SEC-05",
+      "area": "Seguridad",
+      "nombre": "El token de lectura de InfluxDB no puede escribir (mínimo privilegio)",
+      "resultado": "PASA",
+      "duracion_s": 0,
+      "evidencia": {
+        "POST /api/v2/write con token de lectura": 403
+      }
+    },
+    {
+      "id": "SEC-06",
+      "area": "Seguridad",
+      "nombre": "Archivos con secretos ignorados por Git y ningún secreto en archivos versionables",
+      "resultado": "PASA",
+      "duracion_s": 0.2,
+      "evidencia": {
+        "ignorados": [
+          ".env",
+          ".local-credentials.txt"
+        ],
+        "archivos_revisados": 118,
+        "secretos_encontrados": 0,
+        "coleccion_postman_versionada": false
+      }
+    },
+    {
+      "id": "API-01",
+      "area": "API",
+      "nombre": "Login: credenciales incorrectas → 401; correctas → JWT",
+      "resultado": "PASA",
+      "duracion_s": 0.1,
+      "evidencia": {
+        "contraseña incorrecta": 401,
+        "cuerpo inválido": 400,
+        "GET /api/auth/me con JWT": 200,
+        "usuario": "operador"
+      }
+    },
+    {
+      "id": "API-02",
+      "area": "API",
+      "nombre": "Endpoints de control protegidos: sin token, token falso o token alterado → 401",
+      "resultado": "PASA",
+      "duracion_s": 0,
+      "evidencia": {
+        "sin token": 401,
+        "token inventado": 401,
+        "payload alterado": 401,
+        "reconocer alerta sin token": 401
+      }
+    },
+    {
+      "id": "API-03",
+      "area": "API",
+      "nombre": "Validación de entradas: acción, parámetros, rango, dispositivo y variable",
+      "resultado": "PASA",
+      "duracion_s": 0,
+      "evidencia": {
+        "acción inexistente": "400 Orden inválida: se requiere \"action\" y \"params\"",
+        "intervalo fuera de rango (1 s)": "400 interval_s: Too small: expected number to be >=2",
+        "parámetro desconocido": "400 params: Unrecognized key: \"hack\"; params: Debe indicar al menos un parámetro",
+        "acción no admitida por DEV09": "400 La acción 'set_mode' no está soportada por DEV09",
+        "dispositivo DEV99": "404 Dispositivo no encontrado",
+        "inyección Flux en variable": "404 Variable no numérica o inexistente para DEV03",
+        "variable inexistente": "404 Variable no numérica o inexistente para DEV03"
+      }
+    },
+    {
+      "id": "API-04",
+      "area": "API",
+      "nombre": "Histórico y estadísticas devuelven datos reales almacenados",
+      "resultado": "PASA",
+      "duracion_s": 0.1,
+      "evidencia": {
+        "puntos última hora": 360,
+        "tiempo respuesta histórico (ms)": 26,
+        "estadisticas": {
+          "device_id": "DEV03",
+          "variable": "noise_db",
+          "unit": "dB(A)",
+          "from": "2026-11-07T05:57:44.361Z",
+          "to": "2026-11-07T06:57:44.389Z",
+          "synthetic": true,
+          "count": 360,
+          "mean": 48.263333333333364,
+          "min": 38.9,
+          "min_at": "2026-11-07T06:31:17.045Z",
+          "max": 62.2,
+          "max_at": "2026-11-07T06:44:47.244Z",
+          "stddev": 3.236015983102825,
+          "first_at": "2026-11-07T05:57:46.586Z",
+          "last_at": "2026-11-07T06:57:37.436Z"
+        }
+      }
+    },
+    {
+      "id": "MQTT-01",
+      "area": "MQTT",
+      "nombre": "El broker rechaza conexiones anónimas y contraseñas incorrectas",
+      "resultado": "PASA",
+      "duracion_s": 0.8,
+      "evidencia": {
+        "anonima": "rechazada (código 135)",
+        "DEV01 contraseña incorrecta": "rechazada (código 135)",
+        "usuario inexistente": "rechazada (código 135)"
+      }
+    },
+    {
+      "id": "MQTT-02",
+      "area": "MQTT",
+      "nombre": "ACL: un dispositivo no puede escribir en tópicos de otro ni enviarse órdenes",
+      "resultado": "PASA",
+      "duracion_s": 2.5,
+      "evidencia": {
+        "DEV01 → smartcity/DEV02/telemetry (PUBACK)": 135,
+        "DEV01 → smartcity/DEV01/control (PUBACK)": 135,
+        "mensajes que llegaron a suscriptores": 0,
+        "nota": "Código 135 = Not authorized (MQTT 5)"
+      }
+    },
+    {
+      "id": "MQTT-03",
+      "area": "MQTT",
+      "nombre": "ACL: un dispositivo no puede leer la telemetría ni las órdenes de otros",
+      "resultado": "PASA",
+      "duracion_s": 12,
+      "evidencia": {
+        "suscripciones solicitadas": [
+          "smartcity/+/telemetry",
+          "smartcity/DEV05/control",
+          "#"
+        ],
+        "SUBACK": [
+          1,
+          1,
+          1
+        ],
+        "mensajes ajenos recibidos en 12 s": 0
+      }
+    },
+    {
+      "id": "CTL-01",
+      "area": "Control",
+      "nombre": "Orden → ack → config retenida en los 10 dispositivos (vía API)",
+      "resultado": "FALLA",
+      "duracion_s": 53.9,
+      "error": "alguna orden no se confirmó"
+    },
+    {
+      "id": "CTL-02",
+      "area": "Control",
+      "nombre": "Apagar/encender DEV03 detiene y reanuda realmente la telemetría",
+      "resultado": "PASA",
+      "duracion_s": 25.7,
+      "evidencia": {
+        "apagar (HTTP)": 200,
+        "estado publicado": "stopped",
+        "telemetrías en 25 s apagado": 0,
+        "encender (HTTP)": 200,
+        "primera telemetría tras encender (s)": "0.5"
+      }
+    },
+    {
+      "id": "CTL-03",
+      "area": "Control",
+      "nombre": "El dispositivo rechaza órdenes caducadas (> 60 s) y con parámetros inválidos",
+      "resultado": "PASA",
+      "duracion_s": 0.3,
+      "evidencia": {
+        "orden emitida hace 120 s": {
+          "ok": false,
+          "error": "Orden caducada (120 s)"
+        },
+        "interval_s = 99999": {
+          "ok": false,
+          "error": "interval_s: Too big: expected number to be <=300"
+        }
+      }
+    },
+    {
+      "id": "CTL-04",
+      "area": "Control",
+      "nombre": "Idempotencia: la misma orden entregada dos veces se aplica una sola vez",
+      "resultado": "PASA",
+      "duracion_s": 0.5,
+      "evidencia": {
+        "acks recibidos": 2,
+        "versión de config en ambos": [
+          4,
+          4
+        ],
+        "mismo ack reenviado": true
+      }
+    },
+    {
+      "id": "CTL-05",
+      "area": "Control",
+      "nombre": "Mensajes malformados en /control se descartan sin tumbar el dispositivo",
+      "resultado": "PASA",
+      "duracion_s": 2.1,
+      "evidencia": {
+        "mensajes malformados enviados": 4,
+        "acks generados": 0,
+        "orden válida posterior": "confirmed",
+        "DEV03 sigue encendido": true
+      }
+    },
+    {
+      "id": "PER-01",
+      "area": "Persistencia",
+      "nombre": "La telemetría publicada en MQTT llega a InfluxDB con el mismo timestamp y valor",
+      "resultado": "PASA",
+      "duracion_s": 10.4,
+      "evidencia": {
+        "timestamp MQTT": "2026-11-07T01:59:29.288-05:00",
+        "valor MQTT": 51.7,
+        "timestamp InfluxDB": "2026-11-07T06:59:29.288Z",
+        "valor InfluxDB": 51.7,
+        "etiqueta synthetic": "true",
+        "latencia hasta consultar (s)": "3.3"
+      }
+    },
+    {
+      "id": "LWT-01",
+      "area": "LWT",
+      "nombre": "Corte de red de los dispositivos: el broker publica el LWT de los 10 y el backend bloquea órdenes",
+      "resultado": "OMITIDA"
+    },
+    {
+      "id": "LWT-02",
+      "area": "LWT",
+      "nombre": "Caída abrupta del proceso (SIGKILL): LWT inmediato y la configuración sobrevive al reinicio",
+      "resultado": "OMITIDA"
+    },
+    {
+      "id": "PER-02",
+      "area": "Persistencia",
+      "nombre": "Reinicio de InfluxDB: no se pierde histórico y la cola de Node-RED reintenta sin huecos",
+      "resultado": "OMITIDA"
+    },
+    {
+      "id": "PER-03",
+      "area": "Persistencia",
+      "nombre": "Reinicio de Node-RED: la sesión persistente MQTT entrega lo publicado mientras estaba caído",
+      "resultado": "OMITIDA"
+    },
+    {
+      "id": "PER-04",
+      "area": "Persistencia",
+      "nombre": "Reinicio del broker: mensajes retenidos persisten y todos se reconectan",
+      "resultado": "OMITIDA"
+    },
+    {
+      "id": "PER-05",
+      "area": "Persistencia",
+      "nombre": "Reinicio del backend: órdenes y alertas en SQLite se conservan",
+      "resultado": "OMITIDA"
+    },
+    {
+      "id": "SEC-07",
+      "area": "Seguridad",
+      "nombre": "Límite de intentos de login: el 6.º intento en un minuto → 429",
+      "resultado": "PASA",
+      "duracion_s": 0.2,
+      "evidencia": {
+        "códigos de 7 intentos seguidos": "401, 401, 401, 401, 401, 429, 503",
+        "nota": "incluye el intento de API-01 en el mismo minuto si coincide"
+      }
+    }
+  ]
+}

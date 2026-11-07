@@ -1,0 +1,95 @@
+# Pruebas unitarias — 2026-11-07T07:27:56Z
+
+## packages/shared — contrato MQTT (Node v20.20.2, local)
+
+ RUN  v4.1.12 C:/Users/buitr/smartcity-iot/packages/shared
+
+ ✓ src/schemas.test.ts > catálogo > tiene 10 dispositivos con ids únicos y coherentes 3ms
+ ✓ src/schemas.test.ts > catálogo > cada dispositivo tiene ubicación en el área de Bucaramanga 1ms
+ ✓ src/schemas.test.ts > catálogo > genera configuraciones por defecto válidas 7ms
+ ✓ src/schemas.test.ts > validación de órdenes > acepta un intervalo dentro de los límites 1ms
+ ✓ src/schemas.test.ts > validación de órdenes > rechaza un intervalo de API demasiado corto (protege el límite de la API) 1ms
+ ✓ src/schemas.test.ts > validación de órdenes > rechaza acciones no soportadas 0ms
+ ✓ src/schemas.test.ts > validación de órdenes > rechaza parámetros desconocidos o fuera de rango 4ms
+ ✓ src/schemas.test.ts > validación de órdenes > valida coherencia de umbrales 1ms
+ ✓ src/schemas.test.ts > validación de órdenes > limita la calibración a variables calibrables 1ms
+ ✓ src/schemas.test.ts > validación de órdenes > restringe la fuente GPS a valores permitidos 1ms
+ ✓ src/schemas.test.ts > tópicos > construye y analiza tópicos 0ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  02:27:59
+   Duration  553ms (transform 98ms, setup 0ms, import 281ms, tests 23ms, environment 0ms)
+
+
+## apps/devices — simuladores, incidentes (Monte Carlo) y adaptador GPS
+
+ RUN  v4.1.12 C:/Users/buitr/smartcity-iot/apps/devices
+
+ ✓ src/adapters/gps/gps.test.ts > adaptador gpsmobile — minimización de datos > extrae solo posición, velocidad, estado y fechas 3ms
+ ✓ src/adapters/gps/gps.test.ts > adaptador gpsmobile — minimización de datos > no filtra ningún dato personal 3ms
+ ✓ src/adapters/gps/gps.test.ts > adaptador gpsmobile — minimización de datos > interpreta la fecha del proveedor en hora de Colombia 0ms
+ ✓ src/adapters/gps/gps.test.ts > adaptador gpsmobile — minimización de datos > marca sin_reporte cuando el dato es antiguo 0ms
+ ✓ src/adapters/gps/gps.test.ts > adaptador gpsmobile — minimización de datos > rechaza coordenadas inválidas 1ms
+ ✓ src/adapters/gps/gps.test.ts > ruta simulada > avanza sobre la ruta real y se mantiene dentro de Bucaramanga 11ms
+stdout | src/sim/incidents.test.ts > motor de incidentes (Monte Carlo, semilla fija) > genera una cantidad realista de incidentes por día (≈6–12)
+incidentes/día=8.0 máx simultáneos=2 mayor pausa=998 min
+
+ ✓ src/sim/incidents.test.ts > motor de incidentes (Monte Carlo, semilla fija) > genera una cantidad realista de incidentes por día (≈6–12) 3ms
+ ✓ src/sim/incidents.test.ts > motor de incidentes (Monte Carlo, semilla fija) > permite periodos prolongados sin incidentes 0ms
+ ✓ src/sim/incidents.test.ts > motor de incidentes (Monte Carlo, semilla fija) > respeta límite global, unicidad por segmento y distancia mínima 1ms
+ ✓ src/sim/incidents.test.ts > motor de incidentes (Monte Carlo, semilla fija) > nunca repite identificadores y todo incidente es sintético y válido 13ms
+ ✓ src/sim/incidents.test.ts > motor de incidentes (Monte Carlo, semilla fija) > incluye los cuatro tipos y varios niveles de gravedad 1ms
+ ✓ src/sim/incidents.test.ts > motor de incidentes (Monte Carlo, semilla fija) > recorre el ciclo activo → en_atencion → resuelto con tiempos coherentes 5ms
+ ✓ src/sim/incidents.test.ts > motor de incidentes (Monte Carlo, semilla fija) > concentra más incidentes en horas de alta demanda que en la madrugada 0ms
+ ✓ src/sim/incidents.test.ts > motor de incidentes (Monte Carlo, semilla fija) > la lluvia y la intensidad aumentan la frecuencia; intensidad 0 la anula 4435ms
+ ✓ src/sim/incidents.test.ts > efectos sobre el tráfico > un incidente reduce la velocidad en su segmento y en vecinos del corredor 2ms
+ ✓ src/sim/incidents.test.ts > efectos sobre el tráfico > el índice de congestión es mayor en hora pico que de madrugada 1ms
+
+ Test Files  2 passed (2)
+      Tests  16 passed (16)
+   Start at  02:28:01
+   Duration  6.81s (transform 206ms, setup 0ms, import 2.32s, tests 4.48s, environment 0ms)
+
+
+## infra/nodered — funciones de Node-RED (line protocol, cola persistente, reglas)
+
+ RUN  v4.1.12 C:/Users/buitr/smartcity-iot/infra/nodered
+
+ ✓ test/functions.test.mjs > Node-RED · telemetría → line protocol > genera una fila ancha con tags, campos float/string y timestamp en ms 4ms
+ ✓ test/functions.test.mjs > Node-RED · telemetría → line protocol > rechaza suplantación: device_id distinto del tópico 2ms
+ ✓ test/functions.test.mjs > Node-RED · telemetría → line protocol > rechaza timestamps futuros o demasiado antiguos 1ms
+ ✓ test/functions.test.mjs > Node-RED · telemetría → line protocol > acepta datos de IDEAM con días de retraso (≤ 10 días) 1ms
+ ✓ test/functions.test.mjs > Node-RED · telemetría → line protocol > neutraliza intentos de inyección en line protocol 2ms
+ ✓ test/functions.test.mjs > Node-RED · telemetría → line protocol > descarta valores no finitos y mensajes sin variables válidas 1ms
+ ✓ test/functions.test.mjs > Node-RED · estado de conexión > registra el LWT como offline con el motivo 1ms
+ ✓ test/functions.test.mjs > Node-RED · incidentes sintéticos > escribe el evento con tags y campos válidos 1ms
+ ✓ test/functions.test.mjs > Node-RED · incidentes sintéticos > rechaza incidentes no marcados como sintéticos 1ms
+ ✓ test/functions.test.mjs > Node-RED · incidentes sintéticos > descarta solo el evento con números no válidos (no envenena el lote) 1ms
+ ✓ test/functions.test.mjs > Node-RED · incidentes sintéticos > tags vacíos o con saltos de línea no rompen la línea 1ms
+ ✓ test/functions.test.mjs > Node-RED · cola persistente de escritura con reintento > encola, envía por lote y vacía la cola al confirmar InfluxDB (204) 2ms
+ ✓ test/functions.test.mjs > Node-RED · cola persistente de escritura con reintento > si InfluxDB no responde, las líneas vuelven al frente de la cola y se reenvían en orden 2ms
+ ✓ test/functions.test.mjs > Node-RED · cola persistente de escritura con reintento > una petición sin respuesta en 30 s se reintenta sin perder sus líneas 1ms
+ ✓ test/functions.test.mjs > Node-RED · cola persistente de escritura con reintento > un 4xx descarta el lote (datos que nunca serían aceptados) sin bloquear la cola 1ms
+ ✓ test/functions.test.mjs > Node-RED · cola persistente de escritura con reintento > envía como máximo 5000 líneas por petición y limita la cola a 20 000 1911ms
+ ✓ test/functions.test.mjs > Node-RED · regla 1: restricción por calidad del aire > activa con AQI ≥ 150, no repite órdenes y libera con AQI < 100 (histéresis) 2ms
+ ✓ test/functions.test.mjs > Node-RED · regla 1: restricción por calidad del aire > ignora mensajes sin AQI numérico 1ms
+ ✓ test/functions.test.mjs > Node-RED · regla 2: alumbrado adaptativo con lluvia > sube DEV07 al 100 % con lluvia ≥ 1 mm y vuelve al 60 % con < 0,2 mm 1ms
+
+ Test Files  1 passed (1)
+      Tests  19 passed (19)
+   Start at  02:28:09
+   Duration  2.25s (transform 34ms, setup 0ms, import 77ms, tests 1.94s, environment 0ms)
+
+
+## apps/backend — autenticación, alertas, atípicos, ventanas (Node 24, etapa 'test' del Dockerfile) — 2026-11-07T07:54:38Z
+#4 [build  1/12] FROM docker.io/library/node:24-alpine@sha256:a34ab6d7f6f4813f4d0c5469d74685604b962fbdbf5793a7bc7b4998ecb867c8
+#17 1.832  ✓ src/schemas.test.ts (11 tests) 41ms
+#17 1.847  Test Files  1 passed (1)
+#17 1.847       Tests  11 passed (11)
+#17 3.531  ✓ src/backend.test.ts (9 tests) 159ms
+#17 3.547  Test Files  1 passed (1)
+#17 3.547       Tests  9 passed (9)
+
+## npm audit
+found 0 vulnerabilities

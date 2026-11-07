@@ -1,0 +1,387 @@
+[
+  {
+    "id": "tab_persist",
+    "type": "tab",
+    "label": "Persistencia → InfluxDB",
+    "disabled": false,
+    "info": "Valida los mensajes MQTT y los escribe por lotes en el bucket raw de InfluxDB, con reintento ante fallos."
+  },
+  {
+    "id": "tab_rules",
+    "type": "tab",
+    "label": "Automatización",
+    "disabled": false,
+    "info": "Reglas entre dispositivos que envían órdenes MQTT con el mismo contrato que la interfaz web."
+  },
+  {
+    "id": "cfg_broker",
+    "type": "mqtt-broker",
+    "name": "Mosquitto SmartCityBGA",
+    "broker": "mosquitto",
+    "port": "1883",
+    "clientid": "scbga-nodered",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "30",
+    "cleansession": false,
+    "autoUnsubscribe": false,
+    "birthTopic": "",
+    "closeTopic": "",
+    "willTopic": "",
+    "userProps": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "c_persist",
+    "type": "comment",
+    "z": "tab_persist",
+    "name": "Telemetría, estado y eventos → line protocol → cola persistente en disco → lote cada 2 s → /api/v2/write",
+    "info": "",
+    "x": 330,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "in_tel",
+    "type": "mqtt in",
+    "z": "tab_persist",
+    "name": "smartcity/+/telemetry",
+    "topic": "smartcity/+/telemetry",
+    "qos": "1",
+    "datatype": "json",
+    "broker": "cfg_broker",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 150,
+    "y": 100,
+    "wires": [
+      [
+        "f_tel"
+      ]
+    ]
+  },
+  {
+    "id": "in_status",
+    "type": "mqtt in",
+    "z": "tab_persist",
+    "name": "smartcity/+/status",
+    "topic": "smartcity/+/status",
+    "qos": "1",
+    "datatype": "json",
+    "broker": "cfg_broker",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 140,
+    "y": 160,
+    "wires": [
+      [
+        "f_status"
+      ]
+    ]
+  },
+  {
+    "id": "in_events",
+    "type": "mqtt in",
+    "z": "tab_persist",
+    "name": "smartcity/DEV04/events",
+    "topic": "smartcity/DEV04/events",
+    "qos": "1",
+    "datatype": "json",
+    "broker": "cfg_broker",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 160,
+    "y": 220,
+    "wires": [
+      [
+        "f_inc"
+      ]
+    ]
+  },
+  {
+    "id": "f_tel",
+    "type": "function",
+    "z": "tab_persist",
+    "name": "Validar telemetría",
+    "func": "// Utilidades de line protocol de InfluxDB (se insertan al inicio de cada función de persistencia).\n// Un tag vacío o con salto de línea invalida la línea y InfluxDB rechazaría el lote completo (400).\nconst escTag = (v) => String(v == null || v === '' ? 'unknown' : v).replace(/[\\r\\n]+/g, ' ').slice(0, 64).replace(/[,= ]/g, (c) => '\\\\' + c);\n// Un salto de línea separa registros en line protocol: se sustituye por espacio (evita inyección de filas).\nconst escStr = (v) => '\"' + String(v).replace(/[\\r\\n]+/g, ' ').replace(/\\\\/g, '\\\\\\\\').replace(/\"/g, '\\\\\"') + '\"';\nconst isDev = (id) => /^DEV(0[1-9]|10)$/.test(id);\nconst MAX_AGE_MS = 10 * 24 * 3600 * 1000; // IDEAM publica con retraso de hasta varios días\nconst MAX_FUTURE_MS = 5 * 60 * 1000;\nfunction bump(key) {\n    const s = flow.get('stats') || { ok: 0, rejected: 0 };\n    s[key] = (s[key] || 0) + 1;\n    flow.set('stats', s);\n    node.status({ fill: s.rejected ? 'yellow' : 'green', shape: 'dot', text: 'ok ' + s.ok + ' · rechazados ' + s.rejected });\n}\n\n// Valida telemetría y la convierte en una línea `telemetry` (una fila ancha por mensaje).\nconst p = msg.payload;\nconst topicDev = msg.topic.split('/')[1];\nconst reject = (why) => { bump('rejected'); node.warn('Telemetría rechazada (' + topicDev + '): ' + why); return null; };\nif (!p || typeof p !== 'object') return reject('no es JSON');\nif (!isDev(p.device_id) || p.device_id !== topicDev) return reject('device_id no coincide con el tópico');\nconst ts = Date.parse(p.timestamp);\nif (!Number.isFinite(ts)) return reject('timestamp inválido');\nif (ts > Date.now() + MAX_FUTURE_MS || ts < Date.now() - MAX_AGE_MS) return reject('timestamp fuera de rango');\nif (!p.variables || typeof p.variables !== 'object') return reject('sin variables');\nconst fields = [];\nfor (const [k, obj] of Object.entries(p.variables)) {\n    if (!/^[a-z0-9_]{1,40}$/.test(k) || !obj) continue;\n    const v = obj.value;\n    // Los numéricos se guardan siempre como float para que la agregación los trate igual.\n    if (typeof v === 'number' && Number.isFinite(v)) fields.push(k + '=' + (Number.isInteger(v) ? v + '.0' : v));\n    else if (typeof v === 'string') fields.push(k + '=' + escStr(v.slice(0, 64)));\n    else if (typeof v === 'boolean') fields.push(k + '=' + v);\n}\nif (fields.length === 0) return reject('sin variables válidas');\nif (Number.isInteger(p.seq)) fields.push('seq=' + p.seq + 'i');\nconst synthetic = !!(p.provenance && p.provenance.synthetic === true);\nconst src = ['simulated', 'digital_twin', 'api', 'dataset'].includes(p.source_type) ? p.source_type : 'unknown';\nbump('ok');\nmsg.payload = 'telemetry,device_id=' + escTag(p.device_id) + ',source_type=' + src + ',synthetic=' + synthetic + ' ' + fields.join(',') + ' ' + ts;\nreturn msg;\n",
+    "outputs": 1,
+    "timeout": 5,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 100,
+    "wires": [
+      [
+        "enq"
+      ]
+    ]
+  },
+  {
+    "id": "f_status",
+    "type": "function",
+    "z": "tab_persist",
+    "name": "Estado de conexión",
+    "func": "// Utilidades de line protocol de InfluxDB (se insertan al inicio de cada función de persistencia).\n// Un tag vacío o con salto de línea invalida la línea y InfluxDB rechazaría el lote completo (400).\nconst escTag = (v) => String(v == null || v === '' ? 'unknown' : v).replace(/[\\r\\n]+/g, ' ').slice(0, 64).replace(/[,= ]/g, (c) => '\\\\' + c);\n// Un salto de línea separa registros en line protocol: se sustituye por espacio (evita inyección de filas).\nconst escStr = (v) => '\"' + String(v).replace(/[\\r\\n]+/g, ' ').replace(/\\\\/g, '\\\\\\\\').replace(/\"/g, '\\\\\"') + '\"';\nconst isDev = (id) => /^DEV(0[1-9]|10)$/.test(id);\nconst MAX_AGE_MS = 10 * 24 * 3600 * 1000; // IDEAM publica con retraso de hasta varios días\nconst MAX_FUTURE_MS = 5 * 60 * 1000;\nfunction bump(key) {\n    const s = flow.get('stats') || { ok: 0, rejected: 0 };\n    s[key] = (s[key] || 0) + 1;\n    flow.set('stats', s);\n    node.status({ fill: s.rejected ? 'yellow' : 'green', shape: 'dot', text: 'ok ' + s.ok + ' · rechazados ' + s.rejected });\n}\n\n// Historial de conexión (para disponibilidad). Se usa la hora de recepción: el LWT lleva la hora de conexión.\nconst p = msg.payload;\nconst topicDev = msg.topic.split('/')[1];\nif (!p || !isDev(p.device_id) || p.device_id !== topicDev) { bump('rejected'); return null; }\nconst conn = p.connection === 'online' ? 'online' : 'offline';\nconst state = ['running', 'stopped', 'degraded', 'error'].includes(p.state) ? p.state : 'unknown';\nconst fields = ['online=' + (conn === 'online' ? '1.0' : '0.0')];\nif (typeof p.reason === 'string') fields.push('reason=' + escStr(p.reason.slice(0, 200)));\nbump('ok');\nmsg.payload = 'device_status,device_id=' + p.device_id + ',connection=' + conn + ',state=' + state + ' ' + fields.join(',') + ' ' + Date.now();\nreturn msg;\n",
+    "outputs": 1,
+    "timeout": 5,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 160,
+    "wires": [
+      [
+        "enq"
+      ]
+    ]
+  },
+  {
+    "id": "f_inc",
+    "type": "function",
+    "z": "tab_persist",
+    "name": "Incidentes sintéticos",
+    "func": "// Utilidades de line protocol de InfluxDB (se insertan al inicio de cada función de persistencia).\n// Un tag vacío o con salto de línea invalida la línea y InfluxDB rechazaría el lote completo (400).\nconst escTag = (v) => String(v == null || v === '' ? 'unknown' : v).replace(/[\\r\\n]+/g, ' ').slice(0, 64).replace(/[,= ]/g, (c) => '\\\\' + c);\n// Un salto de línea separa registros en line protocol: se sustituye por espacio (evita inyección de filas).\nconst escStr = (v) => '\"' + String(v).replace(/[\\r\\n]+/g, ' ').replace(/\\\\/g, '\\\\\\\\').replace(/\"/g, '\\\\\"') + '\"';\nconst isDev = (id) => /^DEV(0[1-9]|10)$/.test(id);\nconst MAX_AGE_MS = 10 * 24 * 3600 * 1000; // IDEAM publica con retraso de hasta varios días\nconst MAX_FUTURE_MS = 5 * 60 * 1000;\nfunction bump(key) {\n    const s = flow.get('stats') || { ok: 0, rejected: 0 };\n    s[key] = (s[key] || 0) + 1;\n    flow.set('stats', s);\n    node.status({ fill: s.rejected ? 'yellow' : 'green', shape: 'dot', text: 'ok ' + s.ok + ' · rechazados ' + s.rejected });\n}\n\n// Eventos de incidentes SINTÉTICOS de DEV04. Solo se aceptan si vienen marcados como sintéticos.\nconst p = msg.payload;\nconst i = p && p.incident;\nif (!i || p.device_id !== 'DEV04' || i.synthetic !== true || !/^SIM-INC-[A-Z0-9-]+$/.test(i.incident_id)) { bump('rejected'); return null; }\nconst ts = Date.parse(p.timestamp);\nif (!Number.isFinite(ts)) { bump('rejected'); return null; }\n// Un número no finito (NaN) haría que InfluxDB rechazara el lote entero: se descarta solo este evento.\nconst nums = [i.location && i.location.lat, i.location && i.location.lon, i.speed_impact, i.lanes_blocked].map(Number);\nif (!nums.every(Number.isFinite)) { bump('rejected'); node.warn('Incidente descartado: coordenadas o métricas no numéricas'); return null; }\nconst tags = [\n    'event=' + escTag(p.event), 'type=' + escTag(i.type), 'severity=' + escTag(i.severity),\n    'state=' + escTag(i.state), 'road_class=' + escTag(i.road_class), 'test=' + (i.test === true), 'synthetic=true',\n].join(',');\nconst fields = [\n    'incident_id=' + escStr(i.incident_id), 'road_name=' + escStr(i.road_name), 'segment_id=' + escStr(i.segment_id),\n    'lat=' + nums[0], 'lon=' + nums[1], 'speed_impact=' + nums[2], 'lanes_blocked=' + Math.trunc(nums[3]) + '.0',\n].join(',');\nbump('ok');\nmsg.payload = 'incident_events,' + tags + ' ' + fields + ' ' + ts;\nreturn msg;\n",
+    "outputs": 1,
+    "timeout": 5,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 220,
+    "wires": [
+      [
+        "enq"
+      ]
+    ]
+  },
+  {
+    "id": "enq",
+    "type": "function",
+    "z": "tab_persist",
+    "name": "Cola persistente",
+    "func": "// Encola una línea validada en la cola persistente del flujo (contexto en disco, sobrevive a reinicios).\n// Un temporizador la envía por lotes a InfluxDB. Tope de 20 000 líneas: si se supera se descartan las más antiguas.\nconst MAX_PENDING = 20000;\nif (!msg.payload) return null;\nconst pending = flow.get('pending') || [];\npending.push(msg.payload);\nif (pending.length > MAX_PENDING) pending.splice(0, pending.length - MAX_PENDING);\nflow.set('pending', pending);\nreturn null;\n",
+    "outputs": 0,
+    "timeout": 5,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 610,
+    "y": 160,
+    "wires": []
+  },
+  {
+    "id": "tick",
+    "type": "inject",
+    "z": "tab_persist",
+    "name": "cada 2 s",
+    "props": [],
+    "repeat": "2",
+    "crontab": "",
+    "once": true,
+    "onceDelay": "3",
+    "topic": "",
+    "x": 610,
+    "y": 240,
+    "wires": [
+      [
+        "f_req"
+      ]
+    ]
+  },
+  {
+    "id": "f_req",
+    "type": "function",
+    "z": "tab_persist",
+    "name": "Petición de escritura",
+    "func": "// Cada 2 s: toma hasta 5000 líneas de la cola persistente y arma la petición de escritura.\n// Solo una petición en vuelo a la vez; si no hay respuesta en 30 s se considera perdida y se reintenta.\nconst BATCH = 5000;\nconst inflight = flow.get('inflight');\nif (inflight && Date.now() - inflight.at < 30000) return null;\nlet pending = flow.get('pending') || [];\nif (inflight) pending = inflight.lines.concat(pending); // la petición anterior no respondió: se reintenta\nif (pending.length === 0) { flow.set('inflight', null); return null; }\nconst lines = pending.slice(0, BATCH);\nflow.set('pending', pending.slice(BATCH));\nflow.set('inflight', { at: Date.now(), lines: lines });\nmsg.lines = lines;\nmsg.url = env.get('INFLUX_URL') + '/api/v2/write?org=' + encodeURIComponent(env.get('INFLUX_ORG')) +\n    '&bucket=' + encodeURIComponent(env.get('INFLUX_BUCKET_RAW')) + '&precision=ms';\nmsg.method = 'POST';\nmsg.headers = { Authorization: 'Token ' + env.get('INFLUX_WRITE_TOKEN'), 'Content-Type': 'text/plain; charset=utf-8' };\nmsg.payload = lines.join('\\n');\nreturn msg;\n",
+    "outputs": 1,
+    "timeout": 5,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 790,
+    "y": 160,
+    "wires": [
+      [
+        "http"
+      ]
+    ]
+  },
+  {
+    "id": "http",
+    "type": "http request",
+    "z": "tab_persist",
+    "name": "InfluxDB write",
+    "method": "use",
+    "ret": "txt",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": true,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 990,
+    "y": 160,
+    "wires": [
+      [
+        "f_resp"
+      ]
+    ]
+  },
+  {
+    "id": "f_resp",
+    "type": "function",
+    "z": "tab_persist",
+    "name": "Verificar / reencolar",
+    "func": "// 204 = escrito. Ante error de red o 5xx las líneas vuelven al frente de la cola persistente (máx. 20 000).\n// Un 4xx indica datos que InfluxDB nunca aceptará: se registran y se descartan para no bloquear la cola.\nconst MAX_PENDING = 20000;\nflow.set('inflight', null);\nconst lines = msg.lines || [];\nif (msg.statusCode === 204) {\n    const total = (flow.get('written') || 0) + lines.length;\n    flow.set('written', total);\n    node.status({ fill: 'green', shape: 'dot', text: 'escritas ' + total + ' · pendientes ' + (flow.get('pending') || []).length });\n    return null;\n}\nif (msg.statusCode >= 400 && msg.statusCode < 500) {\n    node.error('InfluxDB rechazó el lote (' + msg.statusCode + '): ' + String(msg.payload).slice(0, 300));\n    node.status({ fill: 'red', shape: 'ring', text: 'rechazado ' + msg.statusCode });\n    return null;\n}\nconst pending = lines.concat(flow.get('pending') || []);\nflow.set('pending', pending.slice(-MAX_PENDING));\nconst why = msg.statusCode || (msg.error && (msg.error.code || msg.error.message)) || msg.error;\nnode.status({ fill: 'yellow', shape: 'ring', text: 'reintento · pendientes ' + pending.length });\nnode.warn('InfluxDB no disponible (' + why + '); ' + lines.length + ' líneas reencoladas');\nreturn null;\n",
+    "outputs": 1,
+    "timeout": 5,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1190,
+    "y": 160,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "catch",
+    "type": "catch",
+    "z": "tab_persist",
+    "name": "Errores de red",
+    "scope": [
+      "http"
+    ],
+    "uncaught": false,
+    "x": 990,
+    "y": 220,
+    "wires": [
+      [
+        "f_resp"
+      ]
+    ]
+  },
+  {
+    "id": "c_rules",
+    "type": "comment",
+    "z": "tab_rules",
+    "name": "Reglas con histéresis: solo envían una orden al cruzar el umbral",
+    "info": "",
+    "x": 280,
+    "y": 40,
+    "wires": []
+  },
+  {
+    "id": "in_aq",
+    "type": "mqtt in",
+    "z": "tab_rules",
+    "name": "DEV02 calidad del aire",
+    "topic": "smartcity/DEV02/telemetry",
+    "qos": "1",
+    "datatype": "json",
+    "broker": "cfg_broker",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 160,
+    "y": 100,
+    "wires": [
+      [
+        "r_air"
+      ]
+    ]
+  },
+  {
+    "id": "r_air",
+    "type": "function",
+    "z": "tab_rules",
+    "name": "Restricción por calidad del aire → DEV05",
+    "func": "// Construye una orden válida según el contrato MQTT (command_id UUID v4 + issued_at).\nfunction uuid4() {\n    const h = [];\n    for (let i = 0; i < 32; i++) h.push(Math.floor(Math.random() * 16).toString(16));\n    h[12] = '4';\n    h[16] = (8 + Math.floor(Math.random() * 4)).toString(16);\n    const s = h.join('');\n    return s.slice(0, 8) + '-' + s.slice(8, 12) + '-' + s.slice(12, 16) + '-' + s.slice(16, 20) + '-' + s.slice(20);\n}\nfunction command(device, action, params, rule) {\n    return {\n        topic: 'smartcity/' + device + '/control',\n        qos: 1,\n        payload: { command_id: uuid4(), action: action, params: params, issued_at: new Date().toISOString(), issued_by: 'nodered:' + rule },\n    };\n}\n\n// REGLA 1 — Restricción vehicular por calidad del aire.\n// Si el AQI de DEV02 llega a 150 (dañino) se reduce la demanda de tráfico simulada en DEV05 (medida tipo\n// \"pico y placa ambiental\"). Se restablece cuando el AQI baja de 100. Actúa solo en transiciones (histéresis).\nconst v = msg.payload && msg.payload.variables;\nconst aqi = v && v.us_aqi && v.us_aqi.value;\nif (typeof aqi !== 'number') return null;\nconst active = flow.get('air_restriction') === true;\nif (!active && aqi >= 150) {\n    flow.set('air_restriction', true);\n    node.status({ fill: 'red', shape: 'dot', text: 'restricción activa (AQI ' + aqi + ')' });\n    return command('DEV05', 'set_params', { demand_factor: 0.7 }, 'restriccion_aire');\n}\nif (active && aqi < 100) {\n    flow.set('air_restriction', false);\n    node.status({ fill: 'green', shape: 'dot', text: 'normal (AQI ' + aqi + ')' });\n    return command('DEV05', 'set_params', { demand_factor: 1 }, 'restriccion_aire');\n}\nnode.status({ fill: active ? 'red' : 'green', shape: 'ring', text: 'AQI ' + aqi });\nreturn null;\n",
+    "outputs": 1,
+    "timeout": 5,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 440,
+    "y": 100,
+    "wires": [
+      [
+        "out_ctl"
+      ]
+    ]
+  },
+  {
+    "id": "in_wx",
+    "type": "mqtt in",
+    "z": "tab_rules",
+    "name": "DEV10 meteorología",
+    "topic": "smartcity/DEV10/telemetry",
+    "qos": "1",
+    "datatype": "json",
+    "broker": "cfg_broker",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 150,
+    "y": 180,
+    "wires": [
+      [
+        "r_rain"
+      ]
+    ]
+  },
+  {
+    "id": "r_rain",
+    "type": "function",
+    "z": "tab_rules",
+    "name": "Alumbrado adaptativo con lluvia → DEV07",
+    "func": "// Construye una orden válida según el contrato MQTT (command_id UUID v4 + issued_at).\nfunction uuid4() {\n    const h = [];\n    for (let i = 0; i < 32; i++) h.push(Math.floor(Math.random() * 16).toString(16));\n    h[12] = '4';\n    h[16] = (8 + Math.floor(Math.random() * 4)).toString(16);\n    const s = h.join('');\n    return s.slice(0, 8) + '-' + s.slice(8, 12) + '-' + s.slice(12, 16) + '-' + s.slice(16, 20) + '-' + s.slice(20);\n}\nfunction command(device, action, params, rule) {\n    return {\n        topic: 'smartcity/' + device + '/control',\n        qos: 1,\n        payload: { command_id: uuid4(), action: action, params: params, issued_at: new Date().toISOString(), issued_by: 'nodered:' + rule },\n    };\n}\n\n// REGLA 2 — Alumbrado adaptativo con lluvia.\n// Con lluvia (≥ 1 mm en 15 min según DEV10) se anula la atenuación nocturna de DEV07 (100 %) para mejorar\n// la visibilidad; se restablece al 60 % cuando la lluvia cesa (< 0.2 mm). Actúa solo en transiciones.\nconst v = msg.payload && msg.payload.variables;\nconst rain = v && v.precipitation && v.precipitation.value;\nif (typeof rain !== 'number') return null;\nconst active = flow.get('rain_lighting') === true;\nif (!active && rain >= 1) {\n    flow.set('rain_lighting', true);\n    node.status({ fill: 'blue', shape: 'dot', text: 'lluvia ' + rain + ' mm → 100 %' });\n    return command('DEV07', 'set_params', { night_dim_pct: 100 }, 'alumbrado_lluvia');\n}\nif (active && rain < 0.2) {\n    flow.set('rain_lighting', false);\n    node.status({ fill: 'green', shape: 'dot', text: 'sin lluvia → 60 %' });\n    return command('DEV07', 'set_params', { night_dim_pct: 60 }, 'alumbrado_lluvia');\n}\nnode.status({ fill: active ? 'blue' : 'grey', shape: 'ring', text: 'lluvia ' + rain + ' mm' });\nreturn null;\n",
+    "outputs": 1,
+    "timeout": 5,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 440,
+    "y": 180,
+    "wires": [
+      [
+        "out_ctl"
+      ]
+    ]
+  },
+  {
+    "id": "out_ctl",
+    "type": "mqtt out",
+    "z": "tab_rules",
+    "name": "Orden MQTT",
+    "topic": "",
+    "qos": "1",
+    "retain": "false",
+    "broker": "cfg_broker",
+    "x": 720,
+    "y": 140,
+    "wires": []
+  }
+]

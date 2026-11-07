@@ -1,0 +1,17 @@
+# Datasource InfluxDB (Flux) con token de SOLO LECTURA tomado del entorno.
+apiVersion: 1
+datasources:
+  - name: InfluxDB SmartCityBGA
+    uid: influx-scbga
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    isDefault: true
+    editable: false
+    jsonData:
+      version: Flux
+      organization: ${INFLUX_ORG}
+      defaultBucket: raw
+      tlsSkipVerify: false
+    secureJsonData:
+      token: ${INFLUX_READ_TOKEN}

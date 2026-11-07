@@ -1,0 +1,28 @@
+{
+  "name": "smartcitybga",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Smart City Bucaramanga — plataforma IoT académica",
+  "type": "module",
+  "workspaces": [
+    "packages/shared",
+    "apps/devices",
+    "apps/backend",
+    "apps/frontend"
+  ],
+  "scripts": {
+    "build": "npm run build -w @scbga/shared && npm run build -w @scbga/devices -w @scbga/backend -w @scbga/frontend",
+    "build:shared": "npm run build -w @scbga/shared",
+    "test": "npm run build:shared && npm test --workspaces --if-present",
+    "typecheck": "npm run build:shared && npm run typecheck --workspaces --if-present",
+    "dev:devices": "npm run dev -w @scbga/devices",
+    "dev:backend": "npm run dev -w @scbga/backend",
+    "dev:frontend": "npm run dev -w @scbga/frontend",
+    "test:nodered": "vitest run --root infra/nodered",
+    "test:integration": "node tests/integration/run.mjs",
+    "test:integration:safe": "node tests/integration/run.mjs --safe"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

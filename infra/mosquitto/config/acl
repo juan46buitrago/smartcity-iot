@@ -1,0 +1,25 @@
+# ACL de SmartCityBGA — mínimo privilegio.
+# Los dispositivos se autentican con usuario = su ID (DEV01…DEV10); %u se sustituye por el usuario.
+
+# --- Cada dispositivo solo escribe en sus propios canales y solo lee sus órdenes ---
+pattern write smartcity/%u/telemetry
+pattern write smartcity/%u/status
+pattern write smartcity/%u/config
+pattern write smartcity/%u/ack
+pattern write smartcity/%u/events
+pattern read smartcity/%u/control
+
+# --- DEV04 usa la lluvia de DEV10 para modular la probabilidad de incidentes ---
+user DEV04
+topic read smartcity/DEV10/telemetry
+
+# --- Backend: lee todo el sistema y emite órdenes ---
+user backend
+topic read smartcity/#
+topic read $SYS/broker/uptime
+topic write smartcity/+/control
+
+# --- Node-RED: persistencia y reglas de automatización ---
+user nodered
+topic read smartcity/#
+topic write smartcity/+/control

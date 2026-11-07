@@ -1,0 +1,52 @@
+# Nginx — producción con HTTPS (Let's Encrypt). ${PUBLIC_DOMAIN} lo sustituye 40-scbga-tls.sh al arrancar.
+include /etc/nginx/snippets/http-common.conf;
+
+# HTTP: solo desafíos ACME (renovación) y redirección permanente a HTTPS.
+server {
+  listen 80;
+  server_name ${PUBLIC_DOMAIN};
+  server_tokens off;
+
+  location /.well-known/acme-challenge/ {
+    root /var/www/certbot;
+  }
+  location = /healthz {
+    access_log off;
+    default_type text/plain;
+    return 200 "ok\n";
+  }
+  location / {
+    return 301 https://${PUBLIC_DOMAIN}$request_uri;
+  }
+}
+
+# Cualquier otro nombre o acceso directo por IP: se cierra la conexión.
+server {
+  listen 80 default_server;
+  server_name _;
+  server_tokens off;
+  location = /healthz {
+    access_log off;
+    default_type text/plain;
+    return 200 "ok\n";
+  }
+  location / {
+    return 444;
+  }
+}
+
+server {
+  listen 443 ssl;
+  http2 on;
+  server_name ${PUBLIC_DOMAIN};
+
+  ssl_certificate     /etc/letsencrypt/live/${PUBLIC_DOMAIN}/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/${PUBLIC_DOMAIN}/privkey.pem;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers off;
+  ssl_session_cache shared:SSL:5m;
+  ssl_session_timeout 1d;
+  ssl_session_tickets off;
+
+  include /etc/nginx/snippets/app.conf;
+}

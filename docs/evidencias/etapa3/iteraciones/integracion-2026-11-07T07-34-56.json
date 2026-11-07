@@ -1,0 +1,371 @@
+{
+  "proyecto": "SmartCityBGA",
+  "etapa": 3,
+  "tipo": "integración",
+  "inicio": "2026-11-07T07:34:56.781Z",
+  "fin": "2026-11-07T07:35:00.226Z",
+  "entorno": "docker compose local (Windows 11, Docker Desktop)",
+  "resumen": {
+    "pasan": 10,
+    "fallan": 20,
+    "omitidas": 0
+  },
+  "recursos_al_final": [
+    "smartcitybga-web-1\t13.34MiB / 64MiB\t0.00%",
+    "smartcitybga-nodered-1\t55MiB / 256MiB\t0.04%",
+    "smartcitybga-backend-1\t44.57MiB / 256MiB\t0.06%",
+    "smartcitybga-devices-1\t38.44MiB / 192MiB\t0.00%",
+    "smartcitybga-grafana-1\t59.11MiB / 256MiB\t0.70%",
+    "smartcitybga-mosquitto-1\t1.305MiB / 64MiB\t0.05%",
+    "smartcitybga-influxdb-1\t69.23MiB / 1.5GiB\t0.42%"
+  ],
+  "pruebas": [
+    {
+      "id": "INF-01",
+      "area": "Infraestructura",
+      "nombre": "Los 7 servicios están en ejecución y los que tienen healthcheck están sanos",
+      "resultado": "PASA",
+      "duracion_s": 0.3,
+      "evidencia": [
+        {
+          "servicio": "backend",
+          "estado": "running",
+          "salud": "healthy"
+        },
+        {
+          "servicio": "devices",
+          "estado": "running",
+          "salud": "(sin healthcheck)"
+        },
+        {
+          "servicio": "grafana",
+          "estado": "running",
+          "salud": "healthy"
+        },
+        {
+          "servicio": "influxdb",
+          "estado": "running",
+          "salud": "healthy"
+        },
+        {
+          "servicio": "mosquitto",
+          "estado": "running",
+          "salud": "healthy"
+        },
+        {
+          "servicio": "nodered",
+          "estado": "running",
+          "salud": "healthy"
+        },
+        {
+          "servicio": "web",
+          "estado": "running",
+          "salud": "healthy"
+        }
+      ]
+    },
+    {
+      "id": "INF-02",
+      "area": "Infraestructura",
+      "nombre": "/api/health informa MQTT, InfluxDB y SQLite operativos",
+      "resultado": "PASA",
+      "duracion_s": 0.1,
+      "evidencia": {
+        "status": 200,
+        "body": {
+          "status": "ok",
+          "mqtt": true,
+          "influxdb": true,
+          "sqlite": true,
+          "uptime_s": 50,
+          "mqtt_messages": {
+            "received": 46,
+            "rejected": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "SEC-01",
+      "area": "Seguridad",
+      "nombre": "En local todos los puertos publicados están ligados solo a 127.0.0.1",
+      "resultado": "PASA",
+      "duracion_s": 0.3,
+      "evidencia": [
+        {
+          "servicio": "backend",
+          "ip": "127.0.0.1",
+          "puerto": 3100,
+          "destino": 3000
+        },
+        {
+          "servicio": "influxdb",
+          "ip": "127.0.0.1",
+          "puerto": 8086,
+          "destino": 8086
+        },
+        {
+          "servicio": "mosquitto",
+          "ip": "127.0.0.1",
+          "puerto": 1883,
+          "destino": 1883
+        },
+        {
+          "servicio": "web",
+          "ip": "127.0.0.1",
+          "puerto": 8380,
+          "destino": 80
+        }
+      ]
+    },
+    {
+      "id": "SEC-02",
+      "area": "Seguridad",
+      "nombre": "En la configuración de producción (sin override) solo nginx publica puertos",
+      "resultado": "PASA",
+      "duracion_s": 0.2,
+      "evidencia": {
+        "servicios con puertos publicados en docker-compose.yml": "ninguno",
+        "nota": "Los puertos 80/443 de nginx se añadirán en la Etapa 4 (override de producción); MQTT, InfluxDB, Node-RED, Grafana y backend quedan solo en la red interna."
+      }
+    },
+    {
+      "id": "SEC-03",
+      "area": "Seguridad",
+      "nombre": "Nginx envía cabeceras de seguridad (CSP, anti-clickjacking, nosniff, referrer)",
+      "resultado": "PASA",
+      "duracion_s": 0,
+      "evidencia": {
+        "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org; font-src 'self'; connect-src 'self' ws: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        "x-frame-options": "DENY",
+        "x-content-type-options": "nosniff",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "permissions-policy": null,
+        "server": "nginx"
+      }
+    },
+    {
+      "id": "SEC-04",
+      "area": "Seguridad",
+      "nombre": "Node-RED, Grafana e InfluxDB rechazan peticiones sin credenciales",
+      "resultado": "PASA",
+      "duracion_s": 0,
+      "evidencia": {
+        "GET /nodered/flows": 401,
+        "GET /grafana/api/search": 401,
+        "GET influxdb /api/v2/buckets": 401
+      }
+    },
+    {
+      "id": "SEC-05",
+      "area": "Seguridad",
+      "nombre": "El token de lectura de InfluxDB no puede escribir (mínimo privilegio)",
+      "resultado": "PASA",
+      "duracion_s": 0,
+      "evidencia": {
+        "POST /api/v2/write con token de lectura": 403
+      }
+    },
+    {
+      "id": "SEC-06",
+      "area": "Seguridad",
+      "nombre": "Archivos con secretos ignorados por Git y ningún secreto en archivos versionables",
+      "resultado": "PASA",
+      "duracion_s": 0.1,
+      "evidencia": {
+        "ignorados": [
+          ".env",
+          ".local-credentials.txt"
+        ],
+        "archivos_revisados": 140,
+        "secretos_encontrados": 0,
+        "coleccion_postman_versionada": false
+      }
+    },
+    {
+      "id": "API-01",
+      "area": "API",
+      "nombre": "Login: credenciales incorrectas → 401; correctas → JWT",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "API-02",
+      "area": "API",
+      "nombre": "Endpoints de control protegidos: sin token, token falso o token alterado → 401",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "API-03",
+      "area": "API",
+      "nombre": "Validación de entradas: acción, parámetros, rango, dispositivo y variable",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "API-04",
+      "area": "API",
+      "nombre": "Histórico y estadísticas devuelven datos reales almacenados",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "MQTT-01",
+      "area": "MQTT",
+      "nombre": "El broker rechaza conexiones anónimas y contraseñas incorrectas",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "MQTT-02",
+      "area": "MQTT",
+      "nombre": "ACL: un dispositivo no puede escribir en tópicos de otro ni enviarse órdenes",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "MQTT-03",
+      "area": "MQTT",
+      "nombre": "ACL: un dispositivo no puede leer la telemetría ni las órdenes de otros",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "CTL-01",
+      "area": "Control",
+      "nombre": "Orden → ack → config retenida en los 10 dispositivos (vía API)",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "CTL-02",
+      "area": "Control",
+      "nombre": "Apagar/encender DEV03 detiene y reanuda realmente la telemetría",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "CTL-03",
+      "area": "Control",
+      "nombre": "El dispositivo rechaza órdenes caducadas (> 60 s) y con parámetros inválidos",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "CTL-04",
+      "area": "Control",
+      "nombre": "Idempotencia: la misma orden entregada dos veces se aplica una sola vez",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "CTL-05",
+      "area": "Control",
+      "nombre": "Mensajes malformados en /control se descartan sin tumbar el dispositivo",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "PER-01",
+      "area": "Persistencia",
+      "nombre": "La telemetría publicada en MQTT llega a InfluxDB con el mismo timestamp y valor",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "LWT-01",
+      "area": "LWT",
+      "nombre": "Corte de red: LWT de los 10, órdenes bloqueadas y sin pérdida de lecturas (almacenar y reenviar)",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "LWT-02",
+      "area": "LWT",
+      "nombre": "Caída abrupta del proceso (SIGKILL): LWT inmediato y la configuración sobrevive al reinicio",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "PER-02",
+      "area": "Persistencia",
+      "nombre": "Reinicio de InfluxDB: no se pierde histórico y la cola de Node-RED reintenta sin huecos",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "PER-03",
+      "area": "Persistencia",
+      "nombre": "Reinicio de Node-RED: la sesión persistente MQTT entrega lo publicado mientras estaba caído",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "PER-06",
+      "area": "Persistencia",
+      "nombre": "Caída de InfluxDB de 60 s con reinicio de Node-RED en medio: la cola persistente no pierde datos",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "PER-04",
+      "area": "Persistencia",
+      "nombre": "Reinicio del broker: mensajes retenidos persisten y todos se reconectan",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "PER-05",
+      "area": "Persistencia",
+      "nombre": "Reinicio del backend: órdenes y alertas en SQLite se conservan",
+      "resultado": "FALLA",
+      "duracion_s": 0,
+      "error": "login 429"
+    },
+    {
+      "id": "SEC-08",
+      "area": "Seguridad",
+      "nombre": "Límite de órdenes: más de 30 por minuto por cliente → 429 con Retry-After",
+      "resultado": "PASA",
+      "duracion_s": 0.1,
+      "evidencia": {
+        "peticiones": 35,
+        "rechazadas por validación (400)": 0,
+        "limitadas (429)": 35,
+        "Retry-After (s)": "16",
+        "reintentos por 429 en el resto de la batería": 0
+      }
+    },
+    {
+      "id": "SEC-07",
+      "area": "Seguridad",
+      "nombre": "Límite de intentos de login: el 6.º intento en un minuto → 429",
+      "resultado": "PASA",
+      "duracion_s": 0,
+      "evidencia": {
+        "códigos de 7 intentos seguidos": "429, 429, 429, 429, 429, 429, 429",
+        "nota": "incluye el intento de API-01 en el mismo minuto si coincide"
+      }
+    }
+  ]
+}

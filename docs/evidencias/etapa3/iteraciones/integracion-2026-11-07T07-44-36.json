@@ -1,0 +1,32 @@
+{
+  "proyecto": "SmartCityBGA",
+  "etapa": 3,
+  "tipo": "integración",
+  "inicio": "2026-11-07T07:44:36.153Z",
+  "fin": "2026-11-07T07:44:38.756Z",
+  "entorno": "docker compose local (Windows 11, Docker Desktop)",
+  "resumen": {
+    "pasan": 0,
+    "fallan": 1,
+    "omitidas": 0
+  },
+  "recursos_al_final": [
+    "smartcitybga-web-1\t13.35MiB / 64MiB\t0.00%",
+    "smartcitybga-nodered-1\t55.27MiB / 256MiB\t0.00%",
+    "smartcitybga-backend-1\t44.58MiB / 256MiB\t0.01%",
+    "smartcitybga-devices-1\t38.7MiB / 192MiB\t0.00%",
+    "smartcitybga-grafana-1\t58.64MiB / 256MiB\t0.18%",
+    "smartcitybga-mosquitto-1\t1.297MiB / 64MiB\t0.05%",
+    "smartcitybga-influxdb-1\t73.79MiB / 1.5GiB\t0.06%"
+  ],
+  "pruebas": [
+    {
+      "id": "SEC-09",
+      "area": "Seguridad",
+      "nombre": "Falsificar X-Forwarded-For no permite esquivar el límite de intentos de login",
+      "resultado": "FALLA",
+      "duracion_s": 0.4,
+      "error": "el límite se esquivó cambiando X-Forwarded-For"
+    }
+  ]
+}

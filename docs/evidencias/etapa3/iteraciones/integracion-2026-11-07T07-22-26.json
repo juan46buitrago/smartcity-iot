@@ -1,0 +1,95 @@
+{
+  "proyecto": "SmartCityBGA",
+  "etapa": 3,
+  "tipo": "integración",
+  "inicio": "2026-11-07T07:22:26.636Z",
+  "fin": "2026-11-07T07:25:40.363Z",
+  "entorno": "docker compose local (Windows 11, Docker Desktop)",
+  "resumen": {
+    "pasan": 4,
+    "fallan": 0,
+    "omitidas": 0
+  },
+  "recursos_al_final": [
+    "smartcitybga-web-1\t13.2MiB / 64MiB\t0.02%",
+    "smartcitybga-nodered-1\t54.01MiB / 256MiB\t0.13%",
+    "smartcitybga-backend-1\t45.65MiB / 256MiB\t0.00%",
+    "smartcitybga-devices-1\t39.36MiB / 192MiB\t0.00%",
+    "smartcitybga-grafana-1\t58.55MiB / 256MiB\t0.19%",
+    "smartcitybga-mosquitto-1\t1.309MiB / 64MiB\t0.05%",
+    "smartcitybga-influxdb-1\t71.41MiB / 1.5GiB\t0.07%"
+  ],
+  "pruebas": [
+    {
+      "id": "PER-01",
+      "area": "Persistencia",
+      "nombre": "La telemetría publicada en MQTT llega a InfluxDB con el mismo timestamp y valor",
+      "resultado": "PASA",
+      "duracion_s": 9.5,
+      "evidencia": {
+        "timestamp MQTT": "2026-11-07T02:22:34.896-05:00",
+        "valor MQTT": 50.5,
+        "timestamp InfluxDB": "2026-11-07T07:22:34.896Z",
+        "valor InfluxDB": 50.5,
+        "etiqueta synthetic": "true",
+        "latencia hasta consultar (s)": "1.3"
+      }
+    },
+    {
+      "id": "LWT-01",
+      "area": "LWT",
+      "nombre": "Corte de red: LWT de los 10, órdenes bloqueadas y sin pérdida de lecturas (almacenar y reenviar)",
+      "resultado": "PASA",
+      "duracion_s": 68.5,
+      "evidencia": {
+        "LWT recibidos": 10,
+        "tiempo hasta el último LWT (s)": "46.6",
+        "esperado (1,5 × keepalive 30 s)": "≤ 45 s + ciclo de revisión del broker",
+        "ejemplo de LWT": {
+          "device_id": "DEV01",
+          "timestamp": "2026-11-07T07:17:04.835Z",
+          "connection": "offline",
+          "reason": "conexión perdida (LWT)",
+          "firmware": "scbga-vdev/1.0"
+        },
+        "orden a DEV03 desconectado": "409 DEV03 está desconectado; la orden no se envió",
+        "tiempo hasta 10/10 en línea (s)": "5.1",
+        "duración del corte (s)": "46.9",
+        "lecturas DEV03 tomadas durante el corte y guardadas en InfluxDB": "4 (esperadas ≈ 4)",
+        "hueco máximo DEV03 (s)": "10.0"
+      }
+    },
+    {
+      "id": "PER-02",
+      "area": "Persistencia",
+      "nombre": "Reinicio de InfluxDB: no se pierde histórico y la cola de Node-RED reintenta sin huecos",
+      "resultado": "PASA",
+      "duracion_s": 56.9,
+      "evidencia": {
+        "servicio": "InfluxDB",
+        "reinicio hasta sano (s)": "6.8",
+        "salud": "healthy",
+        "puntos DEV03 en ventana": 5,
+        "puntos durante el reinicio": 1,
+        "hueco máximo DEV03 (s)": "10.0",
+        "puntos DEV03 últimas 24 h antes": 950,
+        "después": 956
+      }
+    },
+    {
+      "id": "PER-03",
+      "area": "Persistencia",
+      "nombre": "Reinicio de Node-RED: la sesión persistente MQTT entrega lo publicado mientras estaba caído",
+      "resultado": "PASA",
+      "duracion_s": 56.6,
+      "evidencia": {
+        "servicio": "Node-RED",
+        "reinicio hasta sano (s)": "6.6",
+        "salud": "healthy",
+        "puntos DEV03 en ventana": 6,
+        "puntos durante el reinicio": 0,
+        "hueco máximo DEV03 (s)": "10.0"
+      }
+    }
+  ]
+}

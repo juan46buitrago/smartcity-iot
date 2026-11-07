@@ -1,0 +1,38 @@
+# SmartCityBGA — producción (VM de Azure). Uso:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Solo Nginx publica puertos (80/443). Mosquitto, InfluxDB, Node-RED, Grafana y el backend quedan
+# en la red interna de Docker. Node-RED y Grafana se sirven por Nginx (/nodered/, /grafana/) con su login.
+services:
+  web:
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:?}
+    volumes:
+      - letsencrypt:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot:ro
+
+  # Renovación automática del certificado (webroot). La emisión inicial la hace infra/scripts/deploy-tls.sh.
+  certbot:
+    image: certbot/certbot:v3.0.1
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+    networks: [iot]
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    entrypoint: ["/bin/sh", "-c", "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done"]
+    mem_limit: 128m
+
+  grafana:
+    environment:
+      GF_SERVER_DOMAIN: ${PUBLIC_DOMAIN:?}
+      GF_SERVER_ROOT_URL: "https://${PUBLIC_DOMAIN}/grafana/"
+      GF_SECURITY_COOKIE_SECURE: "true"
+
+volumes:
+  letsencrypt:
+  certbot-www:

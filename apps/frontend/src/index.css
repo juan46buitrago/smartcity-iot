@@ -1,0 +1,329 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/big-shoulders/opsz.css';
+@import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
+@import '@fontsource-variable/martian-mono/wght.css';
+@import 'leaflet/dist/leaflet.css';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * Sistema visual "Sala de control" — ver .impeccable.md
+ * Neutros teñidos hacia verde pizarra (h 168). Acento verde señal; ámbar y rojo solo para estado.
+ * Lo sintético se distingue con rayado diagonal, no con un color adicional.
+ */
+:root,
+[data-theme='dark'] {
+  --bg: oklch(0.158 0.011 168);
+  --surface: oklch(0.192 0.012 168);
+  --surface-2: oklch(0.226 0.013 168);
+  --surface-3: oklch(0.268 0.014 168);
+  --line: oklch(0.292 0.014 168);
+  --line-strong: oklch(0.385 0.016 168);
+  --ink: oklch(0.955 0.007 168);
+  --ink-2: oklch(0.79 0.012 168);
+  --ink-3: oklch(0.635 0.014 168);
+  --accent: oklch(0.83 0.165 152);
+  --accent-soft: oklch(0.83 0.165 152 / 0.13);
+  --accent-ink: oklch(0.21 0.045 152);
+  --warn: oklch(0.84 0.15 82);
+  --warn-soft: oklch(0.84 0.15 82 / 0.14);
+  --crit: oklch(0.7 0.19 24);
+  --crit-soft: oklch(0.7 0.19 24 / 0.16);
+  --info: oklch(0.78 0.09 232);
+  --info-soft: oklch(0.78 0.09 232 / 0.13);
+  --hatch: oklch(0.79 0.012 168 / 0.22);
+  --grid: oklch(0.79 0.012 168 / 0.09);
+  --map-tint: 0.82;
+  --sev-baja: oklch(0.78 0.07 232);
+  --sev-media: oklch(0.84 0.15 82);
+  --sev-alta: oklch(0.74 0.17 50);
+  --sev-critica: oklch(0.68 0.21 24);
+  /* Paleta categórica validada (dataviz, modo oscuro, superficie #101614) */
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --bg: oklch(0.968 0.005 168);
+  --surface: oklch(0.993 0.002 168);
+  --surface-2: oklch(0.952 0.006 168);
+  --surface-3: oklch(0.918 0.008 168);
+  --line: oklch(0.885 0.009 168);
+  --line-strong: oklch(0.79 0.012 168);
+  --ink: oklch(0.2 0.018 168);
+  --ink-2: oklch(0.4 0.016 168);
+  --ink-3: oklch(0.52 0.014 168);
+  --accent: oklch(0.52 0.135 152);
+  --accent-soft: oklch(0.52 0.135 152 / 0.1);
+  --accent-ink: oklch(0.985 0.01 152);
+  --warn: oklch(0.58 0.14 68);
+  --warn-soft: oklch(0.58 0.14 68 / 0.11);
+  --crit: oklch(0.54 0.2 26);
+  --crit-soft: oklch(0.54 0.2 26 / 0.09);
+  --info: oklch(0.5 0.12 245);
+  --info-soft: oklch(0.5 0.12 245 / 0.09);
+  --hatch: oklch(0.4 0.016 168 / 0.18);
+  --grid: oklch(0.4 0.016 168 / 0.1);
+  --sev-baja: oklch(0.55 0.1 240);
+  --sev-media: oklch(0.66 0.15 75);
+  --sev-alta: oklch(0.6 0.17 48);
+  --sev-critica: oklch(0.52 0.21 26);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  color-scheme: light;
+}
+
+@theme inline {
+  --font-sans: 'Atkinson Hyperlegible Next Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Big Shoulders Variable', 'Atkinson Hyperlegible Next Variable', sans-serif;
+  --font-mono: 'Martian Mono Variable', ui-monospace, monospace;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-crit: var(--crit);
+  --color-crit-soft: var(--crit-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- Tipografía ---------- */
+.display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0.005em;
+  line-height: 0.92;
+}
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+.label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  line-height: 1.2;
+}
+
+/* ---------- Estructura de consola ---------- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.rule {
+  border-color: var(--line);
+}
+
+/* Patrón de dato sintético: rayado diagonal (no depende del color). */
+.hatch {
+  background-image: repeating-linear-gradient(135deg, var(--hatch) 0 1.5px, transparent 1.5px 5px);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+::selection {
+  background: var(--accent-soft);
+}
+
+/* ---------- Movimiento ---------- */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 0.6s var(--ease-out-quart) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+@keyframes livepulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, currentColor 60%, transparent);
+  }
+  80%,
+  100% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+.live-dot {
+  animation: livepulse 2.4s var(--ease-out-quart) infinite;
+}
+/* Señal breve cuando cambia una lectura */
+@keyframes tick {
+  0% {
+    color: var(--accent);
+  }
+  100% {
+    color: inherit;
+  }
+}
+.tick {
+  animation: tick 1.1s var(--ease-out-quart);
+}
+@keyframes sweep {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.sweep {
+  transform-origin: left;
+  animation: sweep 0.9s var(--ease-out-expo) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .live-dot,
+  .tick,
+  .sweep {
+    animation: none;
+  }
+}
+
+/* ---------- Leaflet con los tokens del tema ---------- */
+.leaflet-container {
+  background: var(--surface-2);
+  font-family: var(--font-sans);
+}
+.tiles-dark {
+  filter: invert(1) hue-rotate(180deg) brightness(0.78) contrast(0.92) saturate(0.35);
+}
+.tiles-light {
+  filter: saturate(0.45) contrast(0.97);
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  box-shadow: 0 18px 40px -20px oklch(0 0 0 / 0.7);
+}
+.leaflet-popup-content {
+  margin: 14px 16px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--ink-3);
+}
+.leaflet-control-attribution {
+  background: color-mix(in oklch, var(--surface) 88%, transparent) !important;
+  color: var(--ink-3) !important;
+  font-size: 10px;
+}
+.leaflet-control-attribution a {
+  color: var(--ink-2) !important;
+}
+.leaflet-bar {
+  border: 1px solid var(--line) !important;
+  border-radius: 6px !important;
+  overflow: hidden;
+}
+.leaflet-bar a {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+/* Marcadores: el color expresa ESTADO (verde/ámbar/rojo); el icono, la categoría. */
+.dev-marker {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1.5px solid var(--marker, var(--accent));
+  color: var(--ink);
+  font: 600 13px/1 var(--font-display);
+  letter-spacing: 0.04em;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--marker, var(--accent)) 22%, transparent), 0 8px 18px -8px oklch(0 0 0 / 0.7);
+}
+.dev-marker small {
+  display: block;
+  font: 500 8px/1 var(--font-display);
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+}
+.inc-marker {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  background: var(--sev);
+  color: oklch(0.15 0.02 30);
+  font: 700 15px/1 var(--font-display);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+.inc-ring {
+  position: relative;
+}
+.inc-ring::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 999px;
+  border: 1.5px dashed var(--sev);
+  opacity: 0.8;
+}
+
+input[type='range'] {
+  accent-color: var(--accent);
+}
+
+/* Recorrido del GPS (las variables CSS no funcionan como atributo SVG). */
+.gps-track {
+  stroke: var(--ink-2);
+  stroke-opacity: 0.85;
+}

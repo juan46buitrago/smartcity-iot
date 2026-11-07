@@ -1,0 +1,173 @@
+{
+  "proyecto": "SmartCityBGA",
+  "etapa": 3,
+  "tipo": "integración",
+  "inicio": "2026-11-07T07:02:20.200Z",
+  "fin": "2026-11-07T07:02:27.173Z",
+  "entorno": "docker compose local (Windows 11, Docker Desktop)",
+  "resumen": {
+    "pasan": 3,
+    "fallan": 0,
+    "omitidas": 0
+  },
+  "recursos_al_final": [
+    "smartcitybga-web-1\t13.2MiB / 64MiB\t0.00%",
+    "smartcitybga-backend-1\t49.85MiB / 256MiB\t0.00%",
+    "smartcitybga-devices-1\t43.09MiB / 192MiB\t0.07%",
+    "smartcitybga-grafana-1\t57.8MiB / 256MiB\t0.12%",
+    "smartcitybga-nodered-1\t65.09MiB / 256MiB\t0.00%",
+    "smartcitybga-mosquitto-1\t1.465MiB / 64MiB\t0.06%",
+    "smartcitybga-influxdb-1\t90.09MiB / 1.5GiB\t0.10%",
+    "proyecto-microservicios-servicio-monitoreo-1\t56.08MiB / 7.385GiB\t0.15%",
+    "proyecto-microservicios-api-gateway-1\t60.24MiB / 7.385GiB\t0.17%",
+    "proyecto-microservicios-servicio-ordenes-1\t47.48MiB / 7.385GiB\t0.15%",
+    "proyecto-microservicios-servicio-inventario-1\t46.56MiB / 7.385GiB\t0.15%",
+    "proyecto-microservicios-servicio-pagos-1\t40.86MiB / 7.385GiB\t0.16%",
+    "proyecto-microservicios-servicio-notificaciones-1\t39.99MiB / 7.385GiB\t0.14%",
+    "proyecto-microservicios-servicio-catalogo-1\t43.44MiB / 7.385GiB\t0.13%"
+  ],
+  "pruebas": [
+    {
+      "id": "SEC-02",
+      "area": "Seguridad",
+      "nombre": "En la configuración de producción (sin override) solo nginx publica puertos",
+      "resultado": "PASA",
+      "duracion_s": 0.2,
+      "evidencia": {
+        "servicios con puertos publicados en docker-compose.yml": "ninguno",
+        "nota": "Los puertos 80/443 de nginx se añadirán en la Etapa 4 (override de producción); MQTT, InfluxDB, Node-RED, Grafana y backend quedan solo en la red interna."
+      }
+    },
+    {
+      "id": "CTL-01",
+      "area": "Control",
+      "nombre": "Orden → ack → config retenida en los 10 dispositivos (vía API)",
+      "resultado": "PASA",
+      "duracion_s": 3.4,
+      "evidencia": {
+        "filas": [
+          {
+            "dispositivo": "DEV01",
+            "http": 200,
+            "estado": "confirmed",
+            "ida y vuelta (ms)": 54,
+            "intervalo s": "10→11→10",
+            "versión config": "0→1→2",
+            "config retenida publicada": true,
+            "reversión confirmada": true
+          },
+          {
+            "dispositivo": "DEV02",
+            "http": 200,
+            "estado": "confirmed",
+            "ida y vuelta (ms)": 83,
+            "intervalo s": "900→901→900",
+            "versión config": "0→1→2",
+            "config retenida publicada": true,
+            "reversión confirmada": true
+          },
+          {
+            "dispositivo": "DEV03",
+            "http": 200,
+            "estado": "confirmed",
+            "ida y vuelta (ms)": 84,
+            "intervalo s": "10→11→10",
+            "versión config": "4→5→6",
+            "config retenida publicada": true,
+            "reversión confirmada": true
+          },
+          {
+            "dispositivo": "DEV04",
+            "http": 200,
+            "estado": "confirmed",
+            "ida y vuelta (ms)": 83,
+            "intervalo s": "30→31→30",
+            "versión config": "0→1→2",
+            "config retenida publicada": true,
+            "reversión confirmada": true
+          },
+          {
+            "dispositivo": "DEV05",
+            "http": 200,
+            "estado": "confirmed",
+            "ida y vuelta (ms)": 82,
+            "intervalo s": "10→11→10",
+            "versión config": "0→1→2",
+            "config retenida publicada": true,
+            "reversión confirmada": true
+          },
+          {
+            "dispositivo": "DEV06",
+            "http": 200,
+            "estado": "confirmed",
+            "ida y vuelta (ms)": 85,
+            "intervalo s": "60→61→60",
+            "versión config": "0→1→2",
+            "config retenida publicada": true,
+            "reversión confirmada": true
+          },
+          {
+            "dispositivo": "DEV07",
+            "http": 200,
+            "estado": "confirmed",
+            "ida y vuelta (ms)": 83,
+            "intervalo s": "10→11→10",
+            "versión config": "3→4→5",
+            "config retenida publicada": true,
+            "reversión confirmada": true
+          },
+          {
+            "dispositivo": "DEV08",
+            "http": 200,
+            "estado": "confirmed",
+            "ida y vuelta (ms)": 81,
+            "intervalo s": "10→11→10",
+            "versión config": "0→1→2",
+            "config retenida publicada": true,
+            "reversión confirmada": true
+          },
+          {
+            "dispositivo": "DEV09",
+            "http": 200,
+            "estado": "confirmed",
+            "ida y vuelta (ms)": 83,
+            "intervalo s": "1800→1801→1800",
+            "versión config": "0→1→2",
+            "config retenida publicada": true,
+            "reversión confirmada": true
+          },
+          {
+            "dispositivo": "DEV10",
+            "http": 200,
+            "estado": "confirmed",
+            "ida y vuelta (ms)": 82,
+            "intervalo s": "600→601→600",
+            "versión config": "0→1→2",
+            "config retenida publicada": true,
+            "reversión confirmada": true
+          }
+        ],
+        "mediana (ms)": 83,
+        "máximo (ms)": 85
+      }
+    },
+    {
+      "id": "CTL-04",
+      "area": "Control",
+      "nombre": "Idempotencia: la misma orden entregada dos veces se aplica una sola vez",
+      "resultado": "PASA",
+      "duracion_s": 1.1,
+      "evidencia": {
+        "orden": "set_interval 10→11 (entregada 2 veces con el mismo command_id)",
+        "acks recibidos": 2,
+        "versión de config en ambos acks": [
+          7,
+          7
+        ],
+        "versión antes→después": "6→7",
+        "mismo ack reenviado": true,
+        "revertido": true
+      }
+    }
+  ]
+}

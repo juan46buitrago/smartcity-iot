@@ -1,0 +1,43 @@
+# Secretos y entornos
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+*_key
+*_key.pub
+flows_cred.json
+letsencrypt/
+.local-credentials.txt
+infra/mosquitto/config/passwd
+infra/mosquitto/config/acl.generated
+
+# Referencias con credenciales expuestas (NO versionar)
+referencias/*.postman_collection.json
+
+# Dependencias y builds
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Datos locales de servicios
+/data/
+backups/
+*.sqlite
+*.sqlite-journal
+*.db
+
+# Logs / SO / editores
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/

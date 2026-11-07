@@ -1,0 +1,11 @@
+# Desarrollo local (se aplica automáticamente con `docker compose up`).
+# Todos los puertos se publican SOLO en 127.0.0.1: no son accesibles desde la red.
+services:
+  mosquitto:
+    ports: ["127.0.0.1:1883:1883"]
+  influxdb:
+    ports: ["127.0.0.1:8086:8086"]
+  backend:
+    ports: ["127.0.0.1:3100:3000"]
+  web:
+    ports: ["127.0.0.1:8380:80"]
