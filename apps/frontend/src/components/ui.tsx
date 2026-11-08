@@ -45,7 +45,7 @@ export function Badge({ tone = 'neutral', children, className, title }: { tone?:
   );
 }
 
-const SOURCE_LABEL: Record<SourceType, string> = { simulated: 'Simulado', digital_twin: 'Gemelo digital', api: 'API', dataset: 'Dataset' };
+const SOURCE_LABEL: Record<SourceType, string> = { simulated: 'Simulado', digital_twin: 'Gemelo digital', api: 'API', dataset: 'Dataset', real: 'Real (ESP32)' };
 
 /** Etiqueta de procedencia: REAL (sólida) o SIM (rayada). Nunca depende solo del color. */
 export function ProvenanceTag({ synthetic, compact }: { synthetic: boolean; compact?: boolean }) {

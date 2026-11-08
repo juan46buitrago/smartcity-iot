@@ -12,7 +12,7 @@ import { useLive } from '../lib/live';
 import { deviceState } from '../lib/state';
 import type { CommandRecord, DeviceView } from '../lib/types';
 
-const SOURCE_LABEL = { simulated: 'Simulado', digital_twin: 'Gemelo digital', api: 'API externa', dataset: 'Dataset abierto' } as const;
+const SOURCE_LABEL = { simulated: 'Simulado', digital_twin: 'Gemelo digital', api: 'API externa', dataset: 'Dataset abierto', real: 'Dispositivo físico (ESP32)' } as const;
 
 function fmtVar(d: DeviceView, k: string) {
   const spec = d.variables.find((v) => v.key === k)!;
@@ -29,7 +29,7 @@ export function DevicesPage() {
       <PageHeader
         code="02 · Red IoT"
         title="Dispositivos"
-        subtitle="Diez nodos identificables. Cada uno es un cliente MQTT independiente con credencial propia, último testamento (LWT) y control remoto con confirmación."
+        subtitle="Once nodos identificables (10 virtuales y un ESP32 real). Cada uno es un cliente MQTT independiente con credencial propia, último testamento (LWT) y control remoto con confirmación."
         action={<Segmented ariaLabel="Categoría" value={cat} onChange={setCat} options={[{ value: 'todas', label: 'Todos' }, ...Object.entries(CATEGORY_LABEL).map(([value, label]) => ({ value, label }))]} />}
       />
 
