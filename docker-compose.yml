@@ -36,6 +36,10 @@ services:
       <<: *mqtt-device-pass
       MQTT_PASS_BACKEND: ${MQTT_PASS_BACKEND:?}
       MQTT_PASS_NODERED: ${MQTT_PASS_NODERED:?}
+      # DEV11 es un ESP32 externo: su contraseña solo la necesita el broker (no el servicio de dispositivos virtuales).
+      MQTT_PASS_DEV11: ${MQTT_PASS_DEV11:?ejecute infra/scripts/setup.sh}
+      # Con certificado Let's Encrypt montado (solo producción) se habilita el listener TLS 8883.
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:-}
     volumes:
       - ./infra/mosquitto/config:/mosquitto/config:ro
       - ./infra/mosquitto/docker-entrypoint.sh:/docker-entrypoint-scbga.sh:ro

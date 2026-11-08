@@ -1,6 +1,6 @@
 # SmartCityBGA — producción (VM de Azure). Uso:
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-# Solo Nginx publica puertos (80/443). Mosquitto, InfluxDB, Node-RED, Grafana y el backend quedan
+# Solo Nginx publica puertos web (80/443) y Mosquitto el 8883 (MQTT sobre TLS, solo dispositivos externos). Mosquitto, InfluxDB, Node-RED, Grafana y el backend quedan
 # en la red interna de Docker. Node-RED y Grafana se sirven por Nginx (/nodered/, /grafana/) con su login.
 services:
   web:
@@ -12,6 +12,18 @@ services:
     volumes:
       - letsencrypt:/etc/letsencrypt:ro
       - certbot-www:/var/www/certbot:ro
+
+  # Broker MQTT con TLS para dispositivos externos (DEV11, ESP32). El volumen de Let's Encrypt se monta solo
+  # lectura; el entrypoint copia certificado y clave a un directorio propio de mosquitto. El 1883 sigue interno.
+  # Tras renovar el certificado (cada ~60 días) el entrypoint pide recarga (SIGHUP); si no basta:
+  #   docker compose -f docker-compose.yml -f docker-compose.prod.yml restart mosquitto
+  mosquitto:
+    environment:
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:?}
+    ports:
+      - "8883:8883"
+    volumes:
+      - letsencrypt:/etc/letsencrypt:ro
 
   # Renovación automática del certificado (webroot). La emisión inicial la hace infra/scripts/deploy-tls.sh.
   certbot:

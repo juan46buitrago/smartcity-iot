@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # =====================================================================
 # SmartCityBGA — configuración inicial (local o VM). Idempotente.
-#  1. Crea .env desde .env.example con secretos aleatorios (si no existe).
+#  1. Crea .env desde .env.example con secretos aleatorios (si no existe). Si ya existe, solo completa las
+#     variables vacías o ausentes (p. ej. MQTT_PASS_DEV11 al actualizar): nunca pisa valores existentes.
 #  2. Genera hashes de las contraseñas del operador (scrypt) y de Node-RED (bcrypt).
 #  3. Arranca InfluxDB y crea tokens de mínimo privilegio (escritura / lectura).
 # Las contraseñas en claro se guardan SOLO en .local-credentials.txt (ignorado por Git, permisos 600).
@@ -33,7 +34,7 @@ chmod 600 "$ENV_FILE" 2>/dev/null || true
 
 # --- Secretos aleatorios ---
 for k in MQTT_PASS_BACKEND MQTT_PASS_NODERED MQTT_PASS_DEV01 MQTT_PASS_DEV02 MQTT_PASS_DEV03 MQTT_PASS_DEV04 \
-         MQTT_PASS_DEV05 MQTT_PASS_DEV06 MQTT_PASS_DEV07 MQTT_PASS_DEV08 MQTT_PASS_DEV09 MQTT_PASS_DEV10 \
+         MQTT_PASS_DEV05 MQTT_PASS_DEV06 MQTT_PASS_DEV07 MQTT_PASS_DEV08 MQTT_PASS_DEV09 MQTT_PASS_DEV10 MQTT_PASS_DEV11 \
          INFLUX_ADMIN_PASSWORD NODERED_CREDENTIAL_SECRET GRAFANA_ADMIN_PASSWORD; do
   fill_if_empty "$k" "$(rand 18)"
 done
@@ -57,6 +58,11 @@ if [ -z "$(get NODERED_ADMIN_HASH)" ]; then
     const b=require("/usr/src/node-red/node_modules/bcryptjs");process.stdout.write(b.hashSync(process.env.P,10));')
   set_var NODERED_ADMIN_HASH "$HASH"
   echo "NODE_RED usuario=$(get NODERED_ADMIN_USER) contraseña=$NR_PASS" >> "$CRED_FILE"
+fi
+
+# DEV11 (ESP32): la contraseña MQTT va en firmware/dev11-esp32/secrets.h. Se registra una sola vez.
+if ! grep -q '^DEV11_MQTT' "$CRED_FILE" 2>/dev/null; then
+  echo "DEV11_MQTT usuario=DEV11 contraseña=$(get MQTT_PASS_DEV11)" >> "$CRED_FILE"
 fi
 
 if ! grep -q '^GRAFANA' "$CRED_FILE" 2>/dev/null; then
