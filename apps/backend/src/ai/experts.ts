@@ -254,7 +254,7 @@ function resumen(deps: ExpertDeps, agent: AgentSpec): ExpertAnswer {
     .map((id) => currentValue(deps, `${id}.${HEADLINE[id]}`))
     .filter((c): c is NonNullable<typeof c> => !!c && c.v !== null)
     .slice(0, 8)
-    .map((c) => `• ${DEVICE_CATALOG[c.m.device].name}: ${bareLabel(c.m).toLowerCase()} ${fmt(c.v, c.m.decimals, c.m.unit)}`);
+    .map((c) => `• ${DEVICE_CATALOG[c.m.device].name} — ${bareLabel(c.m)}: ${fmt(c.v, c.m.decimals, c.m.unit)}`);
   const top = rows.slice(0, 3).map((r) => `• ${r.severity === 'critical' ? 'Crítica' : r.severity === 'warning' ? 'Advertencia' : 'Info'} · ${r.device_id}: ${r.message}`);
   const scope = agent.id === 'general' || agent.id === 'operacion' ? 'Estado de la ciudad' : agent.name;
   const text = [`${scope}: ${head}`, values.length ? `Valores actuales:\n${values.join('\n')}` : '', top.length ? `Alertas más recientes:\n${top.join('\n')}` : '']
@@ -305,7 +305,8 @@ export async function runExpert(d: Decision, deps: ExpertDeps, agent: AgentSpec 
     case 'incidentes':
       return incidentes(d, deps, now);
     case 'estado':
-      return estado(d, deps, agent);
+      // "¿Y ayer?" tras un valor actual: el pasado no tiene "valor actual", se responde con estadísticas.
+      return d.desfase_horas > 0 && d.series.length ? estadisticas(d, deps, now) : estado(d, deps, agent);
     case 'resumen':
       return resumen(deps, agent);
     case 'dispositivos':

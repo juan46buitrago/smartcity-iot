@@ -209,8 +209,13 @@ describe('expertos', () => {
     const alerts = { list: () => [{ device_id: 'DEV02', severity: 'critical', message: 'AQI alto' }, { device_id: 'DEV05', severity: 'warning', message: 'flujo' }] as never[] };
     const a = await runExpert({ experto: 'resumen', series: [], horas: 24, desfase_horas: 0 }, deps({ alerts, live: liveWith({ DEV02: { us_aqi: 61 }, DEV03: { noise_db: 55 } }) }), AGENTS.aire);
     expect(a.text).toMatch(/^Aire y ruido: 2 de 2 equipos en línea; 1 alerta activa, 1 críticas\./);
-    expect(a.text).toMatch(/índice aqi \(ee\. uu\.\) 61 AQI/);
+    expect(a.text).toContain('Monitor de calidad del aire — Índice AQI (EE. UU.): 61 AQI');
     expect(a.text).not.toMatch(/DEV05/); // alerta de otro tema
+  });
+
+  it('estado con desfase (seguimiento "¿y ayer?") responde con estadísticas del pasado', async () => {
+    const a = await runExpert({ experto: 'estado', series: ['DEV01.temperature'], horas: 24, desfase_horas: 24 }, deps());
+    expect(a.text).toMatch(/^Estadísticas \(24 h que terminan hace 24 h\)/);
   });
 
   it('dispositivos: lista acotada al agente', async () => {
