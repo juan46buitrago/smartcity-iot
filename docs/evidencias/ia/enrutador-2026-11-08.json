@@ -1,0 +1,176 @@
+{
+  "summary": {
+    "model": "qwen3.8-flash",
+    "at": "2026-11-08T21:43:34.348Z",
+    "aciertos": "10/10",
+    "tokens_promedio": 749,
+    "entrada_promedio": 711,
+    "salida_promedio": 39,
+    "latencia_promedio_ms": 1786
+  },
+  "rows": [
+    {
+      "q": "¿Cuál fue el promedio, mínimo y máximo de temperatura de la estación ambiental hoy?",
+      "ok": true,
+      "decision": {
+        "experto": "estadisticas",
+        "series": [
+          "DEV01.temperature"
+        ],
+        "horas": 24,
+        "desfase_horas": 0
+      },
+      "tokens": 768,
+      "prompt_tokens": 717,
+      "completion_tokens": 51,
+      "ms": 3000,
+      "attempts": 1
+    },
+    {
+      "q": "compara el ruido con el flujo de vehículos esta semana",
+      "ok": true,
+      "decision": {
+        "experto": "serie",
+        "series": [
+          "DEV03.noise_db",
+          "DEV05.vehicles_per_min"
+        ],
+        "horas": 168,
+        "desfase_horas": 0
+      },
+      "tokens": 774,
+      "prompt_tokens": 711,
+      "completion_tokens": 63,
+      "ms": 2445,
+      "attempts": 1
+    },
+    {
+      "q": "¿a qué hora hay más ruido?",
+      "ok": true,
+      "decision": {
+        "experto": "perfil_horario",
+        "series": [
+          "DEV03.noise_db"
+        ],
+        "horas": 24,
+        "desfase_horas": 0
+      },
+      "tokens": 738,
+      "prompt_tokens": 708,
+      "completion_tokens": 30,
+      "ms": 1833,
+      "attempts": 1
+    },
+    {
+      "q": "qué alertas hay activas",
+      "ok": true,
+      "decision": {
+        "experto": "alertas",
+        "series": [],
+        "horas": 24,
+        "desfase_horas": 0
+      },
+      "tokens": 745,
+      "prompt_tokens": 706,
+      "completion_tokens": 39,
+      "ms": 1193,
+      "attempts": 1
+    },
+    {
+      "q": "¿cuántos incidentes viales hubo ayer?",
+      "ok": true,
+      "decision": {
+        "experto": "incidentes",
+        "series": [],
+        "horas": 24,
+        "desfase_horas": 24
+      },
+      "tokens": 735,
+      "prompt_tokens": 711,
+      "completion_tokens": 24,
+      "ms": 1590,
+      "attempts": 1
+    },
+    {
+      "q": "¿qué dispositivos están fuera de línea?",
+      "ok": true,
+      "decision": {
+        "experto": "estado",
+        "series": [],
+        "horas": 24,
+        "desfase_horas": 0
+      },
+      "tokens": 746,
+      "prompt_tokens": 708,
+      "completion_tokens": 38,
+      "ms": 1275,
+      "attempts": 1
+    },
+    {
+      "q": "muéstrame el nivel del río de los últimos 3 días",
+      "ok": true,
+      "decision": {
+        "experto": "serie",
+        "series": [
+          "DEV09.water_level"
+        ],
+        "horas": 72,
+        "desfase_horas": 0
+      },
+      "tokens": 748,
+      "prompt_tokens": 714,
+      "completion_tokens": 34,
+      "ms": 1668,
+      "attempts": 1
+    },
+    {
+      "q": "cómo está la calidad del aire ahora, pm2.5",
+      "ok": true,
+      "decision": {
+        "experto": "estado",
+        "series": [
+          "DEV02.pm2_5"
+        ],
+        "horas": 24,
+        "desfase_horas": 0
+      },
+      "tokens": 741,
+      "prompt_tokens": 712,
+      "completion_tokens": 29,
+      "ms": 1640,
+      "attempts": 1
+    },
+    {
+      "q": "ocupación del parqueadero en las últimas 6 horas",
+      "ok": true,
+      "decision": {
+        "experto": "serie",
+        "series": [
+          "DEV08.occupancy_pct"
+        ],
+        "horas": 6,
+        "desfase_horas": 0
+      },
+      "tokens": 762,
+      "prompt_tokens": 711,
+      "completion_tokens": 51,
+      "ms": 1816,
+      "attempts": 1
+    },
+    {
+      "q": "dame una receta de arepas",
+      "ok": true,
+      "decision": {
+        "experto": "fuera_de_tema",
+        "series": [],
+        "horas": 24,
+        "desfase_horas": 0
+      },
+      "tokens": 733,
+      "prompt_tokens": 707,
+      "completion_tokens": 26,
+      "ms": 1403,
+      "attempts": 1
+    }
+  ]
+}

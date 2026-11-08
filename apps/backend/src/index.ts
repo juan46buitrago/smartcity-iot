@@ -1,4 +1,6 @@
 import { pino } from 'pino';
+import { OpenAiCompatClient } from './ai/client.js';
+import { AiService } from './ai/service.js';
 import { AlertEngine } from './alerts.js';
 import { buildApp } from './app.js';
 import { openDb } from './db.js';
@@ -30,7 +32,13 @@ const bridge = new MqttBridge(
   log.child({ mod: 'mqtt' }),
 );
 
-const app = await buildApp({ env, db, live, alerts, bridge, influx, hub });
+const llm = env.AI_API_KEY
+  ? new OpenAiCompatClient({ baseUrl: env.AI_BASE_URL, apiKey: env.AI_API_KEY, model: env.AI_MODEL, timeoutMs: env.AI_TIMEOUT_MS })
+  : null;
+if (!llm) log.warn('AI_API_KEY no definida: asistente IA deshabilitado');
+const ai = new AiService(llm, { data: influx, live, alerts, db }, db, { dailyMaxCalls: env.AI_DAILY_MAX_CALLS });
+
+const app = await buildApp({ env, db, live, alerts, bridge, influx, hub, ai });
 bridge.start();
 await app.listen({ port: env.PORT, host: env.HOST });
 

@@ -9,6 +9,8 @@ import websocket from '@fastify/websocket';
 import { COMMAND_ACTIONS, DEVICE_CATALOG, DEVICE_IDS, INCIDENT_SEVERITIES, INCIDENT_TYPES, isDeviceId, type DeviceId } from '@scbga/shared';
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import { z } from 'zod';
+import { registerAiRoutes } from './ai/routes.js';
+import type { AiService } from './ai/service.js';
 import type { AlertEngine } from './alerts.js';
 import { safeEqual, verifyPassword } from './auth.js';
 import type { Db } from './db.js';
@@ -33,6 +35,7 @@ export interface AppDeps {
   bridge: MqttBridge;
   influx: InfluxService;
   hub: Hub;
+  ai?: AiService;
 }
 
 const MAX_RANGE_MS = 90 * 24 * 3600_000;
@@ -256,6 +259,10 @@ export async function buildApp(deps: AppDeps) {
       .all(...args);
     return { from, to, synthetic: true, types: INCIDENT_TYPES, severities: INCIDENT_SEVERITIES, byType, bySeverity, byHour, duration };
   });
+
+  /* ------------------------------ asistente IA ------------------------------ */
+
+  if (deps.ai) registerAiRoutes(app, deps.ai, requireOperator);
 
   /* ------------------------------ WebSocket (solo lectura) ------------------------------ */
 

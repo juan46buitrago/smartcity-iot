@@ -23,6 +23,13 @@ const EnvSchema = z.object({
 
   COMMAND_TIMEOUT_MS: z.coerce.number().int().default(10_000),
   OFFLINE_ALERT_AFTER_S: z.coerce.number().int().default(120),
+
+  // Asistente IA (API compatible con OpenAI). Sin AI_API_KEY el asistente queda deshabilitado.
+  AI_BASE_URL: z.string().url().default('https://api.b.ai/v1'),
+  AI_API_KEY: z.string().optional().transform((v) => (v ? v : undefined)),
+  AI_MODEL: z.string().default('qwen3.8-flash'),
+  AI_TIMEOUT_MS: z.coerce.number().int().min(1000).default(15_000),
+  AI_DAILY_MAX_CALLS: z.coerce.number().int().min(1).default(2000),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
