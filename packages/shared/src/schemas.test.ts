@@ -6,9 +6,10 @@ import { AckSchema, defaultConfig, DeviceConfigSchema, StatusSchema, TelemetrySc
 import { parseTopic, topic } from './topics.js';
 
 describe('catálogo', () => {
-  it('tiene 11 dispositivos (10 virtuales + DEV11 externo) con ids únicos y coherentes', () => {
-    expect(DEVICE_IDS).toHaveLength(11);
-    expect(VIRTUAL_DEVICE_IDS).toHaveLength(10);
+  it('tiene 12 dispositivos (11 virtuales + DEV11 externo) con ids únicos y coherentes', () => {
+    expect(DEVICE_IDS).toHaveLength(12);
+    expect(VIRTUAL_DEVICE_IDS).toHaveLength(11);
+    expect(DEVICE_CATALOG.DEV12.source_type).toBe('dataset');
     expect(EXTERNAL_DEVICE_IDS).toEqual(['DEV11']);
     for (const id of DEVICE_IDS) expect(DEVICE_CATALOG[id].id).toBe(id);
   });

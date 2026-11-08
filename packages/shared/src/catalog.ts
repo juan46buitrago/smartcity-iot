@@ -8,7 +8,7 @@
 
 export const DEVICE_IDS = [
   'DEV01', 'DEV02', 'DEV03', 'DEV04', 'DEV05',
-  'DEV06', 'DEV07', 'DEV08', 'DEV09', 'DEV10', 'DEV11',
+  'DEV06', 'DEV07', 'DEV08', 'DEV09', 'DEV10', 'DEV11', 'DEV12',
 ] as const;
 export type DeviceId = (typeof DEVICE_IDS)[number];
 
@@ -345,6 +345,34 @@ export const DEVICE_CATALOG: Record<DeviceId, DeviceSpec> = {
       { key: 'light_threshold_pct', label: 'Umbral de luz para encender (modo auto)', type: 'number', default: 30, min: 0, max: 100, step: 1, unit: '%' },
     ],
     default_thresholds: { temperature: { warn_high: 30, crit_high: 33 }, humidity: { warn_low: 30 } },
+  },
+  DEV12: {
+    id: 'DEV12',
+    name: 'Estación histórica (dataset)',
+    category: 'clima',
+    source_type: 'dataset',
+    description:
+      'Reproduce un dataset CSV versionado con el reanálisis horario ERA5 de Bucaramanga de noviembre de 2025. En modo espejo publica, interpolado, lo observado el mismo día y hora del año anterior, como referencia comparable con DEV01 y DEV10.',
+    location: { lat: 7.1353, lon: -73.1108, name: 'Celda ERA5 Bucaramanga (969 m)' },
+    variables: [
+      { key: 'temperature', label: 'Temperatura', unit: '°C', kind: 'number', decimals: 1, thresholdable: true },
+      { key: 'humidity', label: 'Humedad relativa', unit: '%', kind: 'number', decimals: 0, thresholdable: true },
+      { key: 'precipitation', label: 'Precipitación (1 h)', unit: 'mm', kind: 'number', decimals: 2, thresholdable: true },
+      { key: 'pressure', label: 'Presión superficial', unit: 'hPa', kind: 'number', decimals: 1 },
+      { key: 'wind_speed', label: 'Velocidad del viento', unit: 'km/h', kind: 'number', decimals: 1 },
+      { key: 'solar_radiation', label: 'Radiación solar', unit: 'W/m²', kind: 'number', decimals: 0 },
+    ],
+    modes: ['espejo', 'acelerado'],
+    default_mode: 'espejo',
+    interval: { min: 10, max: 3600, default: 60 },
+    provenance: {
+      provider: 'Open-Meteo Historical Weather (ERA5, Copernicus/ECMWF)',
+      synthetic: false,
+      notes: 'Valores reales de reanálisis (CC BY 4.0) leídos de apps/devices/src/data/era5-bucaramanga-2025-11.csv; solo cambia el momento de publicación. La fila de origen va en provenance.ref.',
+    },
+    actions: ['power', 'set_interval', 'set_mode', 'set_params', 'set_thresholds', 'restart'],
+    params: [{ key: 'speed_h', label: 'Horas del dataset por lectura (modo acelerado)', type: 'number', default: 1, min: 1, max: 24, step: 1, unit: 'h' }],
+    default_thresholds: { temperature: { warn_high: 30, crit_high: 33 }, precipitation: { warn_high: 5, crit_high: 15 } },
   },
 };
 

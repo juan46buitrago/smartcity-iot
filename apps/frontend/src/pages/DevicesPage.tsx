@@ -29,7 +29,7 @@ export function DevicesPage() {
       <PageHeader
         code="02 · Red IoT"
         title="Dispositivos"
-        subtitle="Once nodos identificables (10 virtuales y un ESP32 real). Cada uno es un cliente MQTT independiente con credencial propia, último testamento (LWT) y control remoto con confirmación."
+        subtitle="Doce nodos identificables: simulados, gemelos digitales, APIs, un dataset y un ESP32. Cada uno es un cliente MQTT independiente con credencial propia, último testamento (LWT) y control remoto con confirmación."
         action={<Segmented ariaLabel="Categoría" value={cat} onChange={setCat} options={[{ value: 'todas', label: 'Todos' }, ...Object.entries(CATEGORY_LABEL).map(([value, label]) => ({ value, label }))]} />}
       />
 

@@ -1,5 +1,5 @@
 import type { DeviceId } from '@scbga/shared';
-import { Car, CloudSun, Cpu, Droplets, Lamp, MapPin, SquareParking, Siren, Thermometer, Volume2, Wind } from 'lucide-react';
+import { Car, CloudSun, Cpu, Database, Droplets, Lamp, MapPin, SquareParking, Siren, Thermometer, Volume2, Wind } from 'lucide-react';
 import type { DeviceView } from '../lib/types';
 import { cx } from './ui';
 
@@ -15,6 +15,7 @@ const ICONS: Record<DeviceId, typeof Car> = {
   DEV09: Droplets,
   DEV10: CloudSun,
   DEV11: Cpu,
+  DEV12: Database,
 };
 
 export const CATEGORY_LABEL: Record<string, string> = { ambiente: 'Ambiente', movilidad: 'Movilidad', energia: 'Energía', agua: 'Agua', clima: 'Clima' };

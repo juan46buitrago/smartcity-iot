@@ -1,6 +1,6 @@
 /**
  * Servicio de dispositivos virtuales de SmartCityBGA.
- * Arranca los 10 dispositivos virtuales (DEV11 es un ESP32 externo y no se instancia aquí); cada uno es un cliente MQTT independiente con su propia credencial.
+ * Arranca los 11 dispositivos virtuales, incluida la reproducción del dataset DEV12 (DEV11 es un ESP32 externo y no se instancia aquí); cada uno es un cliente MQTT independiente con su propia credencial.
  */
 import { VIRTUAL_DEVICE_IDS, type DeviceId } from '@scbga/shared';
 import { loadEnv } from './core/env.js';
@@ -9,6 +9,7 @@ import { defaultRng, seededRng, type Rng } from './core/random.js';
 import { StateStore } from './core/stateStore.js';
 import type { DeviceDeps, VirtualDevice } from './core/VirtualDevice.js';
 import { EnvironmentalStation, NoiseSensor } from './devices/environment.js';
+import { HistoricalStation } from './devices/dataset.js';
 import { AirQualityMonitor, WaterLevelSensor, WeatherStation } from './devices/external.js';
 import { GpsTracker, IncidentMonitor, SmartParking, VehicleDetector } from './devices/mobility.js';
 import { StreetLight } from './devices/streetlight.js';
@@ -38,6 +39,7 @@ const devices: VirtualDevice[] = [
   new SmartParking(deps('DEV08'), rngFor(8)),
   new WaterLevelSensor(deps('DEV09'), env.IDEAM_STATION, env.IDEAM_APP_TOKEN),
   new WeatherStation(deps('DEV10')),
+  new HistoricalStation(deps('DEV12')),
 ];
 if (devices.length !== VIRTUAL_DEVICE_IDS.length) throw new Error('Faltan dispositivos');
 

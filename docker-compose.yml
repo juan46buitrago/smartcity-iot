@@ -26,6 +26,7 @@ x-mqtt-device-pass: &mqtt-device-pass
   MQTT_PASS_DEV08: ${MQTT_PASS_DEV08:?}
   MQTT_PASS_DEV09: ${MQTT_PASS_DEV09:?}
   MQTT_PASS_DEV10: ${MQTT_PASS_DEV10:?}
+  MQTT_PASS_DEV12: ${MQTT_PASS_DEV12:?ejecute infra/scripts/setup.sh}
 
 services:
   mosquitto:

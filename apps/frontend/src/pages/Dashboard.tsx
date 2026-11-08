@@ -1,4 +1,4 @@
-import type { DeviceId } from '@scbga/shared';
+import { DEVICE_IDS, type DeviceId } from '@scbga/shared';
 import { ArrowUpRight, Navigation } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
@@ -152,7 +152,7 @@ export function Dashboard() {
   const d = (id: DeviceId) => devices[id];
 
   const strip = [
-    { k: 'Nodos en línea', v: `${online}/${list.length || 10}`, tone: online === list.length && list.length ? 'text-accent' : 'text-warn' },
+    { k: 'Nodos en línea', v: `${online}/${list.length || DEVICE_IDS.length}`, tone: online === list.length && list.length ? 'text-accent' : 'text-warn' },
     { k: 'Alertas abiertas', v: String(open.length), tone: critical ? 'text-crit' : open.length ? 'text-warn' : 'text-ink', sub: critical ? `${critical} críticas` : undefined },
     { k: 'Incidentes simulados', v: String(incidents.length), tone: 'text-ink', sub: 'activos' },
     { k: 'Última lectura', v: lastUpdate ? fmtTime(lastUpdate, true) : '—', tone: 'text-ink', sub: lastUpdate ? timeAgo(lastUpdate, now) : undefined },
@@ -307,7 +307,7 @@ export function Dashboard() {
         {/* Riel de nodos */}
         <Card className="rise overflow-hidden" style={{ ['--i' as string]: 5 }}>
           <div className="flex items-center justify-between border-b border-line px-5 py-3">
-            <h2 className="label text-ink-2">Red de 10 nodos IoT</h2>
+            <h2 className="label text-ink-2">Red de {list.length || DEVICE_IDS.length} nodos IoT</h2>
             <Link to="/dispositivos" className="flex items-center gap-1 text-[13px] font-semibold text-ink-2 hover:text-ink">
               Consola de dispositivos <ArrowUpRight className="size-3.5" />
             </Link>

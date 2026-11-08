@@ -1,3 +1,4 @@
+import { DEVICE_IDS } from '@scbga/shared';
 import { Bell, Bot, Cpu, Gauge, History, Map as MapIcon, Moon, Settings2, Sun } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
@@ -109,7 +110,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 <span className="label text-ink-2">{wsLabel}</span>
               </span>
               <span className="label text-ink-2" title="Dispositivos en línea">
-                <span className={cx('display text-[18px] font-bold', online === list.length && list.length ? 'text-accent' : 'text-warn')}>{online}</span>/{list.length || 10} nodos
+                <span className={cx('display text-[18px] font-bold', online === list.length && list.length ? 'text-accent' : 'text-warn')}>{online}</span>/{list.length || DEVICE_IDS.length} nodos
               </span>
             </div>
             <Clock />
