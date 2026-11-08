@@ -84,8 +84,13 @@ docker compose restart <servicio>
   `~/smartcity-iot/.local-credentials.txt` (permisos 600). Léalas usted en su propia terminal
   (`ssh … cat ~/smartcity-iot/.local-credentials.txt`), guárdelas en su gestor de contraseñas y, si quiere,
   borre después ese archivo. No se han mostrado ni copiado fuera de la VM.
-- **Actualizar el código**: transferir los archivos versionables (igual que en el paso 3) y
-  `docker compose up -d --build`. El `.env` de la VM no se toca.
+- **Actualizar el código** (desde el PC, Git Bash, con el árbol limpio): `bash infra/scripts/deploy.sh [servicios…]`.
+  Empaqueta solo los archivos versionados del commit HEAD (`git archive`), los extrae en la VM, ejecuta
+  `docker compose up -d --build` y verifica `/api/health`. El `.env` y los volúmenes de la VM no se tocan; cada
+  despliegue queda registrado en `~/smartcity-iot/DEPLOYED`. Para no cortar la captura, despliegue solo los
+  servicios cambiados (p. ej. `backend web`): los dispositivos y Node-RED siguen escribiendo en InfluxDB.
+- **Copias de seguridad** (en la VM): `bash infra/scripts/backup.sh` → `backups/AAAA-MM-DD/` (InfluxDB completo +
+  SQLite en caliente), rotación de 7 días. Cron: `15 3 * * * cd ~/smartcity-iot && bash infra/scripts/backup.sh >> backups/backup.log 2>&1`.
 - **Credenciales nuevas del GPS (DEV06)**: cuando las tenga y exista autorización, edite en la VM
   `GPS_API_BASE_URL`, `GPS_VEHICLE_PATH`, `GPS_API_USER`, `GPS_API_PASS`, `GPS_SOURCE=gpsmobile` y
   `GPS_USAGE_AUTHORIZED=true`, y ejecute `docker compose up -d devices`. Nunca reutilice la contraseña antigua.
