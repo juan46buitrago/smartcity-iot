@@ -41,3 +41,5 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+# Enunciado con llaves de API (NO versionar)
+tarea.txt
