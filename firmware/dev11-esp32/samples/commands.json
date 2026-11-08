@@ -1,0 +1,15 @@
+[
+  {"action":"power","params":{"on":false},"valid":true},
+  {"action":"set_interval","params":{"interval_s":5},"valid":true},
+  {"action":"set_interval","params":{"interval_s":1},"valid":false},
+  {"action":"set_mode","params":{"mode":"manual"},"valid":true},
+  {"action":"set_mode","params":{"mode":"twin"},"valid":false},
+  {"action":"set_params","params":{"relay":true},"valid":true},
+  {"action":"set_params","params":{"light_threshold_pct":55},"valid":true},
+  {"action":"set_params","params":{"light_threshold_pct":101},"valid":false},
+  {"action":"set_thresholds","params":{"variable":"temperature","threshold":{"warn_high":28,"crit_high":32}},"valid":true},
+  {"action":"set_thresholds","params":{"variable":"light_pct","threshold":{"warn_high":90}},"valid":false},
+  {"action":"calibrate","params":{"variable":"humidity","offset":-3.5},"valid":true},
+  {"action":"calibrate","params":{"variable":"light_pct","offset":1},"valid":false},
+  {"action":"restart","params":{},"valid":true}
+]

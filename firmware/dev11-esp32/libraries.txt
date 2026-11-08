@@ -1,0 +1,4 @@
+# Librerías para Wokwi (una por línea, nombre del Library Manager de Arduino)
+PubSubClient
+DHT sensor library for ESPx
+ArduinoJson

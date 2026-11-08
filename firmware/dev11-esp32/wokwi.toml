@@ -1,0 +1,5 @@
+# Solo para la extensión Wokwi de VS Code (compilar antes con arduino-cli; ver README).
+[wokwi]
+version = 1
+firmware = 'build/dev11-esp32.ino.bin'
+elf = 'build/dev11-esp32.ino.elf'

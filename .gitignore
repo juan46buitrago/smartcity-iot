@@ -46,3 +46,6 @@ tarea.txt
 
 # Estado local de Claude Code (worktrees de agentes)
 .claude/
+
+# Credenciales del firmware ESP32
+firmware/**/secrets.h

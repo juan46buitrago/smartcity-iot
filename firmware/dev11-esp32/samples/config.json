@@ -1,0 +1,1 @@
+{"device_id":"DEV11","enabled":true,"interval_s":10,"mode":"auto","thresholds":{"temperature":{"warn_high":30,"crit_high":33},"humidity":{"warn_low":30}},"calibration":{"temperature":0,"humidity":0},"params":{"relay":false,"light_threshold_pct":30},"version":0,"updated_at":"2026-11-08T15:00:00Z"}
