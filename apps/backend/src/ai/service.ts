@@ -4,9 +4,10 @@
  */
 import { DEVICE_CATALOG, type DeviceId } from '@scbga/shared';
 import type { Db } from '../db.js';
+import { agentOf, type AgentSpec } from './agents.js';
 import type { LlmClient, LlmUsage } from './client.js';
 import { hourlyProfile, runExpert, type ExpertAnswer, type ExpertDeps } from './experts.js';
-import { route, type Decision } from './router.js';
+import { decisionSchema, route, type Decision } from './router.js';
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS ai_usage (
@@ -37,6 +38,7 @@ CREATE INDEX IF NOT EXISTS idx_ai_analysis_dev ON ai_analysis(device_id, created
 
 export interface ChatResponse extends ExpertAnswer {
   decision: Decision | null;
+  agent: string;
   usage: LlmUsage;
   ms: { llm: number; total: number };
   cached: boolean;
@@ -73,6 +75,10 @@ export class AiService {
     private readonly opts: { dailyMaxCalls: number } = { dailyMaxCalls: 2000 },
   ) {
     db.exec(SCHEMA);
+    // Migración: columnas para depurar respuestas (qué se preguntó y a qué agente).
+    const cols = new Set((db.prepare('PRAGMA table_info(ai_usage)').all() as { name: string }[]).map((c) => c.name));
+    if (!cols.has('question')) db.exec('ALTER TABLE ai_usage ADD COLUMN question TEXT');
+    if (!cols.has('agent')) db.exec('ALTER TABLE ai_usage ADD COLUMN agent TEXT');
   }
 
   get enabled() {
@@ -84,23 +90,31 @@ export class AiService {
     return (this.db.prepare('SELECT COUNT(*) n FROM ai_usage WHERE at >= ? AND cached = 0').get(since) as { n: number }).n;
   }
 
-  private log(row: { kind: 'chat' | 'analysis'; usage: LlmUsage; llm_ms: number; total_ms: number; ok: boolean; cached: boolean; expert?: string }) {
+  private log(row: { kind: 'chat' | 'analysis'; usage: LlmUsage; llm_ms: number; total_ms: number; ok: boolean; cached: boolean; expert?: string; question?: string; agent?: string }) {
     this.db
       .prepare(
-        `INSERT INTO ai_usage (at, kind, model, prompt_tokens, completion_tokens, llm_ms, total_ms, ok, cached, expert)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO ai_usage (at, kind, model, prompt_tokens, completion_tokens, llm_ms, total_ms, ok, cached, expert, question, agent)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-      .run(new Date().toISOString(), row.kind, this.llm?.model ?? 'none', row.usage.prompt_tokens, row.usage.completion_tokens, row.llm_ms, row.total_ms, row.ok ? 1 : 0, row.cached ? 1 : 0, row.expert ?? null);
+      .run(new Date().toISOString(), row.kind, this.llm?.model ?? 'none', row.usage.prompt_tokens, row.usage.completion_tokens, row.llm_ms, row.total_ms, row.ok ? 1 : 0, row.cached ? 1 : 0, row.expert ?? null, row.question?.slice(0, 300) ?? null, row.agent ?? null);
   }
 
-  async chat(question: string): Promise<ChatResponse> {
+  /**
+   * Responde una pregunta. `agent` acota el tema; `previous` es la decisión anterior (no el texto)
+   * para entender seguimientos como "¿y ayer?" sin enviar el historial.
+   */
+  async chat(question: string, opts: { agent?: string; previous?: unknown } = {}): Promise<ChatResponse> {
     const t0 = Date.now();
     const zero = { prompt_tokens: 0, completion_tokens: 0 };
+    const agent: AgentSpec = agentOf(opts.agent);
     if (HELP_RE.test(question)) {
       const d: Decision = { experto: 'ayuda', series: [], horas: 24, desfase_horas: 0 };
-      return { ...(await runExpert(d, this.deps)), decision: d, usage: zero, ms: { llm: 0, total: Date.now() - t0 }, cached: true, model: null };
+      return { ...(await runExpert(d, this.deps, agent)), decision: d, agent: agent.id, usage: zero, ms: { llm: 0, total: Date.now() - t0 }, cached: true, model: null };
     }
-    const key = normalizeQuestion(question);
+    // El contexto solo se acepta si es una decisión válida del vocabulario del agente.
+    const prev = opts.previous ? decisionSchema().safeParse(opts.previous) : null;
+    const previous = prev?.success ? prev.data : null;
+    const key = `${agent.id}|${previous ? JSON.stringify(previous) : ''}|${normalizeQuestion(question)}`;
     let decision = this.cache.get(key);
     let usage: LlmUsage = zero;
     let llmMs = 0;
@@ -109,21 +123,21 @@ export class AiService {
       if (!this.llm) throw new AiUnavailableError('El asistente IA no está configurado en este servidor');
       if (this.callsToday() >= this.opts.dailyMaxCalls) throw new AiBudgetError('Se alcanzó el límite diario de consultas al asistente');
       try {
-        const r = await route(this.llm, question);
+        const r = await route(this.llm, question, { agent, previous });
         decision = r.decision;
         usage = r.usage;
         llmMs = r.ms;
       } catch (err) {
-        this.log({ kind: 'chat', usage, llm_ms: llmMs, total_ms: Date.now() - t0, ok: false, cached: false });
+        this.log({ kind: 'chat', usage, llm_ms: llmMs, total_ms: Date.now() - t0, ok: false, cached: false, question, agent: agent.id });
         throw err;
       }
       this.cache.set(key, decision);
       if (this.cache.size > CACHE_MAX) this.cache.delete(this.cache.keys().next().value!);
     }
-    const answer = await runExpert(decision, this.deps);
+    const answer = await runExpert(decision, this.deps, agent);
     const total = Date.now() - t0;
-    this.log({ kind: 'chat', usage, llm_ms: llmMs, total_ms: total, ok: true, cached, expert: decision.experto });
-    return { ...answer, decision, usage, ms: { llm: llmMs, total }, cached, model: this.llm?.model ?? null };
+    this.log({ kind: 'chat', usage, llm_ms: llmMs, total_ms: total, ok: true, cached, expert: decision.experto, question, agent: agent.id });
+    return { ...answer, decision, agent: agent.id, usage, ms: { llm: llmMs, total }, cached, model: this.llm?.model ?? null };
   }
 
   /** Hechos numéricos de un dispositivo en la ventana (calculados en código). */

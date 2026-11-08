@@ -4,6 +4,7 @@ import { buildApp, type AppDeps } from '../app.js';
 import { openDb } from '../db.js';
 import { loadEnv } from '../env.js';
 import type { SeriesPoint, VariableStats } from '../influx.js';
+import { AGENTS } from './agents.js';
 import { OpenAiCompatClient, type ChatMessage, type CompleteOptions, type LlmClient, type LlmResult } from './client.js';
 import { hourlyProfile, hhmm, runExpert, type DataPort, type ExpertDeps } from './experts.js';
 import { decisionJsonSchema, decisionSchema, route, RouterError, seriesVocabulary, systemPrompt } from './router.js';
@@ -180,9 +181,43 @@ describe('expertos', () => {
     expect(a.chart).toBeUndefined();
   });
 
-  it('estado: cuenta dispositivos fuera de línea', async () => {
+  it('estado sin series: resume equipos en línea y fuera de línea', async () => {
     const a = await runExpert({ experto: 'estado', series: [], horas: 24, desfase_horas: 0 }, deps({ live: { get: () => ({ status: null, config: null, telemetry: null }), isOnline: (id: string) => id !== 'DEV09' } as unknown as ExpertDeps['live'] }));
-    expect(a.text).toMatch(/de \d+ dispositivos en línea\. Fuera de línea: DEV09/);
+    expect(a.text).toMatch(/\d+ de \d+ equipos en línea \(fuera de línea: DEV09\)/);
+  });
+
+  const liveWith = (values: Record<string, Record<string, number>>) =>
+    ({
+      get: (id: string) => ({ status: null, config: null, telemetry: values[id] ? { timestamp: '2026-11-08T19:30:00Z', variables: Object.fromEntries(Object.entries(values[id]!).map(([k, v]) => [k, { value: v }])) } : null }),
+      isOnline: () => true,
+    }) as unknown as ExpertDeps['live'];
+
+  it('estado: valor actual con nombre del dispositivo y enlace a su ficha', async () => {
+    const a = await runExpert({ experto: 'estado', series: ['DEV01.temperature'], horas: 24, desfase_horas: 0 }, deps({ live: liveWith({ DEV01: { temperature: 24.3 } }) }));
+    expect(a.text).toMatch(/Temperatura en Estación ambiental \(DEV01\): 24,3 °C a las 14:30/);
+    expect(a.links).toContainEqual({ label: 'Abrir DEV01', to: '/dispositivos/DEV01' });
+  });
+
+  it('estado: latitud y longitud se unen en una ubicación con enlace al mapa', async () => {
+    const a = await runExpert({ experto: 'estado', series: ['DEV06.lat', 'DEV06.lon'], horas: 24, desfase_horas: 0 }, deps({ live: liveWith({ DEV06: { lat: 7.10106, lon: -73.11314 } }) }));
+    expect(a.text.split('\n')).toHaveLength(2);
+    expect(a.text).toMatch(/está en 7,10106, -73,11314/);
+    expect(a.links?.[0]).toEqual({ label: 'Ver en el mapa', to: '/mapa' });
+  });
+
+  it('resumen: equipos, alertas y valores actuales del agente', async () => {
+    const alerts = { list: () => [{ device_id: 'DEV02', severity: 'critical', message: 'AQI alto' }, { device_id: 'DEV05', severity: 'warning', message: 'flujo' }] as never[] };
+    const a = await runExpert({ experto: 'resumen', series: [], horas: 24, desfase_horas: 0 }, deps({ alerts, live: liveWith({ DEV02: { us_aqi: 61 }, DEV03: { noise_db: 55 } }) }), AGENTS.aire);
+    expect(a.text).toMatch(/^Aire y ruido: 2 de 2 equipos en línea; 1 alerta activa, 1 críticas\./);
+    expect(a.text).toMatch(/índice aqi \(ee\. uu\.\) 61 AQI/);
+    expect(a.text).not.toMatch(/DEV05/); // alerta de otro tema
+  });
+
+  it('dispositivos: lista acotada al agente', async () => {
+    const a = await runExpert({ experto: 'dispositivos', series: [], horas: 24, desfase_horas: 0 }, deps(), AGENTS.movilidad);
+    expect(a.text).toMatch(/^4 dispositivos en Movilidad/);
+    expect(a.text).toMatch(/DEV06 Rastreador GPS — API, en línea/);
+    expect(a.chart?.type).toBe('bar');
   });
 
   it('incidentes: siempre marcados como simulación', async () => {
@@ -260,6 +295,34 @@ describe('servicio IA', () => {
     expect(llm.calls[0]!.messages[0]!.content).toMatch(/no supongas fallas/);
   });
 
+  it('el agente acota el vocabulario del enrutador y la caché', async () => {
+    const d = deps();
+    const llm = new FakeLlm([decision({ experto: 'estado', series: ['DEV02.us_aqi'] })]);
+    const ai = new AiService(llm, d, d.db);
+    const r = await ai.chat('cómo está el aire', { agent: 'aire' });
+    expect(r.agent).toBe('aire');
+    const sys = llm.calls[0]!.messages[0]!.content;
+    expect(sys).toContain('DEV02');
+    expect(sys).not.toContain('DEV05 ');
+    expect((llm.calls[0]!.opts?.schema?.schema as { properties: { series: { items: { enum: string[] } } } }).properties.series.items.enum).toEqual(seriesVocabulary(AGENTS.aire.devices));
+    await ai.chat('cómo está el aire', { agent: 'general' });
+    expect(llm.calls).toHaveLength(2); // otra caché por agente
+  });
+
+  it('seguimientos: envía la decisión anterior (no el historial) y registra la pregunta', async () => {
+    const d = deps();
+    const llm = new FakeLlm([decision({ desfase_horas: 24 })]);
+    const ai = new AiService(llm, d, d.db);
+    const previous = { experto: 'estadisticas', series: ['DEV01.temperature'], horas: 24, desfase_horas: 0 };
+    await ai.chat('¿y ayer?', { previous });
+    expect(llm.calls[0]!.messages).toHaveLength(2);
+    expect(llm.calls[0]!.messages[1]!.content).toMatch(/^Contexto \(decisión anterior\): \{"experto":"estadisticas".*\nPregunta: ¿y ayer\?$/s);
+    await ai.chat('otra', { previous: { experto: 'hackeo', series: ['x'] } }); // contexto inválido: se ignora
+    expect(llm.calls[1]!.messages[1]!.content).toBe('otra');
+    const row = d.db.prepare('SELECT question, agent FROM ai_usage ORDER BY id LIMIT 1').get() as { question: string; agent: string };
+    expect(row).toEqual({ question: '¿y ayer?', agent: 'general' });
+  });
+
   it('normaliza preguntas (tildes, signos y mayúsculas)', () => {
     expect(normalizeQuestion('¿Qué  ALERTAS hay?')).toBe('que alertas hay');
   });
@@ -291,6 +354,18 @@ describe('rutas /api/ai', () => {
     expect(body.decision.experto).toBe('estadisticas');
     expect(body.chart.type).toBe('line');
     expect(body.usage.prompt_tokens).toBe(250);
+    await app.close();
+  });
+
+  it('GET /api/ai/agents lista los agentes y POST acepta agent', async () => {
+    const d = deps();
+    const app = await appWith(new AiService(new FakeLlm([decision({})]), d, d.db), d);
+    const agents = (await app.inject({ method: 'GET', url: '/api/ai/agents' })).json() as { id: string; suggestions: string[] }[];
+    expect(agents.map((a) => a.id)).toEqual(['general', 'clima', 'aire', 'movilidad', 'agua', 'alumbrado', 'operacion']);
+    expect(agents.every((a) => a.suggestions.length >= 3)).toBe(true);
+    const ok = await app.inject({ method: 'POST', url: '/api/ai/chat', payload: { question: 'temperatura', agent: 'clima' } });
+    expect(ok.json().agent).toBe('clima');
+    expect((await app.inject({ method: 'POST', url: '/api/ai/chat', payload: { question: 'temperatura', agent: 'nope' } })).statusCode).toBe(400);
     await app.close();
   });
 

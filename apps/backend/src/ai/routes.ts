@@ -1,6 +1,7 @@
 /**
  * Rutas del asistente IA.
  *   GET  /api/ai/status            consumo de tokens y estado (público)
+ *   GET  /api/ai/agents            agentes expertos y sus preguntas de ejemplo (público)
  *   POST /api/ai/chat              pregunta en lenguaje natural → texto + gráfica (público, 12/min/IP)
  *   GET  /api/ai/analysis          último análisis por dispositivo (público)
  *   POST /api/ai/analysis/:id      genera el análisis de comportamiento (operador)
@@ -8,11 +9,17 @@
 import { isDeviceId } from '@scbga/shared';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
+import { AGENT_IDS, AGENTS } from './agents.js';
 import { LlmError } from './client.js';
 import { RouterError } from './router.js';
 import { AiBudgetError, AiUnavailableError, type AiService } from './service.js';
 
-const ChatBody = z.object({ question: z.string().trim().min(2).max(300) });
+const ChatBody = z.object({
+  question: z.string().trim().min(2).max(300),
+  agent: z.enum(AGENT_IDS).optional(),
+  /** Decisión de la respuesta anterior (seguimientos); el servicio la valida contra el vocabulario. */
+  previous: z.unknown().optional(),
+});
 const AnalysisBody = z.object({ hours: z.coerce.number().int().min(1).max(24 * 14).default(144) }).default({ hours: 144 });
 
 function aiErrorStatus(err: unknown): { code: number; msg: string } | null {
@@ -41,10 +48,12 @@ export function registerAiRoutes(
 
   app.get('/api/ai/status', async () => ai.usageSummary());
 
+  app.get('/api/ai/agents', async () => AGENT_IDS.map((id) => ({ ...AGENTS[id], devices: [...AGENTS[id].devices] })));
+
   app.post('/api/ai/chat', { config: { rateLimit: { max: 12, timeWindow: '1 minute' } } }, async (req, reply) => {
     const body = ChatBody.safeParse(req.body);
     if (!body.success) return reply.status(400).send({ error: 'Escribe una pregunta de 2 a 300 caracteres' });
-    return handle(reply, () => ai.chat(body.data.question));
+    return handle(reply, () => ai.chat(body.data.question, { agent: body.data.agent, previous: body.data.previous }));
   });
 
   app.get('/api/ai/analysis', async () => ai.latestAnalyses());

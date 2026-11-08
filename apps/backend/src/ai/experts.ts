@@ -8,6 +8,7 @@ import type { AlertRow } from '../alerts.js';
 import type { Db } from '../db.js';
 import type { SeriesPoint, VariableStats } from '../influx.js';
 import type { LiveState } from '../state.js';
+import { AGENTS, type AgentSpec } from './agents.js';
 import type { Decision } from './router.js';
 
 export interface DataPort {
@@ -40,6 +41,8 @@ export type ChartSpec =
 export interface ExpertAnswer {
   text: string;
   chart?: ChartSpec;
+  /** Accesos a la vista de la app que amplía la respuesta. */
+  links?: { label: string; to: string }[];
   /** Verdadero si alguna serie usada proviene de simulación. */
   synthetic: boolean;
 }
@@ -166,11 +169,13 @@ async function perfilHorario(d: Decision, deps: ExpertDeps, now: Date): Promise<
   };
 }
 
-function alertas(d: Decision, deps: ExpertDeps): ExpertAnswer {
+function withLinks(a: ExpertAnswer, links: { label: string; to: string }[]): ExpertAnswer {
+  return { ...a, links: [...(a.links ?? []), ...links] };
+}
+
+function alertas(d: Decision, deps: ExpertDeps, agent: AgentSpec): ExpertAnswer {
   const devices = [...new Set(d.series.map((s) => s.split('.')[0]!))];
-  const rows = devices.length
-    ? devices.flatMap((dev) => deps.alerts.list({ status: 'activas', device: dev, limit: 50 }))
-    : deps.alerts.list({ status: 'activas', limit: 100 });
+  const rows = activeAlerts(deps, devices.length ? devices : agent.devices);
   if (!rows.length) return { text: 'No hay alertas activas en este momento.', synthetic: false };
   const bySev = { critical: 0, warning: 0, info: 0 };
   for (const r of rows) bySev[r.severity]++;
@@ -195,29 +200,98 @@ function incidentes(d: Decision, deps: ExpertDeps, now: Date): ExpertAnswer {
   };
 }
 
-function estado(d: Decision, deps: ExpertDeps): ExpertAnswer {
-  if (d.series.length) {
-    const lines = d.series.map((key) => {
-      const m = meta(key)!;
-      const t = deps.live.get(m.device).telemetry;
-      const v = t?.variables[m.variable]?.value;
-      return `• ${m.label}: ${typeof v === 'number' ? fmt(v, m.decimals, m.unit) : 'sin lectura'}${t ? ` (${hhmm(t.timestamp)})` : ''}${deps.live.isOnline(m.device) ? '' : ' — fuera de línea'}`;
-    });
-    return { text: `Valores actuales:\n${lines.join('\n')}`, synthetic: d.series.some((k) => meta(k)?.synthetic) };
-  }
-  const offline = DEVICE_IDS.filter((id) => !deps.live.isOnline(id));
-  const on = DEVICE_IDS.length - offline.length;
+/** Variable principal de cada dispositivo para los resúmenes. */
+const HEADLINE: Record<DeviceId, string> = {
+  DEV01: 'temperature', DEV02: 'us_aqi', DEV03: 'noise_db', DEV04: 'congestion_index', DEV05: 'vehicles_per_min', DEV06: 'speed_kmh',
+  DEV07: 'power_w', DEV08: 'free_spaces', DEV09: 'water_level', DEV10: 'precipitation', DEV11: 'temperature', DEV12: 'temperature',
+};
+
+function currentValue(deps: ExpertDeps, key: string) {
+  const m = meta(key);
+  if (!m) return null;
+  const t = deps.live.get(m.device).telemetry;
+  const v = t?.variables[m.variable]?.value;
+  return { m, v: typeof v === 'number' ? v : null, at: t?.timestamp ?? null, online: deps.live.isOnline(m.device) };
+}
+
+const bareLabel = (m: { label: string; device: string }) => m.label.replace(` (${m.device})`, '');
+
+function estado(d: Decision, deps: ExpertDeps, agent: AgentSpec): ExpertAnswer {
+  if (!d.series.length) return resumen(deps, agent);
+  const keys = d.series.filter((k) => !k.endsWith('.lon') || !d.series.includes(k.replace('.lon', '.lat')));
+  const lines = keys.map((key) => {
+    const c = currentValue(deps, key)!;
+    const name = DEVICE_CATALOG[c.m.device].name;
+    if (c.m.variable === 'lat') {
+      const lon = currentValue(deps, `${c.m.device}.lon`);
+      return `• ${name} (${c.m.device}) está en ${fmt(c.v, 5)}, ${fmt(lon?.v, 5)}${c.at ? ` (${hhmm(c.at)})` : ''}.`;
+    }
+    const val = c.v === null ? 'sin lectura' : fmt(c.v, c.m.decimals, c.m.unit);
+    return `• ${bareLabel(c.m)} en ${name} (${c.m.device}): ${val}${c.at ? ` a las ${hhmm(c.at)}` : ''}${c.online ? '' : ' — fuera de línea'}.`;
+  });
+  const devices = [...new Set(keys.map((k) => k.split('.')[0]!))];
+  const map = keys.some((k) => k.endsWith('.lat'));
   return {
-    text: `${on} de ${DEVICE_IDS.length} dispositivos en línea.${offline.length ? ` Fuera de línea: ${offline.map((id) => `${id} (${DEVICE_CATALOG[id].name})`).join(', ')}.` : ''}`,
-    chart: { type: 'bar', title: 'Dispositivos', unit: null, bars: [{ label: 'en línea', value: on }, { label: 'fuera de línea', value: offline.length }] },
+    text: `Ahora mismo:\n${lines.join('\n')}`,
+    synthetic: keys.some((k) => meta(k)?.synthetic),
+    links: [...(map ? [{ label: 'Ver en el mapa', to: '/mapa' }] : []), ...devices.slice(0, 2).map((id) => ({ label: `Abrir ${id}`, to: `/dispositivos/${id}` }))],
+  };
+}
+
+function activeAlerts(deps: ExpertDeps, devices: readonly string[]) {
+  const set = new Set(devices);
+  return deps.alerts.list({ status: 'activas', limit: 300 }).filter((r) => set.has(r.device_id));
+}
+
+/** Foto del momento: equipos en línea, alertas activas y la variable principal de cada dispositivo. */
+function resumen(deps: ExpertDeps, agent: AgentSpec): ExpertAnswer {
+  const devs = agent.devices;
+  const offline = devs.filter((id) => !deps.live.isOnline(id));
+  const rows = activeAlerts(deps, devs);
+  const crit = rows.filter((r) => r.severity === 'critical').length;
+  const head = `${devs.length - offline.length} de ${devs.length} equipos en línea${offline.length ? ` (fuera de línea: ${offline.join(', ')})` : ''}; ${rows.length ? `${rows.length} ${rows.length === 1 ? 'alerta activa' : 'alertas activas'}${crit ? `, ${crit} críticas` : ''}` : 'sin alertas activas'}.`;
+  const values = devs
+    .map((id) => currentValue(deps, `${id}.${HEADLINE[id]}`))
+    .filter((c): c is NonNullable<typeof c> => !!c && c.v !== null)
+    .slice(0, 8)
+    .map((c) => `• ${DEVICE_CATALOG[c.m.device].name}: ${bareLabel(c.m).toLowerCase()} ${fmt(c.v, c.m.decimals, c.m.unit)}`);
+  const top = rows.slice(0, 3).map((r) => `• ${r.severity === 'critical' ? 'Crítica' : r.severity === 'warning' ? 'Advertencia' : 'Info'} · ${r.device_id}: ${r.message}`);
+  const scope = agent.id === 'general' || agent.id === 'operacion' ? 'Estado de la ciudad' : agent.name;
+  const text = [`${scope}: ${head}`, values.length ? `Valores actuales:\n${values.join('\n')}` : '', top.length ? `Alertas más recientes:\n${top.join('\n')}` : '']
+    .filter(Boolean)
+    .join('\n\n');
+  return {
+    text,
+    synthetic: devs.some((id) => DEVICE_CATALOG[id].provenance.synthetic),
+    links: [{ label: 'Ver dispositivos', to: '/dispositivos' }, ...(rows.length ? [{ label: 'Ver alertas', to: '/alertas' }] : [])],
+  };
+}
+
+const SOURCE_TEXT: Record<string, string> = { simulated: 'simulado', digital_twin: 'gemelo digital', api: 'API', dataset: 'dataset', real: 'real (ESP32)' };
+
+function dispositivos(deps: ExpertDeps, agent: AgentSpec): ExpertAnswer {
+  const lines = agent.devices.map((id) => {
+    const s = DEVICE_CATALOG[id];
+    return `• ${id} ${s.name} — ${SOURCE_TEXT[s.source_type] ?? s.source_type}, ${deps.live.isOnline(id) ? 'en línea' : 'fuera de línea'}`;
+  });
+  const bySource = new Map<string, number>();
+  for (const id of agent.devices) {
+    const k = SOURCE_TEXT[DEVICE_CATALOG[id].source_type] ?? DEVICE_CATALOG[id].source_type;
+    bySource.set(k, (bySource.get(k) ?? 0) + 1);
+  }
+  const whole = agent.id === 'general' || agent.id === 'operacion';
+  return {
+    text: `${agent.devices.length} dispositivos${whole ? '' : ` en ${agent.name}`}:\n${lines.join('\n')}`,
+    chart: agent.devices.length > 2 ? { type: 'bar', title: 'Dispositivos por tipo de fuente', unit: null, bars: [...bySource].map(([label, value]) => ({ label, value })) } : undefined,
     synthetic: false,
+    links: [{ label: 'Ver dispositivos', to: '/dispositivos' }],
   };
 }
 
 export const HELP_TEXT =
   'Puedo responder sobre los datos de la ciudad. Ejemplos:\n• "Promedio, mínimo y máximo de temperatura hoy"\n• "Compara el ruido con el flujo vehicular esta semana"\n• "¿A qué hora hay más tráfico?"\n• "¿Qué alertas hay activas?"\n• "¿Cuántos incidentes hubo ayer?"\n• "¿Qué dispositivos están fuera de línea?"';
 
-export async function runExpert(d: Decision, deps: ExpertDeps): Promise<ExpertAnswer> {
+export async function runExpert(d: Decision, deps: ExpertDeps, agent: AgentSpec = AGENTS.general): Promise<ExpertAnswer> {
   const now = deps.now?.() ?? new Date();
   switch (d.experto) {
     case 'estadisticas':
@@ -227,11 +301,15 @@ export async function runExpert(d: Decision, deps: ExpertDeps): Promise<ExpertAn
     case 'perfil_horario':
       return perfilHorario(d, deps, now);
     case 'alertas':
-      return alertas(d, deps);
+      return withLinks(alertas(d, deps, agent), [{ label: 'Ver alertas', to: '/alertas' }]);
     case 'incidentes':
       return incidentes(d, deps, now);
     case 'estado':
-      return estado(d, deps);
+      return estado(d, deps, agent);
+    case 'resumen':
+      return resumen(deps, agent);
+    case 'dispositivos':
+      return dispositivos(deps, agent);
     case 'ayuda':
       return { text: HELP_TEXT, synthetic: false };
     case 'fuera_de_tema':
