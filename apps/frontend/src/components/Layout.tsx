@@ -1,4 +1,4 @@
-import { Bell, Cpu, Gauge, History, Map as MapIcon, Moon, Settings2, Sun } from 'lucide-react';
+import { Bell, Bot, Cpu, Gauge, History, Map as MapIcon, Moon, Settings2, Sun } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { TZ } from '../lib/format';
@@ -12,6 +12,7 @@ const NAV = [
   { to: '/dispositivos', label: 'Dispositivos', short: 'Equipos', icon: Cpu },
   { to: '/historico', label: 'Histórico', short: 'Histórico', icon: History },
   { to: '/alertas', label: 'Alertas', short: 'Alertas', icon: Bell },
+  { to: '/asistente', label: 'Asistente', short: 'IA', icon: Bot },
   { to: '/configuracion', label: 'Configuración', short: 'Ajustes', icon: Settings2 },
 ];
 
@@ -129,7 +130,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <main className="mx-auto w-full max-w-[1680px] min-w-0 flex-1 px-4 pt-6 pb-28 sm:px-6 lg:pb-12">{children}</main>
 
       {/* Navegación inferior (móvil y tableta) */}
-      <nav className="fixed inset-x-0 bottom-0 z-[1000] grid grid-cols-6 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Principal">
+      <nav className="fixed inset-x-0 bottom-0 z-[1000] grid grid-cols-7 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Principal">
         {NAV.map(({ to, short, icon: Icon, end }) => (
           <NavLink key={to} to={to} end={end} className={({ isActive }) => cx('relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold', isActive ? 'text-ink' : 'text-ink-3')}>
             {({ isActive }) => (

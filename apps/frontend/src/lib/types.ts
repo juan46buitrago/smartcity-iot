@@ -44,3 +44,54 @@ export interface CommandRecord {
 export type FeedItem = { id: string; at: string; kind: 'telemetry' | 'status' | 'command' | 'alert' | 'incident' | 'config'; device: string; text: string; tone?: 'ok' | 'warn' | 'crit' | 'info' | 'synth' };
 
 export type { Incident, IncidentEvent };
+
+/* ------------------------------ asistente IA ------------------------------ */
+
+export interface AiChartSeries {
+  key: string;
+  label: string;
+  unit: string | null;
+  synthetic: boolean;
+  points: { t: string; v: number }[];
+}
+export type AiChartSpec =
+  | { type: 'line'; title: string; series: AiChartSeries[]; refs?: { label: string; value: number }[] }
+  | { type: 'bar'; title: string; unit: string | null; bars: { label: string; value: number }[] };
+
+export interface AiChatResponse {
+  text: string;
+  chart?: AiChartSpec;
+  synthetic: boolean;
+  decision: { experto: string; series: string[]; horas: number; desfase_horas: number } | null;
+  usage: { prompt_tokens: number; completion_tokens: number };
+  ms: { llm: number; total: number };
+  cached: boolean;
+  model: string | null;
+}
+
+export interface AiUsageRow {
+  kind: 'chat' | 'analysis';
+  calls: number;
+  cached: number;
+  failed: number;
+  prompt_tokens: number;
+  completion_tokens: number;
+  avg_tokens: number | null;
+  avg_llm_ms: number | null;
+  avg_total_ms: number | null;
+}
+export interface AiStatus {
+  enabled: boolean;
+  model: string | null;
+  daily_limit: number;
+  last_24h: AiUsageRow[];
+  all_time: AiUsageRow[];
+}
+
+export interface AiAnalysis {
+  device_id: string;
+  hours: number;
+  created_at: string;
+  model: string;
+  text: string;
+}
