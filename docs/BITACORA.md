@@ -114,3 +114,29 @@ frontend compila (`tsc` + `vite build`).
 | Fecha/hora (COT) | Commit | Servicios | Hueco aproximado |
 |---|---|---|---|
 | 2026-11-07 | inicial | todos | inicio de la captura |
+| 2026-11-08 17:08:56–17:09:20 | `5120560` | mosquitto, devices, nodered, backend, web (Grafana recargó el tablero sin reinicio) | **≈ 24 s** |
+
+## 2026-11-08 — Despliegue del cierre en producción
+**Acceso.** La IP pública del propietario cambió; el propietario creó en el NSG la regla `SSH_ANY`
+(22 desde cualquier origen). ⚠️ Pendiente: volver a restringirla a una IP /32.
+
+**Procedimiento ejecutado**
+1. Lectura del estado: 8/8 servicios sanos con 37 h de actividad, disco 32 %, 6,7 GB de RAM libres.
+2. Validación en solo lectura de la consulta Flux de la tabla de Grafana contra InfluxDB de producción
+   (últimas 24 h: ≈ 8 600 lecturas por dispositivo simulado; DEV09 con 6 por el retraso del IDEAM).
+3. Copia del `.env` (`.env.bak-20261108`, permisos 600) y transferencia del código (`git archive`).
+4. `setup.sh`: agregó **solo** `MQTT_PASS_DEV11` y `MQTT_PASS_DEV12`; se comprobó que ningún valor
+   existente cambió.
+5. Primera copia de seguridad (InfluxDB completo + SQLite, 568 KB). Defecto encontrado: `backup.sh`
+   enviaba el token con comillas → 401; corregido (commit `fix(infra)`).
+6. `docker compose build` (con los contenedores en marcha) y `docker compose up -d`.
+7. Cron diario de copias: `15 8 * * *` UTC (03:15 COT).
+
+**Verificación**
+- `/api/health` → ok (MQTT, InfluxDB, SQLite).
+- 12 dispositivos en el catálogo; **11/11 virtuales en línea**, DEV12 publicando (22,1 °C · 89 %),
+  DEV11 a la espera del ESP32.
+- Mosquitto: "listener TLS 8883 habilitado", 14 usuarios. `openssl s_client` desde la VM → certificado
+  Let's Encrypt (YE2) válido, TLS 1.3. Desde Internet sigue cerrado hasta abrir 8883 en el NSG.
+- `/asistente` → 200; `/api/ai/status` → `enabled: false` hasta configurar `AI_API_KEY` en la VM.
+- Grafana: el tablero muestra la tabla de promedio/mín/máx y los paneles de DEV11 y DEV12.

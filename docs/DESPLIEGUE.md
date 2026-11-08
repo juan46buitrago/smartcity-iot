@@ -52,6 +52,8 @@ Internet ──► NSG (22 solo IP del propietario · 80 · 443)
 | SSH | 300 | IP del propietario (/32) | 22 | `*` (todo Internet) |
 | Allow-HTTP | 310 | Internet | 80 | — (nueva) |
 | Allow-HTTPS | 320 | Internet | 443 | — (nueva) |
+| SSH_ANY (2026-11-08) | 330 | **Cualquiera** | 22 | creada por el propietario al cambiar su IP — **restringir a /32** |
+| MQTT-TLS (pendiente) | — | Internet | 8883 | necesaria para DEV11 (ESP32 en Wokwi) |
 
 ## 4. Verificación externa (desde Internet)
 
@@ -104,5 +106,5 @@ docker compose restart <servicio>
 | 1 | Rotar las claves antiguas de Azure Maps y la contraseña anterior del GPS (no se afirma que estén rotadas) | Propietario |
 | 2 | Autorización de uso de gpsmobile.co (DEV06 sigue en ruta simulada) | Propietario |
 | 3 | Guardar las credenciales de producción en un gestor y retirar `.local-credentials.txt` de la VM | Propietario |
-| 4 | Copias de seguridad de los volúmenes (InfluxDB, SQLite) durante la captura de la Etapa 5 | Etapa 5 |
+| 4 | ~~Copias de seguridad~~ → **hecho 2026-11-08**: `backup.sh` diario por cron (03:15 COT), 7 días | — |
 | 5 | Observaciones O1–O6 de `PRUEBAS.md` (healthcheck de `devices`, cifrado de credenciales de Node-RED…) | Etapa 5 |
