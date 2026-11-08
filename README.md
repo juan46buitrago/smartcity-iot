@@ -1,10 +1,11 @@
 # Smart City Bucaramanga (SmartCityBGA)
 
 Plataforma IoT académica que simula y monitorea una ciudad inteligente en Bucaramanga, Colombia:
-10 dispositivos virtuales identificables, comunicación MQTT bidireccional, persistencia en series
+12 dispositivos identificables (simulados, gemelos digitales, APIs, un dataset y un ESP32 real), comunicación MQTT bidireccional, persistencia en series
 temporales, alertas, control remoto con confirmación y una aplicación web en tiempo real.
 
 > Plan técnico y estado del proyecto: [`docs/PLAN.md`](docs/PLAN.md)
+> Bitácora: [`docs/BITACORA.md`](docs/BITACORA.md) · Asistente IA: [`docs/IA.md`](docs/IA.md)
 
 ## Arquitectura
 
@@ -42,6 +43,8 @@ temporales, alertas, control remoto con confirmación y una aplicación web en t
 | DEV08 | Parqueadero | Simulación | Sintético |
 | DEV09 | Nivel de agua | Dataset IDEAM (estación MAJADAS) | Real |
 | DEV10 | Estación meteorológica | API Open-Meteo Forecast | Real (modelo) |
+| DEV11 | Nodo ESP32 (Wokwi) | **Real**: firmware ESP32 por MQTT/TLS 8883 ([`firmware/dev11-esp32`](firmware/dev11-esp32)) | Sensores de Wokwi (en placa física, reales) |
+| DEV12 | Estación histórica | **Dataset** CSV ERA5 (Open-Meteo Historical), mismo día de 2025 | Real (reanálisis) |
 
 Cada mensaje lleva `source_type` y `provenance.synthetic`; la interfaz lo muestra siempre.
 

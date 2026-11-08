@@ -74,3 +74,43 @@ Documentos de detalle: [`PLAN.md`](PLAN.md) · [`PRUEBAS.md`](PRUEBAS.md) · [`D
 C2 DEV11 ESP32/Wokwi por MQTT TLS · C3 DEV12 dataset CSV · C4 módulo IA (enrutador CDM + expertos
 en código) · C5 página "Asistente" con gráficas · C6 Grafana min/máx/alertas · C7 backups y
 despliegue reproducible · C8 despliegue a la VM · C9 revisión e informe tras 6 días de captura.
+
+## 2026-11-08 — Desarrollo de cierre (C2–C7)
+Trabajo organizado con subagentes: Haiku para lecturas y ejecución de pruebas; Sonnet en un
+worktree aislado para DEV11 (firmware + bróker TLS); integración y revisión por el agente líder.
+
+| Commit | Qué | Verificación |
+|---|---|---|
+| `c131d65` | **Asistente IA (backend)**: enrutador CDM + 8 expertos en código, caché, presupuesto diario, registro de tokens, análisis por dispositivo. Ver [`IA.md`](IA.md) | 27 pruebas nuevas · humo real: **10/10 aciertos, ≈ 750 tokens, 1,8 s** (`evidencias/ia/`) |
+| `b0e7979` | **Página Asistente** (`/asistente`): chat sin historial, gráficas a pedido exportables a PNG, panel de análisis | `tsc` + `vite build` |
+| `5e25f51` | **deploy.sh** (git archive → VM → compose → health) y **backup.sh** (InfluxDB + SQLite, 7 días) | sintaxis `bash -n`; ejecución pendiente de acceso SSH |
+| `d2e6958` · `6c26fc3` · `097fefb` · `009817b` | **DEV11 ESP32 (Wokwi)**: `source_type: real`, listener **MQTT/TLS 8883** solo en producción (certificado Let's Encrypt), credencial propia, firmware con LWT/ack/deduplicación/NTP, muestras de contrato validadas con zod | shared 21/21 · `arduino-cli` compila para ESP32 (81 % flash) · TLS y Wokwi pendientes de prueba en vivo |
+| `d5e9519` | **DEV12 dataset**: reanálisis ERA5 de Bucaramanga (nov. 2025, 720 h, CC BY 4.0) reproducido en modo *espejo* (mismo día y hora de 2025) | 6 pruebas nuevas (lector, interpolación, espejo, integridad del CSV) |
+| `85fb148` | **Grafana**: tabla promedio/mín/máx/lecturas sobre el rango del selector de tiempo; comparación DEV01 vs DEV10 vs DEV12; paneles DEV11 y DEV12 | consulta Flux pendiente de validar contra InfluxDB de producción |
+
+**Distribución de los 12 dispositivos por tipo de fuente**
+
+| Real | Gemelo digital | API | Dataset | Simulado |
+|---|---|---|---|---|
+| DEV11 (ESP32) | DEV01, DEV07 | DEV02, DEV06*, DEV10 | DEV09 (IDEAM), DEV12 (ERA5 CSV) | DEV03, DEV04, DEV05, DEV08 |
+
+\* DEV06 usa ruta simulada mientras no haya autorización de gpsmobile.co.
+
+**Pruebas al cierre del día:** shared 21 · devices 22 · backend 36 · Node-RED 20 = **99 pruebas en verde**;
+frontend compila (`tsc` + `vite build`).
+
+**Decisiones**
+- `qwen3.8-flash` como modelo (medido; `deepseek-v4.1-flash` gasta la salida razonando).
+- Sin Docker en el PC de desarrollo: la verificación integral se hace en la VM.
+- El despliegue reinicia solo los servicios cambiados; los huecos de captura se registran abajo.
+
+**Bloqueos (acción del propietario)**
+1. SSH a la VM rechazado: la IP pública cambió (ahora 190.67.56.196) y el NSG solo admite la anterior.
+   Este PC no tiene Azure CLI.
+2. Abrir **8883/TCP** en el NSG para DEV11 (cambio en Azure, requiere confirmación).
+3. Rotar las llaves de Azure Maps y b.ai que estaban en `tarea.txt`.
+
+### Registro de despliegues y huecos de captura
+| Fecha/hora (COT) | Commit | Servicios | Hueco aproximado |
+|---|---|---|---|
+| 2026-11-07 | inicial | todos | inicio de la captura |
