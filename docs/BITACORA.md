@@ -176,3 +176,40 @@ Los dos arreglos de backend se desplegaron con `infra/scripts/deploy.sh backend`
   `python docs/informe/generar_informe.py` con un entorno que tenga matplotlib.
 - Decisión: la cobertura se calcula como lecturas / lecturas esperadas por intervalo, porque la
   "disponibilidad" de `/api/capture` promedia eventos y sobreestima.
+
+## 2026-11-08 — Asistente en panel lateral, agentes expertos y arreglo de Wokwi
+**Reporte del propietario:** el asistente era difícil de usar, daba errores y «Wokwi no carga».
+
+**Diagnóstico** (batería de preguntas reales contra producción + consola del navegador)
+| Síntoma | Causa |
+|---|---|
+| La página `/asistente` se caía al llegar una respuesta (pantalla en blanco) | En Chrome reciente `scrollIntoView` devuelve una promesa; el `useEffect` la retornaba y React la tomaba como función de limpieza («destroy is not a function») |
+| «temperatura actual» respondía cuántos equipos había en línea | El enrutador elegía `estado` sin series |
+| «qué dispositivos hay» devolvía la ayuda; «hay algún problema» no miraba alertas | No existían expertos de inventario ni de resumen |
+| «resumen del día» mezclaba °C, AQI y dB en un solo eje | La gráfica dibujaba todas las series juntas |
+| «¿y ayer?» no se entendía | Cada pregunta viajaba sin contexto |
+| Wokwi (extensión de VS Code) no cargaba | `wokwi.toml` apunta a `build/dev11-esp32.ino.bin`, que nunca se había compilado; tampoco existía `secrets.h` |
+
+**Cambios** (commits `0719b88`, `4a115a5`, `fa5dc6e`, `a07050f`)
+- Siete **agentes expertos** (general, clima, aire y ruido, movilidad, agua y lluvia, alumbrado,
+  operación). Cada uno acota el vocabulario del enrutador: ≈ 640–780 tokens por pregunta frente a
+  ≈ 1 050 del general. `GET /api/ai/agents`.
+- Expertos nuevos `resumen` y `dispositivos`; `estado` nombra el equipo y une lat/lon; las respuestas
+  traen accesos a la vista relacionada.
+- Seguimientos: el cliente manda la decisión anterior (no el historial); «¿y ayer?» tras un valor
+  actual responde con estadísticas de ayer.
+- `ai_usage` guarda la pregunta y el agente (para depurar respuestas futuras).
+- Interfaz: botón «Pregúntale a la IA» en todas las páginas; panel acoplado a la derecha en pantallas
+  anchas (el contenido se corre) y a pantalla completa en móvil; misma conversación en `/asistente`;
+  viñetas, accesos, errores con «Reintentar», Enter envía; gráficas en pequeños múltiplos por unidad.
+- Firmware: `firmware/dev11-esp32/build.sh` compila con arduino-cli hacia `build/`; se creó el
+  `secrets.h` local con la clave de DEV11 traída de la VM sin imprimirla (ignorado por Git).
+  Compilación verificada: 81 % de la flash, 16 % de la RAM.
+
+**Pruebas:** backend 46/46 (8 nuevas). Producción: «temperatura actual» → valores de DEV01/DEV10;
+«¿y ayer?» → estadísticas del día anterior; «hay algún problema» → resumen con DEV11 fuera de línea
+y 1 alerta; «a qué hora hay más ruido» (agente aire, 659 tokens) → pico 13:00. Capturas del panel
+en escritorio (acoplado) y móvil revisadas.
+
+**Despliegues:** backend 18:13 COT (`0719b88`) y backend + web 18:17:46–18:18:25 COT. Solo se reinició el
+backend (la captura sigue por Node-RED → InfluxDB) y la web: **sin hueco de captura**.
