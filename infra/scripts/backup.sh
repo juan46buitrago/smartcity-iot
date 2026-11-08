@@ -18,7 +18,8 @@ DEST="backups/$DAY"
 mkdir -p "$DEST"
 chmod 700 backups
 
-TOKEN="$(grep -E '^INFLUX_ADMIN_TOKEN=' .env | cut -d= -f2-)"
+# setup.sh guarda los valores entre comillas simples: se retiran.
+TOKEN="$(grep -E '^INFLUX_ADMIN_TOKEN=' .env | head -1 | cut -d= -f2- | sed -e "s/^'//" -e "s/'$//")"
 [ -n "$TOKEN" ] || { echo "✘ INFLUX_ADMIN_TOKEN no está en .env" >&2; exit 1; }
 
 echo "[$(date -u +%FT%TZ)] InfluxDB → $DEST/influx"
