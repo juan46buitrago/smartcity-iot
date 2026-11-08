@@ -103,6 +103,69 @@ const panels = [
   },
 ];
 
+// --- Procesamiento: promedio, mínimo y máximo según el rango elegido en el selector de tiempo ---
+const STATS_SERIES = [
+  'DEV01.temperature', 'DEV01.humidity', 'DEV02.us_aqi', 'DEV02.pm2_5', 'DEV03.noise_db', 'DEV04.congestion_index',
+  'DEV05.vehicles_per_min', 'DEV05.avg_speed_kmh', 'DEV07.power_w', 'DEV08.occupancy_pct', 'DEV09.water_level',
+  'DEV10.temperature', 'DEV10.precipitation', 'DEV11.temperature', 'DEV11.humidity', 'DEV11.light_pct',
+  'DEV12.temperature', 'DEV12.humidity', 'DEV12.precipitation',
+];
+const statsQuery = `data = from(bucket: "raw")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "telemetry")
+  |> filter(fn: (r) => contains(value: r.device_id + "." + r._field, set: ${JSON.stringify(STATS_SERIES)}))
+  |> toFloat()
+  |> keep(columns: ["device_id", "_field", "_value"])
+tag = (tables=<-, name) => tables |> keep(columns: ["device_id", "_field", "_value"]) |> map(fn: (r) => ({r with stat: name}))
+union(tables: [
+  data |> mean() |> tag(name: "promedio"),
+  data |> min() |> tag(name: "minimo"),
+  data |> max() |> tag(name: "maximo"),
+  data |> count() |> toFloat() |> tag(name: "lecturas"),
+])
+  |> group()
+  |> pivot(rowKey: ["device_id", "_field"], columnKey: ["stat"], valueColumn: "_value")
+  |> sort(columns: ["device_id", "_field"])`;
+
+panels.push(
+  {
+    id: ++id,
+    type: 'table',
+    title: 'Resumen estadístico del rango seleccionado (promedio · mínimo · máximo)',
+    description: 'Calculado por InfluxDB sobre los datos crudos del rango elegido arriba a la derecha (ajuste de tiempo).',
+    datasource: DS,
+    gridPos: { x: 0, y: 52, w: 24, h: 11 },
+    targets: [{ refId: 'A', datasource: DS, query: statsQuery }],
+    fieldConfig: {
+      defaults: { decimals: 2 },
+      overrides: [
+        { matcher: { id: 'byName', options: 'device_id' }, properties: [{ id: 'displayName', value: 'Dispositivo' }] },
+        { matcher: { id: 'byName', options: '_field' }, properties: [{ id: 'displayName', value: 'Variable' }] },
+        { matcher: { id: 'byName', options: 'lecturas' }, properties: [{ id: 'decimals', value: 0 }] },
+      ],
+    },
+    options: { showHeader: true, cellHeight: 'sm' },
+    transformations: [{ id: 'organize', options: { indexByName: { device_id: 0, _field: 1, promedio: 2, minimo: 3, maximo: 4, lecturas: 5 } } }],
+  },
+  {
+    id: ++id,
+    type: 'timeseries',
+    title: 'Temperatura: gemelo (DEV01) vs API (DEV10) vs mismo día de 2025 (DEV12, dataset)',
+    description: 'DEV12 reproduce el reanálisis ERA5 del mismo día y hora del año anterior: referencia histórica real.',
+    datasource: DS,
+    gridPos: { x: 0, y: 63, w: 12, h: 8 },
+    targets: [{ refId: 'A', datasource: DS, query: `from(bucket: "raw")
+  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+  |> filter(fn: (r) => r._measurement == "telemetry" and r._field == "temperature" and (r.device_id == "DEV01" or r.device_id == "DEV10" or r.device_id == "DEV12"))
+  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
+  |> keep(columns: ["_time", "_value", "device_id"])` }],
+    fieldConfig: { defaults: { unit: 'celsius', custom: { lineWidth: 2, fillOpacity: 0, showPoints: 'never', spanNulls: true } }, overrides: [] },
+    options: { legend: { displayMode: 'list', placement: 'bottom' }, tooltip: { mode: 'multi' } },
+  },
+  ts('Nodo ESP32 en Wokwi (DEV11): temperatura, humedad, luz y relé', 'DEV11', ['temperature', 'humidity', 'light_pct', 'relay'], 'none', { x: 12, y: 63, w: 12, h: 8 }, { desc: 'Firmware real por MQTT/TLS 8883; en Wokwi los sensores los ajusta una persona con los controles del simulador.' }),
+  ts('Estación histórica ERA5 (DEV12): lluvia, radiación y viento', 'DEV12', ['precipitation', 'solar_radiation', 'wind_speed'], 'none', { x: 0, y: 71, w: 24, h: 8 }, { desc: 'Dataset CSV real (reanálisis ERA5, nov. 2025) reproducido en modo espejo.' }),
+);
+
 const dashboard = {
   uid: 'scbga-analisis',
   title: 'Smart City Bucaramanga — Análisis',

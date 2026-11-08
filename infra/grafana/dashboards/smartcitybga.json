@@ -932,6 +932,235 @@
         "mergeValues": true,
         "showValue": "never"
       }
+    },
+    {
+      "id": 19,
+      "type": "table",
+      "title": "Resumen estadístico del rango seleccionado (promedio · mínimo · máximo)",
+      "description": "Calculado por InfluxDB sobre los datos crudos del rango elegido arriba a la derecha (ajuste de tiempo).",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-scbga"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 52,
+        "w": 24,
+        "h": 11
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-scbga"
+          },
+          "query": "data = from(bucket: \"raw\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\")\n  |> filter(fn: (r) => contains(value: r.device_id + \".\" + r._field, set: [\"DEV01.temperature\",\"DEV01.humidity\",\"DEV02.us_aqi\",\"DEV02.pm2_5\",\"DEV03.noise_db\",\"DEV04.congestion_index\",\"DEV05.vehicles_per_min\",\"DEV05.avg_speed_kmh\",\"DEV07.power_w\",\"DEV08.occupancy_pct\",\"DEV09.water_level\",\"DEV10.temperature\",\"DEV10.precipitation\",\"DEV11.temperature\",\"DEV11.humidity\",\"DEV11.light_pct\",\"DEV12.temperature\",\"DEV12.humidity\",\"DEV12.precipitation\"]))\n  |> toFloat()\n  |> keep(columns: [\"device_id\", \"_field\", \"_value\"])\ntag = (tables=<-, name) => tables |> keep(columns: [\"device_id\", \"_field\", \"_value\"]) |> map(fn: (r) => ({r with stat: name}))\nunion(tables: [\n  data |> mean() |> tag(name: \"promedio\"),\n  data |> min() |> tag(name: \"minimo\"),\n  data |> max() |> tag(name: \"maximo\"),\n  data |> count() |> toFloat() |> tag(name: \"lecturas\"),\n])\n  |> group()\n  |> pivot(rowKey: [\"device_id\", \"_field\"], columnKey: [\"stat\"], valueColumn: \"_value\")\n  |> sort(columns: [\"device_id\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "device_id"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Dispositivo"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "_field"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Variable"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "lecturas"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "device_id": 0,
+              "_field": 1,
+              "promedio": 2,
+              "minimo": 3,
+              "maximo": 4,
+              "lecturas": 5
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Temperatura: gemelo (DEV01) vs API (DEV10) vs mismo día de 2025 (DEV12, dataset)",
+      "description": "DEV12 reproduce el reanálisis ERA5 del mismo día y hora del año anterior: referencia histórica real.",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-scbga"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 63,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-scbga"
+          },
+          "query": "from(bucket: \"raw\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\" and r._field == \"temperature\" and (r.device_id == \"DEV01\" or r.device_id == \"DEV10\" or r.device_id == \"DEV12\"))\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"device_id\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 0,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Nodo ESP32 en Wokwi (DEV11): temperatura, humedad, luz y relé",
+      "description": "Firmware real por MQTT/TLS 8883; en Wokwi los sensores los ajusta una persona con los controles del simulador.",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-scbga"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 63,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-scbga"
+          },
+          "query": "from(bucket: \"raw\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\" and r.device_id == \"DEV11\")\n  |> filter(fn: (r) => r._field == \"temperature\" or r._field == \"humidity\" or r._field == \"light_pct\" or r._field == \"relay\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Estación histórica ERA5 (DEV12): lluvia, radiación y viento",
+      "description": "Dataset CSV real (reanálisis ERA5, nov. 2025) reproducido en modo espejo.",
+      "datasource": {
+        "type": "influxdb",
+        "uid": "influx-scbga"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 71,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influx-scbga"
+          },
+          "query": "from(bucket: \"raw\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"telemetry\" and r.device_id == \"DEV12\")\n  |> filter(fn: (r) => r._field == \"precipitation\" or r._field == \"solar_radiation\" or r._field == \"wind_speed\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"_field\"])"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "showPoints": "never",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     }
   ]
 }
