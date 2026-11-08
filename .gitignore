@@ -43,3 +43,6 @@ Thumbs.db
 .idea/
 # Enunciado con llaves de API (NO versionar)
 tarea.txt
+
+# Estado local de Claude Code (worktrees de agentes)
+.claude/
