@@ -250,6 +250,16 @@ describe('servicio IA', () => {
     expect(ai.latestAnalyses()).toHaveLength(1);
   });
 
+  it('análisis: la procedencia sale de la última lectura y no solo del catálogo', async () => {
+    const d = deps({ live: { get: () => ({ status: null, config: null, telemetry: { provenance: { provider: 'Ruta simulada', synthetic: true } } }), isOnline: () => true } as unknown as ExpertDeps['live'] });
+    const llm = new FakeLlm(['ok']);
+    await new AiService(llm, d, d.db).analyze('DEV06', 48);
+    const sent = JSON.parse(llm.calls[0]!.messages[1]!.content);
+    expect(sent.synthetic).toBe(true);
+    expect(sent.provider).toBe('Ruta simulada');
+    expect(llm.calls[0]!.messages[0]!.content).toMatch(/no supongas fallas/);
+  });
+
   it('normaliza preguntas (tildes, signos y mayúsculas)', () => {
     expect(normalizeQuestion('¿Qué  ALERTAS hay?')).toBe('que alertas hay');
   });

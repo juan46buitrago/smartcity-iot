@@ -155,7 +155,19 @@ export class AiService {
         };
       }),
     );
-    return { device: device, name: spec.name, source: spec.source_type, synthetic: spec.provenance.synthetic, provider: spec.provenance.provider, hours, from: from.toISOString(), to: to.toISOString(), variables: out };
+    // La procedencia real la dice la última lectura (p. ej. DEV06 usa ruta simulada sin autorización de la API GPS).
+    const last = this.deps.live.get(device)?.telemetry?.provenance;
+    return {
+      device,
+      name: spec.name,
+      source: spec.source_type,
+      synthetic: last?.synthetic ?? spec.provenance.synthetic,
+      provider: last?.provider ?? spec.provenance.provider,
+      hours,
+      from: from.toISOString(),
+      to: to.toISOString(),
+      variables: out,
+    };
   }
 
   /** Análisis de comportamiento en prosa (≈150 palabras) a partir de los hechos: solo el narrador usa texto libre. */
@@ -168,7 +180,7 @@ export class AiService {
         {
           role: 'system',
           content:
-            'Eres analista de datos IoT de una ciudad inteligente (Bucaramanga, Colombia, hora UTC-5). Redacta en español un párrafo de máximo 150 palabras que describa el comportamiento de las gráficas del dispositivo durante la ventana: rangos, ciclo diario (horas pico y valle), tendencia (compara primer y último cuarto), variabilidad y una posible causa física o urbana. Usa SOLO los números dados, sin inventar. Si synthetic es true, aclara que los datos son simulados. Sin títulos ni viñetas.',
+            'Eres analista de datos IoT de una ciudad inteligente (Bucaramanga, Colombia, hora UTC-5). Redacta en español un párrafo de máximo 150 palabras que describa el comportamiento de las gráficas del dispositivo durante la ventana: rangos, ciclo diario (horas pico y valle), tendencia (compara primer y último cuarto), variabilidad y una posible causa física o urbana. Usa SOLO los números dados, sin inventar. Si synthetic es true, aclara que los datos son simulados. La ventana puede no ser múltiplo de 24 h: si el primer y el último cuarto caen en horas distintas del día (día vs noche), atribuye la diferencia al ciclo diario y no a una tendencia; no supongas fallas del equipo. Sin títulos ni viñetas.',
         },
         { role: 'user', content: JSON.stringify(facts) },
       ],
