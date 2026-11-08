@@ -121,6 +121,21 @@ describe('detección de atípicos', () => {
     engine.onTelemetry(telemetry('DEV03', 75), cfg);
     expect(engine.list({ limit: 10 }).filter((a) => a.kind === 'anomaly')).toHaveLength(1);
   });
+
+  it('el atípico se resuelve solo cuando la variable vuelve a lo normal', () => {
+    const db = openDb(':memory:');
+    const engine = new AlertEngine(db, new Hub(), 120);
+    const cfg = defaultConfig('DEV03');
+    cfg.thresholds.noise_db = {};
+    for (let i = 0; i < 40; i++) engine.onTelemetry(telemetry('DEV03', 50 + (i % 2) * 0.1), cfg);
+    engine.onTelemetry(telemetry('DEV03', 75), cfg);
+    expect(engine.list({ status: 'activas', limit: 10 }).filter((a) => a.kind === 'anomaly')).toHaveLength(1);
+    engine.onTelemetry(telemetry('DEV03', 50.1), cfg);
+    expect(engine.list({ status: 'activas', limit: 10 }).filter((a) => a.kind === 'anomaly')).toHaveLength(0);
+    const all = engine.list({ limit: 10 }).filter((a) => a.kind === 'anomaly');
+    expect(all).toHaveLength(1);
+    expect(all[0]!.resolved_by).toBe('sistema');
+  });
 });
 
 describe('ventana de agregación', () => {

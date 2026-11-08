@@ -38,6 +38,8 @@ const ANOMALY_MIN = 30;
 const ANOMALY_Z = 4;
 const ANOMALY_COOLDOWN_MS = 30 * 60_000;
 const ANOMALY_MIN_SD = 0.5;
+/** Con |z| por debajo de esto la variable se considera de nuevo normal y se cierran sus atípicos. */
+const ANOMALY_CLEAR_Z = 2;
 
 /** Evalúa un valor contra un umbral; devuelve la peor violación o null. */
 export function evaluateThreshold(value: number, t: Threshold | undefined): { severity: Severity; limit: number; dir: 'alto' | 'bajo' } | null {
@@ -102,6 +104,19 @@ export class AlertEngine {
     this.hub.publish({ type: 'alert', data: this.get(ex.id) });
   }
 
+  private resolveAnomalies(device: string, variable: string) {
+    const open = this.db
+      .prepare(`SELECT id FROM alerts WHERE device_id=? AND variable=? AND kind='anomaly' AND status!='resuelta'`)
+      .all(device, variable) as { id: number }[];
+    if (!open.length) return;
+    const now = new Date().toISOString();
+    const upd = this.db.prepare(`UPDATE alerts SET status='resuelta', resolved_by='sistema', resolved_at=?, updated_at=? WHERE id=?`);
+    for (const { id } of open) {
+      upd.run(now, now, id);
+      this.hub.publish({ type: 'alert', data: this.get(id) });
+    }
+  }
+
   onTelemetry(t: Telemetry, config: DeviceConfig | null) {
     const spec = DEVICE_CATALOG[t.device_id];
     const synthetic = t.provenance.synthetic ? 1 : 0;
@@ -153,6 +168,10 @@ export class AlertEngine {
           ref: `${k}:${Date.now()}`,
           synthetic,
         });
+      } else if (Math.abs(z) < ANOMALY_CLEAR_Z) {
+        // El atípico es un evento puntual: al volver la variable a su rango normal se cierra
+        // (antes cada atípico tenía ref única y quedaba abierto para siempre).
+        this.resolveAnomalies(device, key);
       }
     }
     w.push(val);
