@@ -1,4 +1,4 @@
-import { DEVICE_IDS, type DeviceId } from '@scbga/shared';
+import { DEVICE_IDS, EXTERNAL_DEVICE_IDS, type DeviceId } from '@scbga/shared';
 import { z } from 'zod';
 
 const bool = z
@@ -32,6 +32,8 @@ export function loadEnv(src: NodeJS.ProcessEnv = process.env): DevicesEnv {
   const mqttPasswords = {} as Record<DeviceId, string>;
   const missing: string[] = [];
   for (const id of DEVICE_IDS) {
+    // Los dispositivos externos (DEV11) usan su propia credencial en el firmware, no en este servicio.
+    if (EXTERNAL_DEVICE_IDS.includes(id)) { mqttPasswords[id] = ''; continue; }
     const v = src[`MQTT_PASS_${id}`];
     if (!v) missing.push(`MQTT_PASS_${id}`);
     mqttPasswords[id] = v ?? '';

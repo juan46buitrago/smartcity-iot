@@ -1,5 +1,5 @@
 /**
- * Catálogo de los 10 dispositivos de SmartCityBGA.
+ * Catálogo de los 11 dispositivos de SmartCityBGA (10 virtuales + DEV11, nodo ESP32 «real»).
  *
  * Es la fuente única de verdad para backend, simuladores y frontend:
  * variables, unidades, ubicación, procedencia, modos, intervalos y parámetros controlables.
@@ -8,11 +8,16 @@
 
 export const DEVICE_IDS = [
   'DEV01', 'DEV02', 'DEV03', 'DEV04', 'DEV05',
-  'DEV06', 'DEV07', 'DEV08', 'DEV09', 'DEV10',
+  'DEV06', 'DEV07', 'DEV08', 'DEV09', 'DEV10', 'DEV11',
 ] as const;
 export type DeviceId = (typeof DEVICE_IDS)[number];
 
-export const SOURCE_TYPES = ['simulated', 'digital_twin', 'api', 'dataset'] as const;
+/** Dispositivos que NO son instanciados por apps/devices: son firmware externo (ESP32) que se conecta por MQTT/TLS. */
+export const EXTERNAL_DEVICE_IDS: readonly DeviceId[] = ['DEV11'];
+/** Dispositivos simulados por el servicio apps/devices. */
+export const VIRTUAL_DEVICE_IDS: readonly DeviceId[] = DEVICE_IDS.filter((id) => !EXTERNAL_DEVICE_IDS.includes(id));
+
+export const SOURCE_TYPES = ['simulated', 'digital_twin', 'api', 'dataset', 'real'] as const;
 export type SourceType = (typeof SOURCE_TYPES)[number];
 
 export type DeviceCategory = 'ambiente' | 'movilidad' | 'energia' | 'agua' | 'clima';
@@ -310,6 +315,36 @@ export const DEVICE_CATALOG: Record<DeviceId, DeviceSpec> = {
     actions: ['power', 'set_interval', 'set_thresholds', 'restart'],
     params: [],
     default_thresholds: { wind_speed: { warn_high: 40, crit_high: 60 }, precipitation: { warn_high: 5, crit_high: 15 } },
+  },
+  DEV11: {
+    id: 'DEV11',
+    name: 'Nodo ESP32 (Wokwi)',
+    category: 'ambiente',
+    source_type: 'real',
+    description:
+      'Nodo ESP32 con firmware real (firmware/dev11-esp32) que publica por MQTT sobre TLS (8883) desde Internet. Se ejecuta en el simulador Wokwi o en un ESP32 físico con el mismo código. Mide temperatura y humedad (DHT22) y luz (LDR) y controla un relé.',
+    location: { lat: 7.1166, lon: -73.1056, name: 'Campus UNAB (aprox.)' },
+    variables: [
+      { key: 'temperature', label: 'Temperatura', unit: '°C', kind: 'number', decimals: 1, thresholdable: true, calibratable: true },
+      { key: 'humidity', label: 'Humedad relativa', unit: '%', kind: 'number', decimals: 0, thresholdable: true, calibratable: true },
+      { key: 'light_pct', label: 'Luz ambiente', unit: '%', kind: 'number', decimals: 0 },
+      { key: 'relay', label: 'Relé (actuador)', unit: null, kind: 'number', decimals: 0 },
+    ],
+    modes: ['auto', 'manual'],
+    default_mode: 'auto',
+    interval: { min: 2, max: 300, default: 10 },
+    provenance: {
+      provider: 'ESP32 DevKit + DHT22 + LDR (simulado en Wokwi)',
+      synthetic: true,
+      notes:
+        'Firmware, conexión MQTT y TLS son reales; los valores de los sensores provienen de los controles deslizantes del simulador Wokwi (los ajusta una persona). En un ESP32 físico con sensores conectados serían mediciones reales (synthetic=false).',
+    },
+    actions: [...COMMON, 'calibrate'],
+    params: [
+      { key: 'relay', label: 'Relé (modo manual)', type: 'boolean', default: false, help: 'En modo auto el relé lo decide la luz ambiente.' },
+      { key: 'light_threshold_pct', label: 'Umbral de luz para encender (modo auto)', type: 'number', default: 30, min: 0, max: 100, step: 1, unit: '%' },
+    ],
+    default_thresholds: { temperature: { warn_high: 30, crit_high: 33 }, humidity: { warn_low: 30 } },
   },
 };
 

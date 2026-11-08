@@ -57,6 +57,13 @@ describe('Node-RED · telemetría → line protocol', () => {
     expect(n.run(tel({ timestamp: 'ayer' }))).toBeNull();
   });
 
+  it('acepta telemetría de DEV11 (ESP32 real) con source_type real', () => {
+    const msg = tel({ device_id: 'DEV11', source_type: 'real', variables: { temperature: { value: 24.5 }, relay: { value: 0 } } });
+    msg.topic = 'smartcity/DEV11/telemetry';
+    const ok = telemetryNode().run(msg);
+    expect(ok.payload).toContain('telemetry,device_id=DEV11,source_type=real,synthetic=true temperature=24.5,relay=0.0,seq=7i');
+  });
+
   it('acepta datos de IDEAM con días de retraso (≤ 10 días)', () => {
     const out = telemetryNode().run(tel({ timestamp: new Date(Date.now() - 4 * 86400_000).toISOString() }));
     expect(out).not.toBeNull();

@@ -1,8 +1,8 @@
 /**
  * Servicio de dispositivos virtuales de SmartCityBGA.
- * Arranca los 10 dispositivos; cada uno es un cliente MQTT independiente con su propia credencial.
+ * Arranca los 10 dispositivos virtuales (DEV11 es un ESP32 externo y no se instancia aquí); cada uno es un cliente MQTT independiente con su propia credencial.
  */
-import { DEVICE_IDS, type DeviceId } from '@scbga/shared';
+import { VIRTUAL_DEVICE_IDS, type DeviceId } from '@scbga/shared';
 import { loadEnv } from './core/env.js';
 import { logger } from './core/logger.js';
 import { defaultRng, seededRng, type Rng } from './core/random.js';
@@ -39,7 +39,7 @@ const devices: VirtualDevice[] = [
   new WaterLevelSensor(deps('DEV09'), env.IDEAM_STATION, env.IDEAM_APP_TOKEN),
   new WeatherStation(deps('DEV10')),
 ];
-if (devices.length !== DEVICE_IDS.length) throw new Error('Faltan dispositivos');
+if (devices.length !== VIRTUAL_DEVICE_IDS.length) throw new Error('Faltan dispositivos');
 
 logger.info({ segments: network.segments.length, mqtt: env.MQTT_URL, gps_source: env.GPS_SOURCE }, 'Iniciando dispositivos virtuales');
 for (const d of devices) await d.start();

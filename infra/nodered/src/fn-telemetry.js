@@ -20,7 +20,7 @@ for (const [k, obj] of Object.entries(p.variables)) {
 if (fields.length === 0) return reject('sin variables válidas');
 if (Number.isInteger(p.seq)) fields.push('seq=' + p.seq + 'i');
 const synthetic = !!(p.provenance && p.provenance.synthetic === true);
-const src = ['simulated', 'digital_twin', 'api', 'dataset'].includes(p.source_type) ? p.source_type : 'unknown';
+const src = ['simulated', 'digital_twin', 'api', 'dataset', 'real'].includes(p.source_type) ? p.source_type : 'unknown';
 bump('ok');
 msg.payload = 'telemetry,device_id=' + escTag(p.device_id) + ',source_type=' + src + ',synthetic=' + synthetic + ' ' + fields.join(',') + ' ' + ts;
 return msg;
