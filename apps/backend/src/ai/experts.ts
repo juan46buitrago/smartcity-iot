@@ -76,7 +76,8 @@ export function hhmm(iso: string | null) {
 
 function rangeText(d: Decision) {
   const h = d.horas >= 48 && d.horas % 24 === 0 ? `${d.horas / 24} días` : `${d.horas} h`;
-  return d.desfase_horas ? `${h} que terminan hace ${d.desfase_horas} h` : `últimas ${h}`;
+  const last = h.endsWith('días') ? `últimos ${h}` : `últimas ${h}`;
+  return d.desfase_horas ? `${h} que terminan hace ${d.desfase_horas} h` : last;
 }
 
 function needSeries(d: Decision): ExpertAnswer | null {
