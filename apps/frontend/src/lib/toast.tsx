@@ -22,7 +22,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={push}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 bottom-20 z-[2000] flex flex-col items-center gap-2 px-4 lg:bottom-6 lg:items-end lg:pr-6" role="status" aria-live="polite">
+      <div className="pointer-events-none fixed inset-x-0 bottom-36 z-[2000] flex flex-col items-center gap-2 px-4 lg:bottom-24 lg:items-end lg:pr-6" role="status" aria-live="polite">
         {items.map((t) => {
           const Icon = t.tone === 'ok' ? CheckCircle2 : t.tone === 'error' ? CircleAlert : Info;
           const color = t.tone === 'ok' ? 'text-accent' : t.tone === 'error' ? 'text-crit' : 'text-info';

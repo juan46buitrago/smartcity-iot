@@ -2,8 +2,10 @@ import { DEVICE_IDS } from '@scbga/shared';
 import { Bell, Bot, Cpu, Gauge, History, Map as MapIcon, Moon, Settings2, Sun } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAssistant } from '../lib/assistant';
 import { TZ } from '../lib/format';
 import { isOnline, useLive } from '../lib/live';
+import { AssistantDrawer } from './AssistantDrawer';
 import { LoginPopover } from './LoginDialog';
 import { cx } from './ui';
 
@@ -64,6 +66,7 @@ function Wordmark() {
 export function Layout({ children }: { children: ReactNode }) {
   const { ws, alerts, list } = useLive();
   const [theme, setTheme] = useState<Theme>(initialTheme);
+  const assistant = useAssistant();
   const online = list.filter((d) => isOnline(d)).length;
   const openAlerts = alerts.filter((a) => a.status === 'abierta').length;
 
@@ -128,7 +131,11 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1680px] min-w-0 flex-1 px-4 pt-6 pb-28 sm:px-6 lg:pb-12">{children}</main>
+      {/* Con el asistente abierto en pantallas anchas, el contenido se corre para dejarlo al lado. */}
+      <div className={cx('flex flex-1 flex-col transition-[padding] duration-200', assistant.open && 'xl:pr-[440px]')}>
+        <main className="mx-auto w-full max-w-[1680px] min-w-0 flex-1 px-4 pt-6 pb-28 sm:px-6 lg:pb-12">{children}</main>
+      </div>
+      <AssistantDrawer />
 
       {/* Navegación inferior (móvil y tableta) */}
       <nav className="fixed inset-x-0 bottom-0 z-[1000] grid grid-cols-7 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Principal">

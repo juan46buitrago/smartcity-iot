@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import './index.css';
+import { AssistantProvider } from './lib/assistant';
 import { AuthProvider } from './lib/auth';
 import { LiveProvider } from './lib/live';
 import { ToastProvider } from './lib/toast';
@@ -31,6 +32,7 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ToastProvider>
           <LiveProvider>
+            <AssistantProvider>
             <Layout>
               <Suspense fallback={<p className="label py-10">Cargando módulo…</p>}>
                 <Routes>
@@ -46,6 +48,7 @@ createRoot(document.getElementById('root')!).render(
                 </Routes>
               </Suspense>
             </Layout>
+            </AssistantProvider>
           </LiveProvider>
         </ToastProvider>
       </AuthProvider>

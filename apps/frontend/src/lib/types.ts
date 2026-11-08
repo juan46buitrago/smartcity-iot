@@ -58,10 +58,20 @@ export type AiChartSpec =
   | { type: 'line'; title: string; series: AiChartSeries[]; refs?: { label: string; value: number }[] }
   | { type: 'bar'; title: string; unit: string | null; bars: { label: string; value: number }[] };
 
+export interface AiAgent {
+  id: string;
+  name: string;
+  description: string;
+  devices: string[];
+  suggestions: string[];
+}
+
 export interface AiChatResponse {
   text: string;
   chart?: AiChartSpec;
+  links?: { label: string; to: string }[];
   synthetic: boolean;
+  agent: string;
   decision: { experto: string; series: string[]; horas: number; desfase_horas: number } | null;
   usage: { prompt_tokens: number; completion_tokens: number };
   ms: { llm: number; total: number };

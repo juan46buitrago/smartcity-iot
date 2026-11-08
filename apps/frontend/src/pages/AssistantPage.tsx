@@ -1,52 +1,14 @@
 import { DEVICE_CATALOG, DEVICE_IDS, type DeviceId } from '@scbga/shared';
-import { ArrowUp, Bot, RefreshCw, Sparkles } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { AiChart } from '../components/AiChart';
+import { Bot, Sparkles } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { AGENT_ICON, AssistantChat } from '../components/AssistantChat';
 import { Button, Card, CardHeader, Empty, PageHeader, ProvenanceTag, cx, inputCls } from '../components/ui';
 import { api } from '../lib/api';
+import { useAssistant } from '../lib/assistant';
 import { useAuth } from '../lib/auth';
 import { fmtDateTime, fmtNum } from '../lib/format';
 import { useToast } from '../lib/toast';
-import type { AiAnalysis, AiChatResponse, AiStatus } from '../lib/types';
-
-const SUGGESTIONS = [
-  'Promedio, mínimo y máximo de temperatura hoy',
-  'Compara el ruido con el flujo vehicular esta semana',
-  '¿A qué hora hay más tráfico?',
-  '¿Qué alertas hay activas?',
-  '¿Cuántos incidentes hubo ayer?',
-  'Nivel del río en los últimos 3 días',
-];
-
-const EXPERT_LABEL: Record<string, string> = {
-  estadisticas: 'Estadísticas',
-  serie: 'Serie temporal',
-  perfil_horario: 'Perfil horario',
-  alertas: 'Alertas',
-  incidentes: 'Incidentes',
-  estado: 'Estado',
-  ayuda: 'Ayuda',
-  fuera_de_tema: 'Fuera de tema',
-};
-
-type Msg = { id: number; role: 'user'; text: string } | { id: number; role: 'ai'; res: AiChatResponse } | { id: number; role: 'error'; text: string };
-
-function Answer({ res }: { res: AiChatResponse }) {
-  const tokens = res.usage.prompt_tokens + res.usage.completion_tokens;
-  return (
-    <div className="min-w-0">
-      <p className="text-[15px] leading-relaxed whitespace-pre-line text-ink">{res.text}</p>
-      {res.chart && <AiChart spec={res.chart} />}
-      <p className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-ink-3">
-        {res.synthetic && <ProvenanceTag synthetic compact />}
-        {res.decision && <span>Experto: <span className="text-ink-2">{EXPERT_LABEL[res.decision.experto] ?? res.decision.experto}</span></span>}
-        <span className="code">{res.cached ? '0 tokens · caché' : `${tokens} tokens`}</span>
-        <span className="code">{(res.ms.total / 1000).toFixed(1)} s</span>
-        {res.model && !res.cached && <span className="code">{res.model}</span>}
-      </p>
-    </div>
-  );
-}
+import type { AiAnalysis, AiStatus } from '../lib/types';
 
 function UsageStrip({ status }: { status: AiStatus | null }) {
   const chat = status?.all_time.find((r) => r.kind === 'chat');
@@ -143,115 +105,52 @@ function AnalysisPanel({ enabled }: { enabled: boolean }) {
   );
 }
 
+function AgentsGuide() {
+  const { agents, agent, setAgent } = useAssistant();
+  return (
+    <Card>
+      <CardHeader eyebrow="Cada agente ve solo su tema: menos tokens y respuestas más precisas" title="Agentes expertos" />
+      <ul className="divide-y divide-line">
+        {agents.map((a) => {
+          const Icon = AGENT_ICON[a.id] ?? Bot;
+          const on = a.id === agent.id;
+          return (
+            <li key={a.id}>
+              <button onClick={() => setAgent(a.id)} className={cx('flex w-full items-start gap-3 px-5 py-3 text-left transition-colors hover:bg-surface-2', on && 'bg-accent-soft')} aria-pressed={on}>
+                <Icon className={cx('mt-0.5 size-5 shrink-0', on ? 'text-accent' : 'text-ink-3')} aria-hidden />
+                <span className="min-w-0">
+                  <span className="block font-semibold">{a.name}</span>
+                  <span className="block text-[13px] text-ink-2">{a.description}</span>
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
+  );
+}
+
 export function AssistantPage() {
-  const [msgs, setMsgs] = useState<Msg[]>([]);
-  const [q, setQ] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<AiStatus | null>(null);
-  const endRef = useRef<HTMLDivElement>(null);
-  const nextId = useRef(1);
-
-  const loadStatus = useCallback(() => api<AiStatus>('/api/ai/status').then(setStatus).catch(() => setStatus(null)), []);
-  useEffect(() => void loadStatus(), [loadStatus]);
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }), [msgs]);
-
-  async function ask(question: string) {
-    const text = question.trim();
-    if (text.length < 2 || busy) return;
-    setQ('');
-    setMsgs((m) => [...m, { id: nextId.current++, role: 'user', text }]);
-    setBusy(true);
-    try {
-      // Sin historial: cada pregunta viaja sola (bajo consumo de tokens).
-      const res = await api<AiChatResponse>('/api/ai/chat', { body: { question: text } });
-      setMsgs((m) => [...m, { id: nextId.current++, role: 'ai', res }]);
-      void loadStatus();
-    } catch (err) {
-      setMsgs((m) => [...m, { id: nextId.current++, role: 'error', text: (err as Error).message }]);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    void ask(q);
-  };
-
+  const { status } = useAssistant();
   return (
     <>
       <PageHeader
         code="IA · Asistente"
         title="Asistente"
-        subtitle="Pregunta en lenguaje natural por los datos de la ciudad. Un enrutador IA elige al experto y la gráfica; los cálculos se hacen sobre InfluxDB, no en el modelo."
+        subtitle="Pregunta en lenguaje natural por los datos de la ciudad. Elige un agente experto o deja que el general escoja el tema; los cálculos se hacen sobre InfluxDB, no en el modelo. También lo tienes en el botón «Pregúntale a la IA» de cualquier página."
       />
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
-        <Card className="flex min-h-[560px] flex-col">
-          <CardHeader
-            eyebrow="Chat · sin historial · salida JSON restringida"
-            title="Consulta"
-            action={
-              msgs.length > 0 && (
-                <Button size="sm" variant="ghost" onClick={() => setMsgs([])}>
-                  <RefreshCw className="size-4" /> Limpiar
-                </Button>
-              )
-            }
-          />
-          <UsageStrip status={status} />
-
-          <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5" aria-live="polite">
-            {msgs.length === 0 && (
-              <div>
-                <p className="text-[15px] text-ink-2">Prueba con alguna de estas preguntas:</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {SUGGESTIONS.map((s) => (
-                    <button key={s} onClick={() => void ask(s)} disabled={busy || status?.enabled === false} className="rounded-[5px] border border-line-strong px-3 py-1.5 text-left text-[13px] text-ink-2 transition-colors hover:bg-surface-2 hover:text-ink disabled:opacity-45">
-                      {s}
-                    </button>
-                  ))}
-                </div>
-                {status?.enabled === false && <p className="mt-4 text-[13px] text-warn">El asistente no está configurado en este servidor (falta AI_API_KEY).</p>}
-              </div>
-            )}
-            {msgs.map((m) =>
-              m.role === 'user' ? (
-                <div key={m.id} className="flex justify-end">
-                  <p className="max-w-[80%] rounded-[6px] bg-surface-3 px-3.5 py-2 text-[15px]">{m.text}</p>
-                </div>
-              ) : m.role === 'ai' ? (
-                <div key={m.id} className="flex gap-3">
-                  <Bot className="mt-0.5 size-5 shrink-0 text-accent" aria-hidden />
-                  <Answer res={m.res} />
-                </div>
-              ) : (
-                <p key={m.id} className="text-[14px] text-crit">
-                  {m.text}
-                </p>
-              ),
-            )}
-            {busy && <p className="label animate-pulse">Consultando…</p>}
-            <div ref={endRef} />
-          </div>
-
-          <form onSubmit={onSubmit} className="flex gap-2 border-t border-line p-4">
-            <input
-              className={inputCls}
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Ej.: ¿cuál fue la temperatura máxima ayer?"
-              maxLength={300}
-              aria-label="Pregunta para el asistente"
-              disabled={status?.enabled === false}
-            />
-            <Button type="submit" variant="primary" loading={busy} disabled={q.trim().length < 2} aria-label="Enviar pregunta">
-              <ArrowUp className="size-4" />
-            </Button>
-          </form>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+        <Card className="flex h-[calc(100dvh-14rem)] min-h-[520px] flex-col overflow-hidden">
+          <AssistantChat variant="page" />
         </Card>
-
-        <AnalysisPanel enabled={status?.enabled !== false} />
+        <div className="space-y-6">
+          <AgentsGuide />
+          <Card>
+            <UsageStrip status={status} />
+          </Card>
+          <AnalysisPanel enabled={status?.enabled !== false} />
+        </div>
       </div>
     </>
   );

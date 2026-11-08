@@ -2,7 +2,28 @@
 
 El asistente responde preguntas en lenguaje natural sobre los datos de la ciudad, dibuja la gráfica
 que corresponde y redacta el análisis de comportamiento de cada dispositivo para el informe.
-Código: `apps/backend/src/ai/` · Interfaz: `apps/frontend/src/pages/AssistantPage.tsx` (`/asistente`).
+Código: `apps/backend/src/ai/` · Interfaz: panel lateral en todas las páginas (botón «Pregúntale a la IA»,
+`components/AssistantDrawer.tsx`) y página completa `/asistente`; ambos comparten la conversación
+(`lib/assistant.tsx`). Enlace directo: cualquier ruta con `?asistente=<pregunta>` abre el panel y la pregunta.
+
+## Agentes expertos
+Cada agente acota el vocabulario que ve el enrutador a sus dispositivos (`agents.ts`): el prompt es más
+corto y el esquema JSON impide elegir series fuera del tema.
+
+| Agente | Dispositivos | Tokens por pregunta (medido) |
+|---|---|---|
+| General | los 12 | ≈ 1 050 |
+| Clima | DEV01, DEV10, DEV11, DEV12 | — |
+| Aire y ruido | DEV02, DEV03 | ≈ 650 |
+| Movilidad | DEV04, DEV05, DEV06, DEV08 | ≈ 720 |
+| Agua y lluvia | DEV09, DEV10, DEV12 | ≈ 730 |
+| Alumbrado | DEV07 | ≈ 640 |
+| Operación | los 12 (estado, alertas, incidentes, inventario) | ≈ 1 030 |
+
+**Seguimientos.** El cliente manda la *decisión* de la respuesta anterior (≈ 40 tokens), no el
+historial: «¿y ayer?» conserva las series y cambia el desfase. Si el seguimiento pide el pasado de un
+valor actual, se responde con estadísticas de esa ventana. El servidor valida el contexto contra el
+vocabulario y lo ignora si es inválido.
 
 ## Arquitectura
 
@@ -20,8 +41,9 @@ vocabulario (dispositivos y variables numéricas del catálogo) y la pregunta.
 |---|---|---|
 | Cliente | `client.ts` | `POST /chat/completions` compatible con OpenAI con `fetch`. `temperature: 0`, `enable_thinking: false`, `response_format: json_schema` estricto; si el proveedor responde 400, reintenta en modo `json_object` (plan B). Tiempo límite 15 s. |
 | Enrutador | `router.ts` | Prompt de sistema compacto + esquema JSON con **enums cerrados** (8 expertos, todas las series `DEVxx.variable`, ventanas 1–168 h, desfase 0–72 h). Validación zod (el CDM garantiza el formato, zod el contenido) y **máximo 2 intentos**. |
-| Expertos | `experts.ts` | `estadisticas` (promedio/mín/máx/desviación con hora local), `serie` (hasta 4 series, tendencia), `perfil_horario` (promedio por hora del día), `alertas`, `incidentes` (siempre marcados `[SIMULACIÓN]`), `estado`, `ayuda`, `fuera_de_tema`. Devuelven texto y `chart` (línea o barras). |
-| Servicio | `service.ts` | Caché de decisiones (pregunta normalizada → 0 tokens al repetir), atajo de "ayuda" sin modelo, presupuesto diario (`AI_DAILY_MAX_CALLS`), registro de tokens y latencias en SQLite (`ai_usage`), análisis por dispositivo (`ai_analysis`). |
+| Expertos | `experts.ts` | `estadisticas` (promedio/mín/máx/desviación con hora local), `serie` (hasta 4 series, tendencia), `perfil_horario` (promedio por hora del día), `alertas`, `incidentes` (siempre marcados `[SIMULACIÓN]`), `estado` (valor actual con nombre del equipo; lat/lon como ubicación), `resumen` (equipos en línea, alertas y valor principal de cada equipo del agente), `dispositivos` (inventario), `ayuda`, `fuera_de_tema`. Devuelven texto, `chart` (línea o barras) y `links` a la vista de la app. |
+| Agentes | `agents.ts` | Siete agentes con dispositivos y preguntas de ejemplo. |
+| Servicio | `service.ts` | Caché de decisiones por agente y contexto (pregunta normalizada → 0 tokens al repetir), atajo de "ayuda" sin modelo, presupuesto diario (`AI_DAILY_MAX_CALLS`), registro de tokens, latencias, pregunta y agente en SQLite (`ai_usage`), análisis por dispositivo (`ai_analysis`). |
 | Rutas | `routes.ts` | Ver abajo. |
 
 ### Decodificación restringida (CDM)
@@ -43,7 +65,8 @@ inválidas (p. ej. series repetidas) y se reintenta una sola vez.
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
 | GET | `/api/ai/status` | público | Modelo, límite diario y consumo (24 h y total): llamadas, caché, fallos, tokens promedio, latencia |
-| POST | `/api/ai/chat` `{question}` | público, 12/min/IP | Respuesta `{text, chart?, synthetic, decision, usage, ms, cached, model}` |
+| GET | `/api/ai/agents` | público | Agentes, sus dispositivos y preguntas de ejemplo |
+| POST | `/api/ai/chat` `{question, agent?, previous?}` | público, 12/min/IP | Respuesta `{text, chart?, links?, synthetic, agent, decision, usage, ms, cached, model}` |
 | GET | `/api/ai/analysis` | público | Último análisis por dispositivo |
 | POST | `/api/ai/analysis/:id` `{hours=144}` | operador (JWT) | Calcula hechos (promedio, mín, máx, desviación, hora pico/valle, primer vs último cuarto) y pide al modelo un párrafo ≤ 150 palabras con esos números |
 
@@ -77,12 +100,14 @@ AI_API_KEY=... npx tsx apps/backend/src/scripts/ai-smoke.ts --json docs/evidenci
 ```
 
 ## Pruebas
-`apps/backend/src/ai/ai.test.ts` (27 pruebas, sin red): esquema estricto y vocabulario, solo
+`apps/backend/src/ai/ai.test.ts` (35 pruebas, sin red): esquema estricto y vocabulario, solo
 `[system, user]`, reintento único, JSON envuelto en Markdown, plan B `json_object`, cada experto
 con datos simulados (hora de Bogotá, desfase "ayer", perfil horario), caché, presupuesto diario,
-narrador que recibe solo hechos numéricos, y las rutas HTTP (200/400/401/502/503).
+narrador que recibe solo hechos numéricos, agentes (vocabulario y caché acotados), seguimientos con
+contexto validado, resumen, inventario, ubicación, y las rutas HTTP (200/400/401/502/503).
 
 ## Límites conocidos
 - "Ayer" se interpreta como la ventana de 24 h que terminó hace 24 h, no como el día calendario.
 - El análisis describe lo que muestran los números; no sustituye la revisión humana de las gráficas.
 - Las respuestas sobre dispositivos simulados llevan la etiqueta SIM.
+- Varias series con unidades distintas se dibujan como gráficas separadas (nunca doble eje); el botón PNG exporta la primera.
