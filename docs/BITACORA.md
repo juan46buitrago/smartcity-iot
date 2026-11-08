@@ -140,3 +140,39 @@ frontend compila (`tsc` + `vite build`).
   Let's Encrypt (YE2) válido, TLS 1.3. Desde Internet sigue cerrado hasta abrir 8883 en el NSG.
 - `/asistente` → 200; `/api/ai/status` → `enabled: false` hasta configurar `AI_API_KEY` en la VM.
 - Grafana: el tablero muestra la tabla de promedio/mín/máx y los paneles de DEV11 y DEV12.
+
+## 2026-11-08 — Validación en producción, IA activa e informe preliminar
+**IA en la VM.** `AI_API_KEY` se agregó al `.env` de la VM (sin imprimirla) y se reinició solo el backend
+(≈ 22:22 UTC; las mediciones siguen llegando a InfluxDB por Node-RED, sin hueco de captura).
+`/api/ai/status` → `enabled: true`, modelo `qwen3.8-flash`.
+- Chat en producción: 6/6 preguntas bien enrutadas, ≈ 870 tokens y ≈ 1,5 s por consulta; la misma
+  pregunta repetida sale de caché con 0 tokens en ≈ 140 ms.
+- Análisis por dispositivo (`POST /api/ai/analysis/:id`, ventana 48 h) generado para 11 dispositivos.
+
+**Defectos encontrados y corregidos**
+| Defecto | Causa | Corrección (commit) |
+|---|---|---|
+| 70 alertas de atípico abiertas a la vez | cada atípico tenía una referencia única y nunca se cerraba | se resuelven solas cuando \|z\| < 2 (`243fbac`) |
+| "últimos 2 día" en respuestas | concordancia de número | `7ae1251` |
+| El análisis de DEV06 afirmaba datos reales | usaba la procedencia del catálogo y no la de la última lectura (ruta simulada) | `553d0f6`; prompt: la diferencia día/noche entre cuartos no es tendencia ni falla |
+
+Los dos arreglos de backend se desplegaron con `infra/scripts/deploy.sh backend` (solo backend).
+
+**DEV11 de punta a punta por Internet** (NSG con 8883/TCP abierto por el propietario)
+- `openssl s_client` desde el PC → certificado Let's Encrypt válido, TLS 1.3.
+- Emulador del contrato del ESP32 (mismo tópico, credencial y payload que `firmware/dev11-esp32`):
+  conexión anónima y con clave incorrecta **rechazadas**; con la credencial de DEV11 **aceptada**;
+  orden desde la API confirmada (`ack`) en **466 ms**; el backend vio la telemetría.
+- Quedan 4 lecturas de prueba en InfluxDB con `ref = "emulador-prueba-e2e"`.
+- Pendiente del propietario: correr el sketch en Wokwi con la clave de DEV11 en `secrets.h`
+  (la clave está en `.local-credentials.txt` de la VM).
+
+**Informe preliminar** (`docs/informe/`)
+- `generar_informe.py` consulta la API pública, dibuja las figuras (matplotlib, paleta validada),
+  toma capturas de la app y arma `informe.html` → `INFORME-SmartCityBGA.pdf` (Chrome/Edge sin cabeza).
+- Ventana actual: 07/11 00:00 → 08/11 17:44 (≈ 1,7 días, 74 600 lecturas). Lleva una franja de
+  "versión preliminar" mientras la ventana termine antes del 13/11.
+- Para la versión final (≥ 13/11): regenerar los análisis IA con 144 h y correr
+  `python docs/informe/generar_informe.py` con un entorno que tenga matplotlib.
+- Decisión: la cobertura se calcula como lecturas / lecturas esperadas por intervalo, porque la
+  "disponibilidad" de `/api/capture` promedia eventos y sobreestima.
