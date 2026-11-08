@@ -30,7 +30,24 @@ Firmware de un ESP32 que se conecta **por Internet** al broker Mosquitto de Smar
 
 El módulo de Wokwi entrega más voltaje con menos luz; el firmware lo compensa con `LDR_INVERTIDO 1`. Con un LDR físico en divisor LDR→GND cambie a `0`.
 
-## Ejecutar en Wokwi
+## Ejecutar en Wokwi (extensión de VS Code) — recomendado
+
+La extensión no compila: carga el binario que indica `wokwi.toml` (`build/dev11-esp32.ino.bin`).
+Si ese archivo no existe, el simulador **no carga**.
+
+1. Cree `secrets.h` desde `secrets.h.example` con la contraseña MQTT de DEV11 (está en
+   `~/smartcity-iot/.local-credentials.txt` de la VM). `secrets.h` y `build/` están en `.gitignore`.
+2. Compile (≈ 2,5 min la primera vez; instala el core ESP32 y las librerías si faltan):
+   ```bash
+   bash firmware/dev11-esp32/build.sh
+   ```
+3. En VS Code abra `firmware/dev11-esp32/diagram.json` y ejecute **Wokwi: Start Simulator**
+   (F1). La primera vez la extensión pide activar la licencia gratuita en el navegador.
+4. En la app, DEV11 pasa a «En línea» y responde a las órdenes del panel.
+
+Cada vez que cambie `sketch.ino` o `secrets.h`, vuelva a correr `build.sh`.
+
+## Ejecutar en wokwi.com (navegador)
 
 1. Cree la contraseña de DEV11 en el servidor (ver «Producción» abajo) y téngala a mano. **No la pegue en el chat ni en Git.**
 2. En wokwi.com cree un proyecto **ESP32** (Arduino).
