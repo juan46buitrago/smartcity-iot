@@ -2,13 +2,18 @@
 <style>
 @page { size: A4; margin: 16mm 15mm 18mm; }
 body { font-family: "Segoe UI", "DejaVu Sans", Arial, sans-serif; color: #1f2420; font-size: 10.2pt; line-height: 1.45; background: #fff; }
-h1 { font-size: 26pt; margin: 0 0 4px; letter-spacing: .01em; } h2 { font-size: 15pt; border-bottom: 2px solid #1f2420; padding-bottom: 3px; margin: 22px 0 10px; break-after: avoid; }
+h1 { font-size: 26pt; margin: 0 0 4px; letter-spacing: .01em; } h2 { font-size: 15pt; border-bottom: 3px solid #fea604; padding-bottom: 3px; margin: 22px 0 10px; break-after: avoid; }
 h3 { font-size: 11.5pt; margin: 14px 0 4px; break-after: avoid; } p { margin: 6px 0; }
 table { border-collapse: collapse; width: 100%; font-size: 8.4pt; margin: 8px 0; } th, td { border-bottom: 1px solid #e3e6e2; padding: 3px 5px; text-align: left; vertical-align: top; }
 th { background: #f2f4f1; font-weight: 600; } td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 tr { break-inside: avoid; } img { width: 100%; } figure { margin: 8px 0; break-inside: avoid; } figcaption { font-size: 8.5pt; color: #4a524c; }
-.cover { height: 245mm; display: flex; flex-direction: column; justify-content: space-between; break-after: page; }
-.cover .sub { font-size: 13pt; color: #4a524c; } .meta td { border: 0; font-size: 10pt; padding: 2px 8px 2px 0; }
+.cover { height: 255mm; display: flex; flex-direction: column; justify-content: space-between; break-after: page; }
+.band { background: #fea604; color: #fff; display: flex; align-items: center; gap: 18px; padding: 0 22px 0 0; }
+.band img { width: 112px; height: 112px; display: block; } .band .u { font-size: 19pt; font-weight: 800; letter-spacing: .02em; line-height: 1.1; }
+.band .f { font-size: 10pt; margin-top: 5px; font-weight: 500; }
+.cover .sub { font-size: 12.5pt; color: #4a524c; } .cover h1 { border-left: 6px solid #fea604; padding-left: 14px; }
+.meta td { border: 0; font-size: 10pt; padding: 2px 8px 2px 0; } .meta td:first-child { white-space: nowrap; }
+.fig2 figure { margin: 8px 0; } .fig2 img { border: 1px solid #e3e6e2; }
 .warn { border: 1px solid #eda100; background: #fff8e6; padding: 8px 10px; font-size: 9pt; margin: 8px 0; }
 .tag { font-size: 8pt; border: 1px solid #4a524c; padding: 0 5px; border-radius: 3px; font-weight: 500; vertical-align: middle; }
 .dev { break-inside: avoid; margin-bottom: 10px; } .desc { font-size: 9pt; color: #4a524c; }
@@ -22,18 +27,22 @@ code { font-family: Consolas, monospace; font-size: 8.8pt; background: #f2f4f1; 
 
 <div class="cover">
   <div>
-    <p class="sub">Proyecto de Internet de las Cosas</p>
+    <div class="band"><img src="figuras/logo-unab.png" alt="Universidad Autónoma de Bucaramanga">
+      <div><div class="u">UNIVERSIDAD AUTÓNOMA DE BUCARAMANGA</div>
+      <div class="f">FACULTAD DE INGENIERÍA · IoT + Cloud + Sistemas Distribuidos · Docente: Javier Pinzón</div></div></div>
+    <p class="sub" style="margin-top:34px">Proyecto de Internet de las Cosas</p>
     <h1>Smart City Bucaramanga<br>(SmartCityBGA)</h1>
     <p class="sub">Plataforma IoT a la medida: 12 dispositivos (real, gemelo digital, API, dataset y simulados), MQTT bidireccional,
-    procesamiento en la nube, visualización y análisis con inteligencia artificial.</p>
-    <div class="warn"><b>Versión preliminar.</b> Datos del 07/11/2026 00:00 al 08/11/2026 17:44 (≈ 1,7 días). La versión final se regenera con <code>docs/informe/generar_informe.py</code> al completar 6 días de captura (13/11/2026).</div>
+    procesamiento en la nube, visualización con Grafana y con una aplicación web propia, y un asistente de IA con personalidad (Nodo).</p>
+    <div class="warn"><b>Versión preliminar.</b> Datos del 07/11/2026 00:00 al 08/11/2026 21:23 (≈ 1,9 días). La versión final se regenera con <code>docs/informe/generar_informe.py</code> al completar 6 días de captura (13/11/2026).</div>
   </div>
   <table class="meta">
-    <tr><td><b>Integrantes</b></td><td>Juan · José Téllez</td></tr>
-    <tr><td><b>URL</b></td><td>https://smartcitybga.duckdns.org (Grafana en /grafana/)</td></tr>
-    <tr><td><b>Repositorio</b></td><td>https://github.com/juan46buitrago/smartcity-iot</td></tr>
-    <tr><td><b>Nube</b></td><td>Microsoft Azure — VM vm-smartcity-iot (158.23.162.76)</td></tr>
-    <tr><td><b>Ventana de datos</b></td><td>07/11/2026 00:00 → 08/11/2026 17:44 (hora de Colombia, UTC−5) · 74,662 lecturas</td></tr>
+    <tr><td><b>Asignatura</b></td><td>IoT + Cloud + Sistemas Distribuidos (UNAB) · Docente: Javier Pinzón</td></tr>
+    <tr><td><b>Estudiantes</b></td><td>Juan Sebastián Buitrago Caballero<br>José Alejandro Téllez Prada (u00060479)<br>Santiago Cabeza Méndez</td></tr>
+    <tr><td><b>URL</b></td><td>https://smartcitybga.duckdns.org · Grafana en /grafana/ · Node-RED en /nodered/</td></tr>
+    <tr><td><b>Repositorio</b></td><td>https://github.com/juan46buitrago/smartcity-iot (rama main · README, docs/, evidencias/)</td></tr>
+    <tr><td><b>Nube</b></td><td>Microsoft Azure — VM vm-smartcity-iot (158.23.162.76), Docker Compose</td></tr>
+    <tr><td><b>Ventana de datos</b></td><td>07/11/2026 00:00 → 08/11/2026 21:23 (hora de Colombia, UTC−5) · 82,190 lecturas</td></tr>
     <tr><td><b>Fecha</b></td><td>08/11/2026</td></tr>
   </table>
 </div>
@@ -49,8 +58,8 @@ una plataforma en la nube las valida, almacena y procesa (promedios, mínimos, m
 <code>provenance.synthetic</code>, y la interfaz marca con "SIM" todo dato simulado.</p>
 <div class="kpi">
   <div><b>12</b><span>dispositivos (1 real, 2 gemelos, 3 API, 2 dataset, 4 simulados)</span></div>
-  <div><b>74,662</b><span>lecturas en la ventana</span></div>
-  <div><b>1,7 d</b><span>de captura continua</span></div>
+  <div><b>82,190</b><span>lecturas en la ventana</span></div>
+  <div><b>1,9 d</b><span>de captura continua</span></div>
   <div><b>37</b><span>variables numéricas</span></div>
 </div>
 
@@ -103,17 +112,17 @@ el backend se suscribe para el estado en vivo, alertas y WebSocket. <b>Flujo de 
 <h3>3.1 Sensores y dispositivos (variables y rangos observados en la ventana)</h3>
 <table><tr><th>ID</th><th>Dispositivo</th><th>Tipo</th><th>Variables · rango observado (mín – máx)</th><th>Intervalo</th><th>Controles (retroceso)</th></tr>
 <tr><td><b>DEV01</b></td><td>Estación ambiental</td><td>Gemelo digital · SIM</td><td>Temperatura (°C): <b>19,6 – 28,2</b><br>Humedad relativa (%): <b>60 – 100</b></td><td>10 s</td><td>power, set_interval, set_mode, set_params, set_thresholds, restart, calibrate</td></tr>
-<tr><td><b>DEV02</b></td><td>Monitor de calidad del aire</td><td>API</td><td>Índice AQI (EE. UU.) (AQI): <b>53 – 61</b><br>PM2.5 (µg/m³): <b>4,7 – 17,4</b><br>PM10 (µg/m³): <b>4,8 – 17,6</b></td><td>900 s</td><td>power, set_interval, set_thresholds, restart</td></tr>
+<tr><td><b>DEV02</b></td><td>Monitor de calidad del aire</td><td>API</td><td>Índice AQI (EE. UU.) (AQI): <b>52 – 61</b><br>PM2.5 (µg/m³): <b>4,7 – 18,3</b><br>PM10 (µg/m³): <b>4,8 – 18,7</b></td><td>900 s</td><td>power, set_interval, set_thresholds, restart</td></tr>
 <tr><td><b>DEV03</b></td><td>Sensor de ruido</td><td>Simulado · SIM</td><td>Nivel de ruido (dB(A)): <b>38,7 – 80,9</b></td><td>10 s</td><td>power, set_interval, set_mode, set_params, set_thresholds, restart, calibrate</td></tr>
 <tr><td><b>DEV04</b></td><td>Monitor de incidentes viales</td><td>Simulado · SIM</td><td>Incidentes activos: <b>0 – 2</b><br>Índice de congestión (%): <b>0 – 37</b><br>Velocidad media de red (km/h): <b>32,1 – 51,0</b></td><td>30 s</td><td>power, set_interval, set_params, set_thresholds, restart, inject_test_incident</td></tr>
 <tr><td><b>DEV05</b></td><td>Detector de vehículos</td><td>Simulado · SIM</td><td>Vehículos por minuto (veh/min): <b>0 – 120</b><br>Velocidad media (km/h): <b>29,6 – 69,0</b></td><td>10 s</td><td>power, set_interval, set_mode, set_params, set_thresholds, restart</td></tr>
 <tr><td><b>DEV06</b></td><td>Rastreador GPS</td><td>API · SIM</td><td>Latitud (°): <b>7,056597 – 7,126920</b><br>Longitud (°): <b>-73,119147 – -73,083220</b><br>Velocidad (km/h): <b>0 – 62</b><br>Estado: <b>texto</b></td><td>60 s</td><td>power, set_interval, set_params, set_thresholds, restart</td></tr>
-<tr><td><b>DEV07</b></td><td>Alumbrado público</td><td>Gemelo digital · SIM</td><td>Luz ambiente (lx): <b>2 – 108.590</b><br>Nivel de iluminación (%): <b>0 – 100</b><br>Potencia (W): <b>40 – 4.800</b><br>Energía acumulada (kWh): <b>0,059 – 53,676</b></td><td>10 s</td><td>power, set_interval, set_mode, set_params, set_thresholds, restart</td></tr>
+<tr><td><b>DEV07</b></td><td>Alumbrado público</td><td>Gemelo digital · SIM</td><td>Luz ambiente (lx): <b>2 – 108.590</b><br>Nivel de iluminación (%): <b>0 – 100</b><br>Potencia (W): <b>40 – 4.800</b><br>Energía acumulada (kWh): <b>0,059 – 71,186</b></td><td>10 s</td><td>power, set_interval, set_mode, set_params, set_thresholds, restart</td></tr>
 <tr><td><b>DEV08</b></td><td>Parqueadero inteligente</td><td>Simulado · SIM</td><td>Ocupados (espacios): <b>0 – 189</b><br>Libres (espacios): <b>131 – 320</b><br>Ocupación (%): <b>0 – 59</b></td><td>10 s</td><td>power, set_interval, set_mode, set_params, set_thresholds, restart</td></tr>
 <tr><td><b>DEV09</b></td><td>Sensor de nivel de agua</td><td>Dataset</td><td>Nivel del río (m): <b>1,40 – 1,58</b><br>Riesgo: <b>texto</b></td><td>1800 s</td><td>power, set_interval, set_thresholds, restart</td></tr>
 <tr><td><b>DEV10</b></td><td>Estación meteorológica</td><td>API</td><td>Velocidad del viento (km/h): <b>0,3 – 7,3</b><br>Dirección del viento (°): <b>18 – 351</b><br>Presión superficial (hPa): <b>902,4 – 907,8</b><br>Precipitación (15 min) (mm): <b>0,0 – 0,2</b><br>Temperatura (°C): <b>20,4 – 27,2</b></td><td>600 s</td><td>power, set_interval, set_thresholds, restart</td></tr>
-<tr><td><b>DEV11</b></td><td>Nodo ESP32 (Wokwi)</td><td>Real · SIM</td><td>Temperatura (°C): <b>24,5 – 24,8</b><br>Humedad relativa (%): <b>61 – 61</b><br>Luz ambiente (%): <b>42 – 42</b><br>Relé (actuador): <b>0 – 1</b></td><td>10 s</td><td>power, set_interval, set_mode, set_params, set_thresholds, restart, calibrate</td></tr>
-<tr><td><b>DEV12</b></td><td>Estación histórica (dataset)</td><td>Dataset</td><td>Temperatura (°C): <b>21,4 – 22,1</b><br>Humedad relativa (%): <b>89 – 95</b><br>Precipitación (1 h) (mm): <b>0,80 – 0,80</b><br>Presión superficial (hPa): <b>903,2 – 903,4</b><br>Velocidad del viento (km/h): <b>6,8 – 7,0</b><br>Radiación solar (W/m²): <b>38 – 104</b></td><td>60 s</td><td>power, set_interval, set_mode, set_params, set_thresholds, restart</td></tr>
+<tr><td><b>DEV11</b></td><td>Nodo ESP32 (Wokwi)</td><td>Real · SIM</td><td>Temperatura (°C): <b>24,5 – 24,8</b><br>Humedad relativa (%): <b>60 – 61</b><br>Luz ambiente (%): <b>42 – 76</b><br>Relé (actuador): <b>0 – 1</b></td><td>10 s</td><td>power, set_interval, set_mode, set_params, set_thresholds, restart, calibrate</td></tr>
+<tr><td><b>DEV12</b></td><td>Estación histórica (dataset)</td><td>Dataset</td><td>Temperatura (°C): <b>21,1 – 22,1</b><br>Humedad relativa (%): <b>89 – 98</b><br>Precipitación (1 h) (mm): <b>0,10 – 1,70</b><br>Presión superficial (hPa): <b>903,2 – 905,8</b><br>Velocidad del viento (km/h): <b>2,4 – 7,0</b><br>Radiación solar (W/m²): <b>0 – 104</b></td><td>60 s</td><td>power, set_interval, set_mode, set_params, set_thresholds, restart</td></tr>
 </table>
 <p style="font-size:8.5pt">SIM = dato sintético. DEV06 está catalogado como API (gpsmobile.co) pero usa una ruta simulada sobre vías reales mientras no exista autorización
 del propietario de los datos; el adaptador descarta placa, conductor y demás datos personales. DEV11 publica con firmware real sobre TLS; en Wokwi los
@@ -140,10 +149,19 @@ valores de los sensores los fija una persona con los controles del simulador, po
 <tr><td>InfluxDB 2.7</td><td>Series temporales: bucket <code>raw</code> (30 días) y <code>agg_5m</code> (media/mín/máx cada 5 min, 1 año) mediante tarea programada</td></tr>
 <tr><td>Backend Fastify + SQLite</td><td>API REST/WebSocket, autenticación JWT, órdenes con confirmación, motor de alertas, estado vivo, asistente IA</td></tr>
 <tr><td>React + Recharts + Leaflet</td><td>Aplicación web: panel, mapa de la ciudad, dispositivos y control, histórico, alertas, asistente</td></tr>
-<tr><td>Grafana 11</td><td>Tablero de análisis provisionado como código (23 paneles)</td></tr>
+<tr><td>Grafana 11</td><td>Tablero de análisis provisionado como código (23 paneles), en <code>/grafana/</code></td></tr>
+<tr><td>Controlador de DEV11 (Python + systemd)</td><td>Enciende y apaga el simulador del ESP32 bajo demanda desde la app y lo apaga solo cuando nadie mira la página (ver 6.2)</td></tr>
 <tr><td>API b.ai (qwen3.8-flash)</td><td>Modelo de lenguaje para el asistente y el análisis de gráficas</td></tr>
 <tr><td>Fuentes externas</td><td>Open-Meteo (Forecast, Air Quality CAMS, Historical ERA5), IDEAM (datos.gov.co), OpenStreetMap, Wokwi</td></tr>
 </table>
+
+<h3>3.4 Integración y automatización: Node-RED</h3>
+<p>Node-RED (<code>/nodered/</code>, protegido con usuario y contraseña) es la capa de integración entre el bróker y la base de series temporales. Tiene dos flujos:</p>
+<div class="fig2">
+<figure><img src="figuras/nodered-persistencia.png"><figcaption>Figura. Flujo «Persistencia → InfluxDB»: tres suscripciones MQTT (telemetría, estado y eventos de incidentes), validación de esquema, cola persistente en disco, escritura por lotes cada 2 s en InfluxDB con verificación y reencolado. Los contadores bajo cada nodo muestran mensajes aceptados y rechazados (0) y escrituras pendientes (0).</figcaption></figure>
+<figure><img src="figuras/nodered-automatizacion.png"><figcaption>Figura. Flujo «Automatización»: reglas con histéresis entre dispositivos. La calidad del aire de DEV02 restringe el tráfico de DEV05 y la lluvia de DEV10 atenúa el alumbrado de DEV07; solo se publica una orden MQTT al cruzar el umbral, no en cada lectura.</figcaption></figure>
+</div>
+<p>Así la persistencia no depende del backend: si el backend se reinicia (p. ej. en un despliegue) la captura continúa sin hueco, porque Node-RED es quien escribe en InfluxDB.</p>
 
 <h2>4. Visualización y procesamiento de los datos</h2>
 <p>El procesamiento se hace en tres niveles: <b>(1)</b> en InfluxDB (agregación por ventana, promedio, mínimo, máximo, desviación y conteo para cualquier
@@ -151,41 +169,41 @@ rango; downsampling a 5 min), <b>(2)</b> en el backend (alertas y reglas) y <b>(
 (Histórico: 1 h, 24 h, 5 días, 7 días o rango personalizado) como Grafana (selector de tiempo) permiten el <b>ajuste del intervalo de tiempo</b>.</p>
 <h3>4.1 Estadísticas de la ventana (promedio, mínimo, máximo)</h3>
 <table><tr><th>ID</th><th>Variable</th><th>Unidad</th><th>Promedio</th><th>Mínimo</th><th>Hora mín.</th><th>Máximo</th><th>Hora máx.</th><th>Desv.</th><th>Lecturas</th></tr>
-<tr><td>DEV01</td><td>Temperatura</td><td>°C</td><td class=n>23.0</td><td class=n>19.6</td><td>07/11 05:13</td><td class=n>28.2</td><td>08/11 13:33</td><td class=n>2.1</td><td class=n>13.523</td></tr>
-<tr><td>DEV01</td><td>Humedad relativa</td><td>%</td><td class=n>84</td><td class=n>60</td><td>08/11 14:19</td><td class=n>100</td><td>07/11 05:54</td><td class=n>12</td><td class=n>13.523</td></tr>
-<tr><td>DEV02</td><td>Índice AQI (EE. UU.)</td><td>AQI</td><td class=n>55</td><td class=n>53</td><td>08/11 05:00</td><td class=n>61</td><td>07/11 04:00</td><td class=n>1</td><td class=n>38</td></tr>
-<tr><td>DEV02</td><td>PM2.5</td><td>µg/m³</td><td class=n>9.8</td><td class=n>4.7</td><td>07/11 15:00</td><td class=n>17.4</td><td>07/11 04:00</td><td class=n>3.5</td><td class=n>38</td></tr>
-<tr><td>DEV02</td><td>PM10</td><td>µg/m³</td><td class=n>9.9</td><td class=n>4.8</td><td>07/11 15:00</td><td class=n>17.6</td><td>07/11 04:00</td><td class=n>3.5</td><td class=n>38</td></tr>
-<tr><td>DEV03</td><td>Nivel de ruido</td><td>dB(A)</td><td class=n>55.9</td><td class=n>38.7</td><td>08/11 03:36</td><td class=n>80.9</td><td>07/11 12:36</td><td class=n>6.0</td><td class=n>13.530</td></tr>
-<tr><td>DEV04</td><td>Incidentes activos</td><td></td><td class=n>0</td><td class=n>0</td><td>07/11 04:08</td><td class=n>2</td><td>07/11 07:00</td><td class=n>0</td><td class=n>4.512</td></tr>
-<tr><td>DEV04</td><td>Índice de congestión</td><td>%</td><td class=n>15</td><td class=n>0</td><td>07/11 04:08</td><td class=n>37</td><td>07/11 11:44</td><td class=n>11</td><td class=n>4.512</td></tr>
-<tr><td>DEV04</td><td>Velocidad media de red</td><td>km/h</td><td class=n>43.3</td><td class=n>32.1</td><td>07/11 12:01</td><td class=n>51.0</td><td>08/11 02:09</td><td class=n>5.7</td><td class=n>4.512</td></tr>
-<tr><td>DEV05</td><td>Vehículos por minuto</td><td>veh/min</td><td class=n>32</td><td class=n>0</td><td>07/11 04:08</td><td class=n>120</td><td>07/11 17:53</td><td class=n>21</td><td class=n>13.530</td></tr>
-<tr><td>DEV05</td><td>Velocidad media</td><td>km/h</td><td class=n>51.0</td><td class=n>29.6</td><td>07/11 12:20</td><td class=n>69.0</td><td>07/11 23:32</td><td class=n>7.3</td><td class=n>13.530</td></tr>
-<tr><td>DEV06</td><td>Velocidad</td><td>km/h</td><td class=n>31</td><td class=n>0</td><td>07/11 04:12</td><td class=n>62</td><td>08/11 02:09</td><td class=n>15</td><td class=n>2.257</td></tr>
-<tr><td>DEV07</td><td>Luz ambiente</td><td>lx</td><td class=n>29.855</td><td class=n>2</td><td>07/11 04:08</td><td class=n>108.590</td><td>07/11 11:35</td><td class=n>34.403</td><td class=n>13.530</td></tr>
-<tr><td>DEV07</td><td>Nivel de iluminación</td><td>%</td><td class=n>29</td><td class=n>0</td><td>07/11 05:35</td><td class=n>100</td><td>07/11 05:00</td><td class=n>40</td><td class=n>13.530</td></tr>
-<tr><td>DEV07</td><td>Potencia</td><td>W</td><td class=n>1.427</td><td class=n>40</td><td>07/11 05:35</td><td class=n>4.800</td><td>07/11 05:00</td><td class=n>1.927</td><td class=n>13.530</td></tr>
-<tr><td>DEV07</td><td>Energía acumulada</td><td>kWh</td><td class=n>29.098</td><td class=n>0.059</td><td>07/11 04:08</td><td class=n>53.676</td><td>08/11 17:44</td><td class=n>21.110</td><td class=n>13.530</td></tr>
-<tr><td>DEV08</td><td>Ocupados</td><td>espacios</td><td class=n>70</td><td class=n>0</td><td>07/11 22:31</td><td class=n>189</td><td>07/11 19:06</td><td class=n>65</td><td class=n>13.530</td></tr>
-<tr><td>DEV08</td><td>Libres</td><td>espacios</td><td class=n>250</td><td class=n>131</td><td>07/11 19:06</td><td class=n>320</td><td>07/11 22:31</td><td class=n>65</td><td class=n>13.530</td></tr>
-<tr><td>DEV08</td><td>Ocupación</td><td>%</td><td class=n>22</td><td class=n>0</td><td>07/11 05:07</td><td class=n>59</td><td>07/11 18:52</td><td class=n>20</td><td class=n>13.530</td></tr>
+<tr><td>DEV01</td><td>Temperatura</td><td>°C</td><td class=n>23.0</td><td class=n>19.6</td><td>07/11 05:13</td><td class=n>28.2</td><td>08/11 13:33</td><td class=n>2.0</td><td class=n>14.835</td></tr>
+<tr><td>DEV01</td><td>Humedad relativa</td><td>%</td><td class=n>85</td><td class=n>60</td><td>08/11 14:19</td><td class=n>100</td><td>07/11 05:54</td><td class=n>11</td><td class=n>14.835</td></tr>
+<tr><td>DEV02</td><td>Índice AQI (EE. UU.)</td><td>AQI</td><td class=n>55</td><td class=n>52</td><td>08/11 20:00</td><td class=n>61</td><td>07/11 04:00</td><td class=n>2</td><td class=n>42</td></tr>
+<tr><td>DEV02</td><td>PM2.5</td><td>µg/m³</td><td class=n>10.4</td><td class=n>4.7</td><td>07/11 15:00</td><td class=n>18.3</td><td>08/11 21:00</td><td class=n>3.8</td><td class=n>42</td></tr>
+<tr><td>DEV02</td><td>PM10</td><td>µg/m³</td><td class=n>10.5</td><td class=n>4.8</td><td>07/11 15:00</td><td class=n>18.7</td><td>08/11 21:00</td><td class=n>3.9</td><td class=n>42</td></tr>
+<tr><td>DEV03</td><td>Nivel de ruido</td><td>dB(A)</td><td class=n>55.7</td><td class=n>38.7</td><td>08/11 03:36</td><td class=n>80.9</td><td>07/11 12:36</td><td class=n>5.9</td><td class=n>14.843</td></tr>
+<tr><td>DEV04</td><td>Incidentes activos</td><td></td><td class=n>0</td><td class=n>0</td><td>07/11 04:08</td><td class=n>2</td><td>07/11 07:00</td><td class=n>1</td><td class=n>4.949</td></tr>
+<tr><td>DEV04</td><td>Índice de congestión</td><td>%</td><td class=n>15</td><td class=n>0</td><td>07/11 04:08</td><td class=n>37</td><td>07/11 11:44</td><td class=n>11</td><td class=n>4.949</td></tr>
+<tr><td>DEV04</td><td>Velocidad media de red</td><td>km/h</td><td class=n>43.5</td><td class=n>32.1</td><td>07/11 12:01</td><td class=n>51.0</td><td>08/11 02:09</td><td class=n>5.5</td><td class=n>4.949</td></tr>
+<tr><td>DEV05</td><td>Vehículos por minuto</td><td>veh/min</td><td class=n>31</td><td class=n>0</td><td>07/11 04:08</td><td class=n>120</td><td>07/11 17:53</td><td class=n>20</td><td class=n>14.843</td></tr>
+<tr><td>DEV05</td><td>Velocidad media</td><td>km/h</td><td class=n>51.3</td><td class=n>29.6</td><td>07/11 12:20</td><td class=n>69.0</td><td>07/11 23:32</td><td class=n>7.1</td><td class=n>14.843</td></tr>
+<tr><td>DEV06</td><td>Velocidad</td><td>km/h</td><td class=n>32</td><td class=n>0</td><td>07/11 04:12</td><td class=n>62</td><td>08/11 02:09</td><td class=n>15</td><td class=n>2.475</td></tr>
+<tr><td>DEV07</td><td>Luz ambiente</td><td>lx</td><td class=n>27.214</td><td class=n>2</td><td>07/11 04:08</td><td class=n>108.590</td><td>07/11 11:35</td><td class=n>33.923</td><td class=n>14.843</td></tr>
+<tr><td>DEV07</td><td>Nivel de iluminación</td><td>%</td><td class=n>35</td><td class=n>0</td><td>07/11 05:35</td><td class=n>100</td><td>07/11 05:00</td><td class=n>43</td><td class=n>14.843</td></tr>
+<tr><td>DEV07</td><td>Potencia</td><td>W</td><td class=n>1.725</td><td class=n>40</td><td>07/11 05:35</td><td class=n>4.800</td><td>07/11 05:00</td><td class=n>2.074</td><td class=n>14.843</td></tr>
+<tr><td>DEV07</td><td>Energía acumulada</td><td>kWh</td><td class=n>32.047</td><td class=n>0.059</td><td>07/11 04:08</td><td class=n>71.186</td><td>08/11 21:22</td><td class=n>22.318</td><td class=n>14.843</td></tr>
+<tr><td>DEV08</td><td>Ocupados</td><td>espacios</td><td class=n>77</td><td class=n>0</td><td>07/11 22:31</td><td class=n>189</td><td>07/11 19:06</td><td class=n>67</td><td class=n>14.843</td></tr>
+<tr><td>DEV08</td><td>Libres</td><td>espacios</td><td class=n>243</td><td class=n>131</td><td>07/11 19:06</td><td class=n>320</td><td>07/11 22:31</td><td class=n>67</td><td class=n>14.843</td></tr>
+<tr><td>DEV08</td><td>Ocupación</td><td>%</td><td class=n>24</td><td class=n>0</td><td>07/11 05:07</td><td class=n>59</td><td>07/11 18:52</td><td class=n>21</td><td class=n>14.843</td></tr>
 <tr><td>DEV09</td><td>Nivel del río</td><td>m</td><td class=n>1.49</td><td class=n>1.40</td><td>07/11 18:00</td><td class=n>1.58</td><td>07/11 07:00</td><td class=n>0.06</td><td class=n>24</td></tr>
-<tr><td>DEV10</td><td>Velocidad del viento</td><td>km/h</td><td class=n>3.4</td><td class=n>0.3</td><td>07/11 18:45</td><td class=n>7.3</td><td>07/11 14:00</td><td class=n>1.6</td><td class=n>151</td></tr>
-<tr><td>DEV10</td><td>Dirección del viento</td><td>°</td><td class=n>211</td><td class=n>18</td><td>07/11 17:45</td><td class=n>351</td><td>07/11 14:00</td><td class=n>88</td><td class=n>151</td></tr>
-<tr><td>DEV10</td><td>Presión superficial</td><td>hPa</td><td class=n>905.0</td><td class=n>902.4</td><td>07/11 15:15</td><td class=n>907.8</td><td>08/11 09:30</td><td class=n>1.5</td><td class=n>151</td></tr>
-<tr><td>DEV10</td><td>Precipitación (15 min)</td><td>mm</td><td class=n>0.0</td><td class=n>0.0</td><td>07/11 05:15</td><td class=n>0.2</td><td>07/11 04:00</td><td class=n>0.0</td><td class=n>151</td></tr>
-<tr><td>DEV10</td><td>Temperatura</td><td>°C</td><td class=n>22.9</td><td class=n>20.4</td><td>07/11 05:00</td><td class=n>27.2</td><td>08/11 12:45</td><td class=n>2.1</td><td class=n>151</td></tr>
-<tr><td>DEV11</td><td>Temperatura</td><td>°C</td><td class=n>24.6</td><td class=n>24.5</td><td>08/11 17:23</td><td class=n>24.8</td><td>08/11 17:23</td><td class=n>0.1</td><td class=n>4</td></tr>
-<tr><td>DEV11</td><td>Humedad relativa</td><td>%</td><td class=n>61</td><td class=n>61</td><td>08/11 17:23</td><td class=n>61</td><td>08/11 17:23</td><td class=n>0</td><td class=n>4</td></tr>
-<tr><td>DEV11</td><td>Luz ambiente</td><td>%</td><td class=n>42</td><td class=n>42</td><td>08/11 17:23</td><td class=n>42</td><td>08/11 17:23</td><td class=n>0</td><td class=n>4</td></tr>
-<tr><td>DEV11</td><td>Relé (actuador)</td><td></td><td class=n>0</td><td class=n>0</td><td>08/11 17:23</td><td class=n>1</td><td>08/11 17:23</td><td class=n>0</td><td class=n>4</td></tr>
-<tr><td>DEV12</td><td>Temperatura</td><td>°C</td><td class=n>21.8</td><td class=n>21.4</td><td>08/11 17:43</td><td class=n>22.1</td><td>08/11 17:09</td><td class=n>0.2</td><td class=n>36</td></tr>
-<tr><td>DEV12</td><td>Humedad relativa</td><td>%</td><td class=n>92</td><td class=n>89</td><td>08/11 17:09</td><td class=n>95</td><td>08/11 17:41</td><td class=n>2</td><td class=n>36</td></tr>
-<tr><td>DEV12</td><td>Precipitación (1 h)</td><td>mm</td><td class=n>0.80</td><td class=n>0.80</td><td>08/11 17:09</td><td class=n>0.80</td><td>08/11 17:09</td><td class=n>0.00</td><td class=n>36</td></tr>
-<tr><td>DEV12</td><td>Presión superficial</td><td>hPa</td><td class=n>903.3</td><td class=n>903.2</td><td>08/11 17:09</td><td class=n>903.4</td><td>08/11 17:38</td><td class=n>0.1</td><td class=n>36</td></tr>
-<tr><td>DEV12</td><td>Velocidad del viento</td><td>km/h</td><td class=n>6.9</td><td class=n>6.8</td><td>08/11 17:30</td><td class=n>7.0</td><td>08/11 17:09</td><td class=n>0.1</td><td class=n>36</td></tr>
-<tr><td>DEV12</td><td>Radiación solar</td><td>W/m²</td><td class=n>71</td><td class=n>38</td><td>08/11 17:44</td><td class=n>104</td><td>08/11 17:09</td><td class=n>20</td><td class=n>36</td></tr>
+<tr><td>DEV10</td><td>Velocidad del viento</td><td>km/h</td><td class=n>3.2</td><td class=n>0.3</td><td>07/11 18:45</td><td class=n>7.3</td><td>07/11 14:00</td><td class=n>1.7</td><td class=n>166</td></tr>
+<tr><td>DEV10</td><td>Dirección del viento</td><td>°</td><td class=n>203</td><td class=n>18</td><td>07/11 17:45</td><td class=n>351</td><td>07/11 14:00</td><td class=n>88</td><td class=n>166</td></tr>
+<tr><td>DEV10</td><td>Presión superficial</td><td>hPa</td><td class=n>905.0</td><td class=n>902.4</td><td>07/11 15:15</td><td class=n>907.8</td><td>08/11 09:30</td><td class=n>1.4</td><td class=n>166</td></tr>
+<tr><td>DEV10</td><td>Precipitación (15 min)</td><td>mm</td><td class=n>0.0</td><td class=n>0.0</td><td>07/11 05:15</td><td class=n>0.2</td><td>07/11 04:00</td><td class=n>0.0</td><td class=n>166</td></tr>
+<tr><td>DEV10</td><td>Temperatura</td><td>°C</td><td class=n>22.9</td><td class=n>20.4</td><td>07/11 05:00</td><td class=n>27.2</td><td>08/11 12:45</td><td class=n>2.0</td><td class=n>166</td></tr>
+<tr><td>DEV11</td><td>Temperatura</td><td>°C</td><td class=n>24.5</td><td class=n>24.5</td><td>08/11 17:23</td><td class=n>24.8</td><td>08/11 17:23</td><td class=n>0.0</td><td class=n>73</td></tr>
+<tr><td>DEV11</td><td>Humedad relativa</td><td>%</td><td class=n>60</td><td class=n>60</td><td>08/11 19:54</td><td class=n>61</td><td>08/11 17:23</td><td class=n>0</td><td class=n>73</td></tr>
+<tr><td>DEV11</td><td>Luz ambiente</td><td>%</td><td class=n>74</td><td class=n>42</td><td>08/11 17:23</td><td class=n>76</td><td>08/11 19:54</td><td class=n>8</td><td class=n>73</td></tr>
+<tr><td>DEV11</td><td>Relé (actuador)</td><td></td><td class=n>0</td><td class=n>0</td><td>08/11 17:23</td><td class=n>1</td><td>08/11 17:23</td><td class=n>0</td><td class=n>73</td></tr>
+<tr><td>DEV12</td><td>Temperatura</td><td>°C</td><td class=n>21.7</td><td class=n>21.1</td><td>08/11 17:58</td><td class=n>22.1</td><td>08/11 17:09</td><td class=n>0.2</td><td class=n>254</td></tr>
+<tr><td>DEV12</td><td>Humedad relativa</td><td>%</td><td class=n>95</td><td class=n>89</td><td>08/11 17:09</td><td class=n>98</td><td>08/11 17:58</td><td class=n>2</td><td class=n>254</td></tr>
+<tr><td>DEV12</td><td>Precipitación (1 h)</td><td>mm</td><td class=n>0.71</td><td class=n>0.10</td><td>08/11 21:00</td><td class=n>1.70</td><td>08/11 18:00</td><td class=n>0.59</td><td class=n>254</td></tr>
+<tr><td>DEV12</td><td>Presión superficial</td><td>hPa</td><td class=n>904.5</td><td class=n>903.2</td><td>08/11 17:09</td><td class=n>905.8</td><td>08/11 21:18</td><td class=n>0.9</td><td class=n>254</td></tr>
+<tr><td>DEV12</td><td>Velocidad del viento</td><td>km/h</td><td class=n>4.5</td><td class=n>2.4</td><td>08/11 20:59</td><td class=n>7.0</td><td>08/11 17:09</td><td class=n>1.5</td><td class=n>254</td></tr>
+<tr><td>DEV12</td><td>Radiación solar</td><td>W/m²</td><td class=n>13</td><td class=n>0</td><td>08/11 18:57</td><td class=n>104</td><td>08/11 17:09</td><td class=n>26</td><td class=n>254</td></tr>
 </table>
 <h3>4.2 Alertas y reglas</h3>
 <table><tr><th>Mecanismo</th><th>Descripción</th></tr>
@@ -196,12 +214,16 @@ rango; downsampling a 5 min), <b>(2)</b> en el backend (alertas y reglas) y <b>(
 <tr><td>Regla aire → tráfico</td><td>Node-RED: si DEV02 AQI ≥ 150 ordena a DEV05 <code>demand_factor = 0,7</code> (restricción vehicular); restaura con AQI &lt; 100.</td></tr>
 <tr><td>Regla lluvia → alumbrado</td><td>Node-RED: si DEV10 lluvia ≥ 1 mm, DEV07 sube la atenuación nocturna al 100 %; restaura con &lt; 0,2 mm. La lluvia también eleva la tasa de incidentes de DEV04 (×1,8).</td></tr>
 </table>
-<p>En la ventana: 285 alertas registradas (anomaly: 72, incident: 2, offline: 1, threshold: 210) y 9 incidentes viales simulados.</p>
+<p>En la ventana: 295 alertas registradas (anomaly: 77, incident: 4, offline: 2, threshold: 212) y 12 incidentes viales simulados.</p>
 <figure><img src="figuras/incidentes.png"><figcaption>Figura. Incidentes simulados por tipo en la ventana (proceso de Poisson no homogéneo sobre vías reales de OSM).</figcaption></figure>
 <h3>4.3 Interfaces</h3>
-<div class="shots"><figure><img src="figuras/app-panel.png"><figcaption>App · panel</figcaption></figure><figure><img src="figuras/app-mapa.png"><figcaption>App · mapa</figcaption></figure><figure><img src="figuras/app-dispositivos.png"><figcaption>App · dispositivos</figcaption></figure><figure><img src="figuras/app-asistente.png"><figcaption>App · asistente</figcaption></figure></div>
+<p>La aplicación web propia (React) es la interfaz de operación: mirar es libre y controlar exige la sesión de operador. La primera visita abre una guía de Nodo que explica dónde está cada cosa.</p>
+<div class="shots"><figure><img src="figuras/app-panel.png"><figcaption>App · Panel (Nodo saluda; estado de la ciudad)</figcaption></figure><figure><img src="figuras/app-mapa.png"><figcaption>App · Mapa de dispositivos e incidentes</figcaption></figure><figure><img src="figuras/app-dispositivos.png"><figcaption>App · Lista de dispositivos</figcaption></figure><figure><img src="figuras/app-dev11.png"><figcaption>App · Ficha de DEV11: ilustración, ubicación y encendido bajo demanda</figcaption></figure><figure><img src="figuras/app-asistente.png"><figcaption>App · Página del asistente (Nodo y agentes expertos)</figcaption></figure><figure><img src="figuras/app-asistente-panel.png"><figcaption>App · Nodo en el panel lateral: «resumen del día»</figcaption></figure><figure><img src="figuras/app-bienvenida.png"><figcaption>App · guía de primera visita («¿Cómo se usa?»)</figcaption></figure></div>
+<h3>4.4 Grafana: tablero de análisis</h3>
+<p>El tablero <b>«Smart City Bucaramanga — análisis»</b> se provisiona como código (<code>infra/grafana/</code>) y consulta InfluxDB directamente. Muestra seis indicadores de estado (temperatura, AQI, congestión, ocupación del parqueadero, nivel del río y potencia del alumbrado), series de cada dispositivo, incidentes por tipo, la conexión de los dispositivos en el tiempo y una tabla de resumen con <b>promedio, mínimo y máximo</b> del rango seleccionado. El selector de tiempo de Grafana (aquí, últimas 24 h con refresco cada 30 s) ajusta todos los paneles a la vez.</p>
+<div class="fig2"><figure><img src="figuras/grafana-analisis.png"><figcaption>Figura. Tablero de Grafana (últimas 24 h, refresco 30 s): indicadores, series por dispositivo, estado de conexión y tabla prom/mín/máx. Captura con el zoom del navegador al 30 % para mostrar el tablero completo.</figcaption></figure></div>
 
-<h2 class="pb">5. Análisis de gráficas y comportamiento (con IA)</h2>
+<h2>5. Análisis de gráficas y comportamiento (con IA)</h2>
 <p><b>Método.</b> Para cada dispositivo el servidor calcula, sobre InfluxDB, los hechos numéricos de la ventana (promedio, mínimo, máximo, desviación,
 hora pico y hora valle del ciclo diario y comparación entre el primer y el último cuarto). Esos números —y nunca las lecturas crudas— se envían al
 modelo <b>qwen3.8-flash</b>, que redacta un párrafo con la instrucción de usar solo esos valores, aclarar si los datos son simulados y no confundir el
@@ -278,39 +300,67 @@ ciclo día/noche con una tendencia. Cada gráfica muestra la serie con líneas d
   <img src="figuras/DEV10.png" alt="Gráficas de DEV10">
   <div class="ia"><b>Análisis con IA</b> (qwen3.8-flash, ventana 48 h, generado 08/11 17:26):
   La Estación meteorológica DEV10, con datos reales de 48 horas, muestra viento entre 0.3 y 7.3 km/h (media 3.4), pico a las 15:00 y valle a las 19:00, con tendencia al alza del primer al último cuarto (3.3 a 4.1). La dirección oscila ampliamente (18°-351°, desviación 88°), aumentando de 218° a 277°. La presión es estable (902.4-907.8 hPa, media 905), sin variación significativa entre cuartos. La precipitación es casi nula (máximo 0.2 mm). La temperatura varía de 20.4 a 27.2 °C (media 22.9), con máximo térmico a las 14:00 y mínimo a las 6:00, evidenciando un calentamiento notable del primer (22.6) al último cuarto (25.5). Este comportamiento sugiere una transición hacia condiciones más cálidas y vientos moderados por la tarde, típico de ciclos diurnos en Bucaramanga.</div>
-</section><section class="dev"><h3>DEV11 · Nodo ESP32 (Wokwi) <span class="tag">Real</span></h3><p class="desc">Nodo ESP32 con firmware real (firmware/dev11-esp32) que publica por MQTT sobre TLS (8883) desde Internet. Se ejecuta en el simulador Wokwi o en un ESP32 físico con el mismo código. Mide temperatura y humedad (DHT22) y luz (LDR) y controla un relé.</p><p class="warn">Sin serie suficiente para graficar en la ventana (4 lecturas). El nodo se validó de punta a punta por Internet (TLS 8883, orden confirmada en 466 ms); su serie se captura durante las sesiones en Wokwi.</p></section><section class="dev"><h3>DEV12 · Estación histórica (dataset) <span class="tag">Dataset</span></h3><p class="desc">Reproduce un dataset CSV versionado con el reanálisis horario ERA5 de Bucaramanga de noviembre de 2025. En modo espejo publica, interpolado, lo observado el mismo día y hora del año anterior, como referencia comparable con DEV01 y DEV10.</p><p class="warn">Sin serie suficiente para graficar en la ventana (35 lecturas). El dispositivo se desplegó durante la ventana; su serie crece con cada día de captura.</p></section>
+</section><section class="dev"><h3>DEV11 · Nodo ESP32 (Wokwi) <span class="tag">Real</span></h3><p class="desc">Nodo ESP32 con firmware real (firmware/dev11-esp32) que publica por MQTT sobre TLS (8883) desde Internet. Se ejecuta en el simulador Wokwi o en un ESP32 físico con el mismo código. Mide temperatura y humedad (DHT22) y luz (LDR) y controla un relé.</p><p class="warn">Sin serie suficiente para graficar en la ventana (73 lecturas). El nodo se validó de punta a punta por Internet (TLS 8883, orden confirmada en 466 ms); su serie se captura durante las sesiones en Wokwi.</p></section>
+<section class="dev">
+  <h3>DEV12 · Estación histórica (dataset) <span class="tag">Dataset</span></h3>
+  <p class="desc">Reproduce un dataset CSV versionado con el reanálisis horario ERA5 de Bucaramanga de noviembre de 2025. En modo espejo publica, interpolado, lo observado el mismo día y hora del año anterior, como referencia comparable con DEV01 y DEV10. <i>Procedencia: Open-Meteo Historical Weather (ERA5, Copernicus/ECMWF).</i></p>
+  <img src="figuras/DEV12.png" alt="Gráficas de DEV12">
+  <div class="ia"><b>Análisis con IA</b> (qwen3.8-flash, ventana 48 h, generado 08/11 17:26):
+  Los datos reales de la estación DEV12 en Bucaramanga, correspondientes a las 48 horas del 6 al 8 de noviembre de 2026, muestran una estabilidad extrema. La temperatura osciló entre 21.8 y 22.1 °C (media 22 °C), con humedad relativa constante cerca del 90% (rango 89-92%) y precipitación fija de 0.8 mm/h. La presión superficial se mantuvo en 903.2 hPa y el viento en aproximadamente 6.9 km/h. La radiación solar varió ligeramente entre 72 y 104 W/m², con media de 88 W/m². Todas las variables presentan picos y valles simultáneos a las 17:00 hora local, indicando un ciclo diario muy plano o posiblemente afectado por nubosidad persistente típica de la tarde en esta zona andina. No hay tendencia direccional clara, ya que los promedios del primer y último cuarto son idénticos para todas las métricas, reflejando condiciones meteorológicas homogéneas durante toda la ventana analizada.</div>
+</section>
 
-<h2>6. Asistente IA: chat y gráficas a pedido</h2>
-<p>Como complemento a Grafana, la app incluye un <b>asistente</b> (<code>/asistente</code>) al que se le pregunta en lenguaje natural ("¿a qué hora hay más tráfico?",
-"compara el ruido con el flujo vehicular esta semana") y responde con texto y una gráfica generada a pedido, exportable a PNG. Diseño de bajo consumo:
-el modelo solo <b>enruta</b> — devuelve un JSON de ~40 tokens con decodificación restringida (<code>response_format: json_schema</code> estricto, enums cerrados
-de expertos y variables), sin historial, sin razonamiento y con temperatura 0 — y los <b>expertos en código</b> calculan sobre InfluxDB con cero tokens.</p>
+<h2>6. Nodo, el asistente de IA</h2>
+<h3>6.1 Qué hace y cómo se diseñó</h3>
+<p>Como complemento a Grafana, la app incluye a <b>Nodo</b>, un asistente al que se le pregunta en lenguaje natural ("¿a qué hora hay más tráfico?",
+"compara el ruido con el flujo vehicular esta semana", "resumen del día") y que responde con texto y una gráfica generada a pedido, exportable a PNG.
+Es un personaje: un robot-nodo de red que rebota en la esquina de cada página, parpadea, sigue el cursor con la mirada y cambia de humor (reposo, pensando, hablando, alerta, contento).
+Tiene voz opcional (síntesis del navegador, en español) y un segundo color de acento (lavanda) reservado a la IA.</p>
+<p>El diseño es de bajo consumo: el modelo solo <b>enruta</b> — devuelve un JSON de ~40 tokens con <b>decodificación restringida</b> (<code>response_format: json_schema</code> estricto,
+enums cerrados de expertos y variables), sin historial, sin razonamiento y con temperatura 0 — y los <b>expertos en código</b> calculan sobre InfluxDB con cero tokens.
+Hay siete agentes por tema (general, clima, aire y ruido, movilidad, agua y lluvia, alumbrado, operación) que acotan el vocabulario y bajan aún más los tokens.</p>
+<table><tr><th>Capacidad</th><th>Cómo funciona</th></tr>
+<tr><td>Consultas de datos</td><td>Estadísticas (promedio/mín/máx), series, perfil horario, valor actual, alertas, incidentes y estado de los dispositivos; cálculo en código</td></tr>
+<tr><td>Resumen del día</td><td>Frase fija resuelta sin modelo (0 tokens): promedio, rango y hora del máximo de la variable principal de cada equipo en 24 h</td></tr>
+<tr><td>Forma de la gráfica</td><td>Palabras como «en barras», «como área» o «en torta» cambian el estilo sin gastar tokens</td></tr>
+<tr><td>Órdenes con confirmación</td><td>«Apaga el alumbrado»: un segundo llamado convierte la frase en una orden candidata; el código la valida con el mismo catálogo del dispositivo y la app muestra una tarjeta «Orden lista para enviar». <b>Nodo solo propone</b>: el envío exige confirmar y la sesión de operador</td></tr>
+<tr><td>Análisis de gráficas</td><td>Párrafo por dispositivo redactado con los hechos numéricos calculados (sección 5)</td></tr>
+</table>
 <table><tr><th>Medición</th><th>Resultado</th></tr>
 <tr><td>Prueba de 10 preguntas (enrutador)</td><td>10/10 aciertos · 749 tokens · 1,8 s promedio</td></tr>
-<tr><td>Uso en producción</td><td>7 consultas · 870 tokens promedio · 1,5 s · 1 desde caché (0 tokens)</td></tr>
+<tr><td>Uso en producción</td><td>48 consultas · 914 tokens promedio · 1,8 s · 4 desde caché (0 tokens)</td></tr>
 <tr><td>Costo estimado</td><td>≈ 900 tokens/consulta → del orden de 0,0001 USD por pregunta con precios de modelos flash</td></tr>
 </table>
 
+<h3>6.2 DEV11 bajo demanda</h3>
+<p>El único nodo con firmware propio (ESP32, MQTT sobre TLS 8883) corre en el simulador Wokwi. Como la cuenta gratuita de Wokwi limita cada simulación a 5 minutos y los minutos mensuales,
+DEV11 no se deja encendido: el operador lo <b>enciende desde su ficha</b> en la página y se <b>apaga solo</b> unos minutos después de que nadie tiene la página abierta. Un controlador en la VM
+(solo accesible desde el backend, con token) arranca y apaga el simulador; la web renueva un «arriendo» mientras alguien mira. Se verificó el encendido, el apagado automático a los ~155 s y el rechazo sin sesión (401).
+<b>Limitación:</b> la cuota mensual gratuita de Wokwi CI se agotó durante las pruebas, por lo que el simulador no pudo conectarse en esa verificación; la ficha lo informa («No pudo arrancar…»).
+Mientras tanto DEV11 se ejecuta con la extensión de VS Code o un ESP32 físico.</p>
+
+<h3>6.3 Cada dispositivo, ilustrado</h3>
+<p>La ficha de cada dispositivo muestra una ilustración de lo que es, <b>qué representa</b> (sin presentar lo simulado como medido) y <b>dónde está</b>, con acceso directo al mapa centrado en él.</p>
+
 <h2>7. Captura de datos y cobertura</h2>
 <table><tr><th>ID</th><th>Dispositivo</th><th>Lecturas</th><th>Cobertura</th><th>Nota</th></tr>
-<tr><td>DEV01</td><td>Estación ambiental</td><td class=n>13.523</td><td class=n>90.0 %</td><td></td></tr>
-<tr><td>DEV02</td><td>Monitor de calidad del aire</td><td class=n>38</td><td class=n>—</td><td>publica solo observaciones nuevas (horarias)</td></tr>
-<tr><td>DEV03</td><td>Sensor de ruido</td><td class=n>13.530</td><td class=n>90.0 %</td><td></td></tr>
-<tr><td>DEV04</td><td>Monitor de incidentes viales</td><td class=n>4.511</td><td class=n>90.1 %</td><td></td></tr>
-<tr><td>DEV05</td><td>Detector de vehículos</td><td class=n>13.530</td><td class=n>90.0 %</td><td></td></tr>
-<tr><td>DEV06</td><td>Rastreador GPS</td><td class=n>2.256</td><td class=n>—</td><td>intervalo 60 s</td></tr>
-<tr><td>DEV07</td><td>Alumbrado público</td><td class=n>13.530</td><td class=n>90.0 %</td><td></td></tr>
-<tr><td>DEV08</td><td>Parqueadero inteligente</td><td class=n>13.530</td><td class=n>90.0 %</td><td></td></tr>
+<tr><td>DEV01</td><td>Estación ambiental</td><td class=n>14.835</td><td class=n>90.8 %</td><td></td></tr>
+<tr><td>DEV02</td><td>Monitor de calidad del aire</td><td class=n>42</td><td class=n>—</td><td>publica solo observaciones nuevas (horarias)</td></tr>
+<tr><td>DEV03</td><td>Sensor de ruido</td><td class=n>14.843</td><td class=n>90.8 %</td><td></td></tr>
+<tr><td>DEV04</td><td>Monitor de incidentes viales</td><td class=n>4.949</td><td class=n>90.9 %</td><td></td></tr>
+<tr><td>DEV05</td><td>Detector de vehículos</td><td class=n>14.843</td><td class=n>90.8 %</td><td></td></tr>
+<tr><td>DEV06</td><td>Rastreador GPS</td><td class=n>2.475</td><td class=n>—</td><td>intervalo 60 s</td></tr>
+<tr><td>DEV07</td><td>Alumbrado público</td><td class=n>14.843</td><td class=n>90.8 %</td><td></td></tr>
+<tr><td>DEV08</td><td>Parqueadero inteligente</td><td class=n>14.843</td><td class=n>90.8 %</td><td></td></tr>
 <tr><td>DEV09</td><td>Sensor de nivel de agua</td><td class=n>24</td><td class=n>—</td><td>IDEAM publica con ~1 día de retraso</td></tr>
-<tr><td>DEV10</td><td>Estación meteorológica</td><td class=n>151</td><td class=n>—</td><td>modelo con paso de 15 min</td></tr>
-<tr><td>DEV11</td><td>Nodo ESP32 (Wokwi)</td><td class=n>4</td><td class=n>—</td><td>prueba de punta a punta; pendiente sesión Wokwi</td></tr>
-<tr><td>DEV12</td><td>Estación histórica (dataset)</td><td class=n>35</td><td class=n>1.4 %</td><td>desplegado el 08/11</td></tr>
+<tr><td>DEV10</td><td>Estación meteorológica</td><td class=n>166</td><td class=n>—</td><td>modelo con paso de 15 min</td></tr>
+<tr><td>DEV11</td><td>Nodo ESP32 (Wokwi)</td><td class=n>73</td><td class=n>—</td><td>bajo demanda (Wokwi); cuota mensual agotada</td></tr>
+<tr><td>DEV12</td><td>Estación histórica (dataset)</td><td class=n>254</td><td class=n>9.3 %</td><td>desplegado el 08/11</td></tr>
 </table>
 <p style="font-size:8.5pt">Cobertura = lecturas / lecturas esperadas al intervalo por defecto, desde el inicio de la captura (07/11/2026). Los despliegues se registran con su hueco
 en <code>docs/BITACORA.md</code> (p. ej. ≈ 24 s el 08/11). No se generan datos retroactivos: el histórico es solo lo capturado en vivo.</p>
 
 <h2>8. Pruebas y operación</h2>
-<p>99 pruebas automatizadas (contrato, dispositivos, backend con asistente IA, funciones de Node-RED) más 31 de integración contra el stack real
+<p>100 pruebas automatizadas (contrato, dispositivos, backend con asistente IA y control de DEV11, funciones de Node-RED) más 31 de integración contra el stack real
 (seguridad, ACL, control bidireccional, LWT, persistencia y recuperación); 8 defectos encontrados y corregidos. Prueba de punta a punta del ESP32 por
 Internet: anónimo y clave incorrecta rechazados, conexión TLS aceptada, orden desde la API confirmada en 466 ms. Copias de seguridad diarias de InfluxDB
 y SQLite con rotación de 7 días. Documentación completa en el repositorio (<code>README.md</code>, <code>docs/</code>).</p>

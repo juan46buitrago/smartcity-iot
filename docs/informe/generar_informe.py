@@ -40,6 +40,7 @@ PROFILE = Path(__import__("tempfile").gettempdir()) / "scbga-informe-browser"
 
 # Paleta categórica validada (skill dataviz, modo claro), en orden fijo; nunca cíclica.
 SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"]
+UNAB = "#fea604"  # naranja del logo institucional
 INK, INK2, MUTED, GRID, SURFACE = "#1f2420", "#4a524c", "#7b847d", "#e3e6e2", "#fcfcfb"
 REF = {"promedio": INK2, "mín": "#2a78d6", "máx": "#c2410c"}
 
@@ -245,10 +246,17 @@ def screenshots() -> dict[str, str]:
     shots = {}
     if not browser:
         return shots
-    for name, path in [("app-panel", "/"), ("app-mapa", "/mapa"), ("app-dispositivos", "/dispositivos"), ("app-asistente", "/asistente")]:
+    for name, path in [
+        ("app-panel", "/?bienvenida=0"),
+        ("app-mapa", "/mapa?bienvenida=0"),
+        ("app-dispositivos", "/dispositivos?bienvenida=0"),
+        ("app-dev11", "/dispositivos/DEV11?bienvenida=0"),
+        ("app-asistente", "/asistente?bienvenida=0"),
+        ("app-asistente-panel", "/?asistente=resumen%20del%20d%C3%ADa"),
+    ]:
         out = FIG / f"{name}.png"
         subprocess.run([browser, "--headless=new", "--disable-gpu", f"--user-data-dir={PROFILE}", "--hide-scrollbars", f"--screenshot={out}", "--window-size=1440,900",
-                        "--virtual-time-budget=12000", BASE + path], capture_output=True, timeout=90)
+                        "--virtual-time-budget=20000", BASE + path], capture_output=True, timeout=90)
         if out.exists():
             shots[name] = out.name
     return shots
@@ -296,6 +304,16 @@ ARCH_SVG = """
 """
 
 
+SHOT_CAPTION = {
+    "app-panel": "App · Panel (Nodo saluda; estado de la ciudad)",
+    "app-mapa": "App · Mapa de dispositivos e incidentes",
+    "app-dispositivos": "App · Lista de dispositivos",
+    "app-dev11": "App · Ficha de DEV11: ilustración, ubicación y encendido bajo demanda",
+    "app-asistente": "App · Página del asistente (Nodo y agentes expertos)",
+    "app-asistente-panel": "App · Nodo en el panel lateral: «resumen del día»",
+}
+
+
 def build_html(data: dict, figs: dict, shots: dict, preliminary: bool) -> str:
     cat = {d["id"]: d for d in data["catalog"]}
     span_d = (data["to"] - data["frm"]).total_seconds() / 86400
@@ -341,7 +359,7 @@ def build_html(data: dict, figs: dict, shots: dict, preliminary: bool) -> str:
             exp = (data["to"] - max(data["frm"], CAPTURE_START)).total_seconds() / d["interval"]["default"]
             cov = n / exp * 100 if d["source_type"] in ("simulated", "digital_twin") or d["id"] == "DEV12" else None
             note = {"DEV02": "publica solo observaciones nuevas (horarias)", "DEV09": "IDEAM publica con ~1 día de retraso",
-                    "DEV10": "modelo con paso de 15 min", "DEV11": "prueba de punta a punta; pendiente sesión Wokwi",
+                    "DEV10": "modelo con paso de 15 min", "DEV11": "bajo demanda (Wokwi); cuota mensual agotada",
                     "DEV12": "desplegado el 08/11", "DEV06": "intervalo 60 s"}.get(d["id"], "")
             out.append(f"<tr><td>{d['id']}</td><td>{esc(d['name'])}</td><td class=n>{n:,}</td><td class=n>{num(cov, 1) + ' %' if cov else '—'}</td><td>{note}</td></tr>".replace(",", "."))
         return "\n".join(out)
@@ -375,6 +393,9 @@ def build_html(data: dict, figs: dict, shots: dict, preliminary: bool) -> str:
     chat = next((r for r in ai["all_time"] if r["kind"] == "chat"), None)
     smoke = data["smoke"]["summary"] if data["smoke"] else None
 
+    def static(name, caption):
+        return f'<figure><img src="figuras/{name}"><figcaption>{caption}</figcaption></figure>'
+
     def fig(name, caption):
         return f'<figure><img src="figuras/{name}"><figcaption>{caption}</figcaption></figure>' if name else ""
 
@@ -386,13 +407,18 @@ def build_html(data: dict, figs: dict, shots: dict, preliminary: bool) -> str:
 <style>
 @page {{ size: A4; margin: 16mm 15mm 18mm; }}
 body {{ font-family: "Segoe UI", "DejaVu Sans", Arial, sans-serif; color: {INK}; font-size: 10.2pt; line-height: 1.45; background: #fff; }}
-h1 {{ font-size: 26pt; margin: 0 0 4px; letter-spacing: .01em; }} h2 {{ font-size: 15pt; border-bottom: 2px solid {INK}; padding-bottom: 3px; margin: 22px 0 10px; break-after: avoid; }}
+h1 {{ font-size: 26pt; margin: 0 0 4px; letter-spacing: .01em; }} h2 {{ font-size: 15pt; border-bottom: 3px solid {UNAB}; padding-bottom: 3px; margin: 22px 0 10px; break-after: avoid; }}
 h3 {{ font-size: 11.5pt; margin: 14px 0 4px; break-after: avoid; }} p {{ margin: 6px 0; }}
 table {{ border-collapse: collapse; width: 100%; font-size: 8.4pt; margin: 8px 0; }} th, td {{ border-bottom: 1px solid {GRID}; padding: 3px 5px; text-align: left; vertical-align: top; }}
 th {{ background: #f2f4f1; font-weight: 600; }} td.n {{ text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }}
 tr {{ break-inside: avoid; }} img {{ width: 100%; }} figure {{ margin: 8px 0; break-inside: avoid; }} figcaption {{ font-size: 8.5pt; color: {INK2}; }}
-.cover {{ height: 245mm; display: flex; flex-direction: column; justify-content: space-between; break-after: page; }}
-.cover .sub {{ font-size: 13pt; color: {INK2}; }} .meta td {{ border: 0; font-size: 10pt; padding: 2px 8px 2px 0; }}
+.cover {{ height: 255mm; display: flex; flex-direction: column; justify-content: space-between; break-after: page; }}
+.band {{ background: {UNAB}; color: #fff; display: flex; align-items: center; gap: 18px; padding: 0 22px 0 0; }}
+.band img {{ width: 112px; height: 112px; display: block; }} .band .u {{ font-size: 19pt; font-weight: 800; letter-spacing: .02em; line-height: 1.1; }}
+.band .f {{ font-size: 10pt; margin-top: 5px; font-weight: 500; }}
+.cover .sub {{ font-size: 12.5pt; color: {INK2}; }} .cover h1 {{ border-left: 6px solid {UNAB}; padding-left: 14px; }}
+.meta td {{ border: 0; font-size: 10pt; padding: 2px 8px 2px 0; }} .meta td:first-child {{ white-space: nowrap; }}
+.fig2 figure {{ margin: 8px 0; }} .fig2 img {{ border: 1px solid {GRID}; }}
 .warn {{ border: 1px solid #eda100; background: #fff8e6; padding: 8px 10px; font-size: 9pt; margin: 8px 0; }}
 .tag {{ font-size: 8pt; border: 1px solid {INK2}; padding: 0 5px; border-radius: 3px; font-weight: 500; vertical-align: middle; }}
 .dev {{ break-inside: avoid; margin-bottom: 10px; }} .desc {{ font-size: 9pt; color: {INK2}; }}
@@ -406,17 +432,21 @@ code {{ font-family: Consolas, monospace; font-size: 8.8pt; background: #f2f4f1;
 
 <div class="cover">
   <div>
-    <p class="sub">Proyecto de Internet de las Cosas</p>
+    <div class="band"><img src="figuras/logo-unab.png" alt="Universidad Autónoma de Bucaramanga">
+      <div><div class="u">UNIVERSIDAD AUTÓNOMA DE BUCARAMANGA</div>
+      <div class="f">FACULTAD DE INGENIERÍA · IoT + Cloud + Sistemas Distribuidos · Docente: Javier Pinzón</div></div></div>
+    <p class="sub" style="margin-top:34px">Proyecto de Internet de las Cosas</p>
     <h1>Smart City Bucaramanga<br>(SmartCityBGA)</h1>
     <p class="sub">Plataforma IoT a la medida: 12 dispositivos (real, gemelo digital, API, dataset y simulados), MQTT bidireccional,
-    procesamiento en la nube, visualización y análisis con inteligencia artificial.</p>
+    procesamiento en la nube, visualización con Grafana y con una aplicación web propia, y un asistente de IA con personalidad (Nodo).</p>
     {prelim}
   </div>
   <table class="meta">
-    <tr><td><b>Integrantes</b></td><td>Juan · José Téllez</td></tr>
-    <tr><td><b>URL</b></td><td>https://smartcitybga.duckdns.org (Grafana en /grafana/)</td></tr>
-    <tr><td><b>Repositorio</b></td><td>https://github.com/juan46buitrago/smartcity-iot</td></tr>
-    <tr><td><b>Nube</b></td><td>Microsoft Azure — VM vm-smartcity-iot (158.23.162.76)</td></tr>
+    <tr><td><b>Asignatura</b></td><td>IoT + Cloud + Sistemas Distribuidos (UNAB) · Docente: Javier Pinzón</td></tr>
+    <tr><td><b>Estudiantes</b></td><td>Juan Sebastián Buitrago Caballero<br>José Alejandro Téllez Prada (u00060479)<br>Santiago Cabeza Méndez</td></tr>
+    <tr><td><b>URL</b></td><td>https://smartcitybga.duckdns.org · Grafana en /grafana/ · Node-RED en /nodered/</td></tr>
+    <tr><td><b>Repositorio</b></td><td>https://github.com/juan46buitrago/smartcity-iot (rama main · README, docs/, evidencias/)</td></tr>
+    <tr><td><b>Nube</b></td><td>Microsoft Azure — VM vm-smartcity-iot (158.23.162.76), Docker Compose</td></tr>
     <tr><td><b>Ventana de datos</b></td><td>{data['frm'].strftime('%d/%m/%Y %H:%M')} → {data['to'].astimezone(BOGOTA).strftime('%d/%m/%Y %H:%M')} (hora de Colombia, UTC−5) · {total:,} lecturas</td></tr>
     <tr><td><b>Fecha</b></td><td>{datetime.now(BOGOTA).strftime('%d/%m/%Y')}</td></tr>
   </table>
@@ -477,10 +507,19 @@ valores de los sensores los fija una persona con los controles del simulador, po
 <tr><td>InfluxDB 2.7</td><td>Series temporales: bucket <code>raw</code> (30 días) y <code>agg_5m</code> (media/mín/máx cada 5 min, 1 año) mediante tarea programada</td></tr>
 <tr><td>Backend Fastify + SQLite</td><td>API REST/WebSocket, autenticación JWT, órdenes con confirmación, motor de alertas, estado vivo, asistente IA</td></tr>
 <tr><td>React + Recharts + Leaflet</td><td>Aplicación web: panel, mapa de la ciudad, dispositivos y control, histórico, alertas, asistente</td></tr>
-<tr><td>Grafana 11</td><td>Tablero de análisis provisionado como código (23 paneles)</td></tr>
+<tr><td>Grafana 11</td><td>Tablero de análisis provisionado como código (23 paneles), en <code>/grafana/</code></td></tr>
+<tr><td>Controlador de DEV11 (Python + systemd)</td><td>Enciende y apaga el simulador del ESP32 bajo demanda desde la app y lo apaga solo cuando nadie mira la página (ver 6.2)</td></tr>
 <tr><td>API b.ai (qwen3.8-flash)</td><td>Modelo de lenguaje para el asistente y el análisis de gráficas</td></tr>
 <tr><td>Fuentes externas</td><td>Open-Meteo (Forecast, Air Quality CAMS, Historical ERA5), IDEAM (datos.gov.co), OpenStreetMap, Wokwi</td></tr>
 </table>
+
+<h3>3.4 Integración y automatización: Node-RED</h3>
+<p>Node-RED (<code>/nodered/</code>, protegido con usuario y contraseña) es la capa de integración entre el bróker y la base de series temporales. Tiene dos flujos:</p>
+<div class="fig2">
+{static('nodered-persistencia.png', 'Figura. Flujo «Persistencia → InfluxDB»: tres suscripciones MQTT (telemetría, estado y eventos de incidentes), validación de esquema, cola persistente en disco, escritura por lotes cada 2 s en InfluxDB con verificación y reencolado. Los contadores bajo cada nodo muestran mensajes aceptados y rechazados (0) y escrituras pendientes (0).')}
+{static('nodered-automatizacion.png', 'Figura. Flujo «Automatización»: reglas con histéresis entre dispositivos. La calidad del aire de DEV02 restringe el tráfico de DEV05 y la lluvia de DEV10 atenúa el alumbrado de DEV07; solo se publica una orden MQTT al cruzar el umbral, no en cada lectura.')}
+</div>
+<p>Así la persistencia no depende del backend: si el backend se reinicia (p. ej. en un despliegue) la captura continúa sin hueco, porque Node-RED es quien escribe en InfluxDB.</p>
 
 <h2>4. Visualización y procesamiento de los datos</h2>
 <p>El procesamiento se hace en tres niveles: <b>(1)</b> en InfluxDB (agregación por ventana, promedio, mínimo, máximo, desviación y conteo para cualquier
@@ -502,9 +541,13 @@ rango; downsampling a 5 min), <b>(2)</b> en el backend (alertas y reglas) y <b>(
 <p>En la ventana: {len(alerts)} alertas registradas ({', '.join(f'{k}: {v}' for k, v in sorted(by_kind.items()))}) y {total_inc} incidentes viales simulados.</p>
 {fig(figs.get('incidentes'), 'Figura. Incidentes simulados por tipo en la ventana (proceso de Poisson no homogéneo sobre vías reales de OSM).')}
 <h3>4.3 Interfaces</h3>
-<div class="shots">{''.join(f'<figure><img src="figuras/{v}"><figcaption>{k.replace("app-", "App · ")}</figcaption></figure>' for k, v in shots.items())}</div>
+<p>La aplicación web propia (React) es la interfaz de operación: mirar es libre y controlar exige la sesión de operador. La primera visita abre una guía de Nodo que explica dónde está cada cosa.</p>
+<div class="shots">{''.join(f'<figure><img src="figuras/{v}"><figcaption>{SHOT_CAPTION.get(k, k)}</figcaption></figure>' for k, v in shots.items())}<figure><img src="figuras/app-bienvenida.png"><figcaption>App · guía de primera visita («¿Cómo se usa?»)</figcaption></figure></div>
+<h3>4.4 Grafana: tablero de análisis</h3>
+<p>El tablero <b>«Smart City Bucaramanga — análisis»</b> se provisiona como código (<code>infra/grafana/</code>) y consulta InfluxDB directamente. Muestra seis indicadores de estado (temperatura, AQI, congestión, ocupación del parqueadero, nivel del río y potencia del alumbrado), series de cada dispositivo, incidentes por tipo, la conexión de los dispositivos en el tiempo y una tabla de resumen con <b>promedio, mínimo y máximo</b> del rango seleccionado. El selector de tiempo de Grafana (aquí, últimas 24 h con refresco cada 30 s) ajusta todos los paneles a la vez.</p>
+<div class="fig2">{static('grafana-analisis.png', 'Figura. Tablero de Grafana (últimas 24 h, refresco 30 s): indicadores, series por dispositivo, estado de conexión y tabla prom/mín/máx. Captura con el zoom del navegador al 30 % para mostrar el tablero completo.')}</div>
 
-<h2 class="pb">5. Análisis de gráficas y comportamiento (con IA)</h2>
+<h2>5. Análisis de gráficas y comportamiento (con IA)</h2>
 <p><b>Método.</b> Para cada dispositivo el servidor calcula, sobre InfluxDB, los hechos numéricos de la ventana (promedio, mínimo, máximo, desviación,
 hora pico y hora valle del ciclo diario y comparación entre el primer y el último cuarto). Esos números —y nunca las lecturas crudas— se envían al
 modelo <b>qwen3.8-flash</b>, que redacta un párrafo con la instrucción de usar solo esos valores, aclarar si los datos son simulados y no confundir el
@@ -513,16 +556,37 @@ ciclo día/noche con una tendencia. Cada gráfica muestra la serie con líneas d
 {fig(figs.get('perfil'), 'Figura. Perfil horario: promedio por hora del día (hora de Colombia); en naranja, la hora pico.')}
 {''.join(device_sections)}
 
-<h2>6. Asistente IA: chat y gráficas a pedido</h2>
-<p>Como complemento a Grafana, la app incluye un <b>asistente</b> (<code>/asistente</code>) al que se le pregunta en lenguaje natural ("¿a qué hora hay más tráfico?",
-"compara el ruido con el flujo vehicular esta semana") y responde con texto y una gráfica generada a pedido, exportable a PNG. Diseño de bajo consumo:
-el modelo solo <b>enruta</b> — devuelve un JSON de ~40 tokens con decodificación restringida (<code>response_format: json_schema</code> estricto, enums cerrados
-de expertos y variables), sin historial, sin razonamiento y con temperatura 0 — y los <b>expertos en código</b> calculan sobre InfluxDB con cero tokens.</p>
+<h2>6. Nodo, el asistente de IA</h2>
+<h3>6.1 Qué hace y cómo se diseñó</h3>
+<p>Como complemento a Grafana, la app incluye a <b>Nodo</b>, un asistente al que se le pregunta en lenguaje natural ("¿a qué hora hay más tráfico?",
+"compara el ruido con el flujo vehicular esta semana", "resumen del día") y que responde con texto y una gráfica generada a pedido, exportable a PNG.
+Es un personaje: un robot-nodo de red que rebota en la esquina de cada página, parpadea, sigue el cursor con la mirada y cambia de humor (reposo, pensando, hablando, alerta, contento).
+Tiene voz opcional (síntesis del navegador, en español) y un segundo color de acento (lavanda) reservado a la IA.</p>
+<p>El diseño es de bajo consumo: el modelo solo <b>enruta</b> — devuelve un JSON de ~40 tokens con <b>decodificación restringida</b> (<code>response_format: json_schema</code> estricto,
+enums cerrados de expertos y variables), sin historial, sin razonamiento y con temperatura 0 — y los <b>expertos en código</b> calculan sobre InfluxDB con cero tokens.
+Hay siete agentes por tema (general, clima, aire y ruido, movilidad, agua y lluvia, alumbrado, operación) que acotan el vocabulario y bajan aún más los tokens.</p>
+<table><tr><th>Capacidad</th><th>Cómo funciona</th></tr>
+<tr><td>Consultas de datos</td><td>Estadísticas (promedio/mín/máx), series, perfil horario, valor actual, alertas, incidentes y estado de los dispositivos; cálculo en código</td></tr>
+<tr><td>Resumen del día</td><td>Frase fija resuelta sin modelo (0 tokens): promedio, rango y hora del máximo de la variable principal de cada equipo en 24 h</td></tr>
+<tr><td>Forma de la gráfica</td><td>Palabras como «en barras», «como área» o «en torta» cambian el estilo sin gastar tokens</td></tr>
+<tr><td>Órdenes con confirmación</td><td>«Apaga el alumbrado»: un segundo llamado convierte la frase en una orden candidata; el código la valida con el mismo catálogo del dispositivo y la app muestra una tarjeta «Orden lista para enviar». <b>Nodo solo propone</b>: el envío exige confirmar y la sesión de operador</td></tr>
+<tr><td>Análisis de gráficas</td><td>Párrafo por dispositivo redactado con los hechos numéricos calculados (sección 5)</td></tr>
+</table>
 <table><tr><th>Medición</th><th>Resultado</th></tr>
 {f"<tr><td>Prueba de 10 preguntas (enrutador)</td><td>{smoke['aciertos']} aciertos · {smoke['tokens_promedio']} tokens · {num(smoke['latencia_promedio_ms'] / 1000, 1)} s promedio</td></tr>" if smoke else ""}
 {f"<tr><td>Uso en producción</td><td>{chat['calls']} consultas · {num(chat['avg_tokens'] or 0, 0)} tokens promedio · {num((chat['avg_total_ms'] or 0) / 1000, 1)} s · {chat['cached']} desde caché (0 tokens)</td></tr>" if chat else ""}
 <tr><td>Costo estimado</td><td>≈ 900 tokens/consulta → del orden de 0,0001 USD por pregunta con precios de modelos flash</td></tr>
 </table>
+
+<h3>6.2 DEV11 bajo demanda</h3>
+<p>El único nodo con firmware propio (ESP32, MQTT sobre TLS 8883) corre en el simulador Wokwi. Como la cuenta gratuita de Wokwi limita cada simulación a 5 minutos y los minutos mensuales,
+DEV11 no se deja encendido: el operador lo <b>enciende desde su ficha</b> en la página y se <b>apaga solo</b> unos minutos después de que nadie tiene la página abierta. Un controlador en la VM
+(solo accesible desde el backend, con token) arranca y apaga el simulador; la web renueva un «arriendo» mientras alguien mira. Se verificó el encendido, el apagado automático a los ~155 s y el rechazo sin sesión (401).
+<b>Limitación:</b> la cuota mensual gratuita de Wokwi CI se agotó durante las pruebas, por lo que el simulador no pudo conectarse en esa verificación; la ficha lo informa («No pudo arrancar…»).
+Mientras tanto DEV11 se ejecuta con la extensión de VS Code o un ESP32 físico.</p>
+
+<h3>6.3 Cada dispositivo, ilustrado</h3>
+<p>La ficha de cada dispositivo muestra una ilustración de lo que es, <b>qué representa</b> (sin presentar lo simulado como medido) y <b>dónde está</b>, con acceso directo al mapa centrado en él.</p>
 
 <h2>7. Captura de datos y cobertura</h2>
 <table><tr><th>ID</th><th>Dispositivo</th><th>Lecturas</th><th>Cobertura</th><th>Nota</th></tr>
@@ -532,7 +596,7 @@ de expertos y variables), sin historial, sin razonamiento y con temperatura 0 �
 en <code>docs/BITACORA.md</code> (p. ej. ≈ 24 s el 08/11). No se generan datos retroactivos: el histórico es solo lo capturado en vivo.</p>
 
 <h2>8. Pruebas y operación</h2>
-<p>99 pruebas automatizadas (contrato, dispositivos, backend con asistente IA, funciones de Node-RED) más 31 de integración contra el stack real
+<p>100 pruebas automatizadas (contrato, dispositivos, backend con asistente IA y control de DEV11, funciones de Node-RED) más 31 de integración contra el stack real
 (seguridad, ACL, control bidireccional, LWT, persistencia y recuperación); 8 defectos encontrados y corregidos. Prueba de punta a punta del ESP32 por
 Internet: anónimo y clave incorrecta rechazados, conexión TLS aceptada, orden desde la API confirmada en 466 ms. Copias de seguridad diarias de InfluxDB
 y SQLite con rotación de 7 días. Documentación completa en el repositorio (<code>README.md</code>, <code>docs/</code>).</p>
