@@ -4,6 +4,7 @@
  */
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { api, ApiError } from './api';
+import { speak } from './speech';
 import type { AiAgent, AiChatResponse, AiStatus } from './types';
 
 export type ChatMsg =
@@ -93,6 +94,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       try {
         const res = await api<AiChatResponse>('/api/ai/chat', { body: { question: text, agent: agent.id, previous } });
         setMsgs((m) => [...m, { id: nextId.current++, role: 'ai', res }]);
+        speak(res.text);
         void loadStatus();
       } catch (err) {
         setMsgs((m) => [...m, { id: nextId.current++, role: 'error', text: friendly(err), question: text, agent: agent.id }]);

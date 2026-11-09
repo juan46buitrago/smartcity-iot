@@ -3,17 +3,22 @@
  * acopla a la derecha y el contenido se corre (se puede seguir usando la app al lado);
  * en móvil ocupa toda la pantalla.
  */
-import { Bot, Maximize2, X } from 'lucide-react';
+import { Maximize2, Volume2, VolumeX, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAssistant } from '../lib/assistant';
+import { useNodoMood } from '../lib/nodoMood';
+import { setVoiceEnabled, speak, useSpeech } from '../lib/speech';
 import { AssistantChat } from './AssistantChat';
+import { Nodo } from './Nodo';
 import { cx } from './ui';
 
 export const DRAWER_W = 440;
 
 export function AssistantDrawer() {
   const { open, setOpen, busy, ask } = useAssistant();
+  const { mood, alerts } = useNodoMood();
+  const voice = useSpeech();
   const { pathname } = useLocation();
   const onPage = pathname === '/asistente';
 
@@ -53,12 +58,13 @@ export function AssistantDrawer() {
       {!open && !onPage && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed right-4 bottom-20 z-[1100] inline-flex h-12 items-center gap-2 rounded-full bg-accent pr-5 pl-4 text-[14px] font-semibold text-accent-ink shadow-[0_14px_34px_-12px_oklch(0_0_0/0.7)] transition-transform hover:-translate-y-0.5 lg:right-6 lg:bottom-6"
-          aria-label="Abrir el asistente IA"
+          className="group fixed right-3 bottom-[4.6rem] z-[1100] flex items-end gap-1 lg:right-5 lg:bottom-4"
+          aria-label="Abrir a Nodo, el asistente IA"
         >
-          <Bot className="size-5" aria-hidden />
-          Pregúntale a la IA
-          {busy && <span className="size-2 animate-pulse rounded-full bg-accent-ink" />}
+          <span className="mb-5 max-w-[11rem] rounded-[10px] rounded-br-[3px] border border-line-strong bg-surface px-3 py-1.5 text-left text-[13px] leading-snug font-semibold text-ink shadow-[0_14px_34px_-14px_oklch(0_0_0/0.7)] transition-transform group-hover:-translate-y-0.5">
+            {busy ? 'Pensando…' : alerts > 0 ? `Hay ${alerts} ${alerts === 1 ? 'alerta abierta' : 'alertas abiertas'}` : 'Pregúntale a Nodo'}
+          </span>
+          <Nodo mood={mood} size={68} />
         </button>
       )}
 
@@ -73,9 +79,20 @@ export function AssistantDrawer() {
       >
         <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-line px-4 xl:w-[440px]">
           <p className="flex items-center gap-2 font-semibold">
-            <Bot className="size-5 text-accent" aria-hidden /> Asistente IA
+            <Nodo mood={mood} size={34} bounce={false} /> Nodo <span className="font-normal text-ink-3">· asistente IA</span>
           </p>
           <div className="flex items-center gap-1">
+            {voice.supported && (
+              <button
+                onClick={() => (voice.enabled ? setVoiceEnabled(false) : (setVoiceEnabled(true), speak('Listo, ahora te leo las respuestas.')))}
+                className={cx('grid size-9 place-items-center rounded-[5px] hover:bg-surface-2', voice.enabled ? 'text-ai' : 'text-ink-3 hover:text-ink')}
+                aria-label={voice.enabled ? 'Silenciar la voz de Nodo' : 'Activar la voz de Nodo'}
+                aria-pressed={voice.enabled}
+                title={voice.enabled ? 'Voz activada' : 'Voz desactivada'}
+              >
+                {voice.enabled ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+              </button>
+            )}
             <Link to="/asistente" className="grid size-9 place-items-center rounded-[5px] text-ink-3 hover:bg-surface-2 hover:text-ink" aria-label="Abrir en página completa" title="Página completa">
               <Maximize2 className="size-4" />
             </Link>

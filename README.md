@@ -7,6 +7,20 @@ temporales, alertas, control remoto con confirmación y una aplicación web en t
 > Plan técnico y estado del proyecto: [`docs/PLAN.md`](docs/PLAN.md)
 > Bitácora: [`docs/BITACORA.md`](docs/BITACORA.md) · Asistente IA: [`docs/IA.md`](docs/IA.md)
 
+## Cómo se ve
+
+Capturas del sitio en vivo (tema oscuro «Sala de control»: verde señal para lo operativo y lavanda solo para la voz de la IA). Nodo, el asistente, es el personaje de la app: saluda, habla (voz opcional), resume el día, dibuja gráficas en la forma que pidas y propone órdenes que tú confirmas. La primera visita abre una guía de dónde está cada cosa (botón «¿Cómo se usa?»). Para regenerar las capturas ver [`docs/capturas/README.md`](docs/capturas/README.md).
+
+| | |
+|---|---|
+| **Panel** — estado de la ciudad de un vistazo<br>![Panel](docs/capturas/panel.png) | **Mapa** — dispositivos e incidentes<br>![Mapa](docs/capturas/mapa.png) |
+| **Dispositivos** — control con confirmación<br>![Dispositivos](docs/capturas/dispositivos.png) | **Histórico** — series y comparación<br>![Histórico](docs/capturas/historico.png) |
+| **Alertas**<br>![Alertas](docs/capturas/alertas.png) | **Nodo, el asistente IA** — agentes expertos por tema<br>![Asistente](docs/capturas/asistente.png) |
+
+El asistente también vive en un panel lateral acoplado a cualquier página:
+
+![Nodo en el panel lateral](docs/capturas/asistente-panel.png)
+
 ## Arquitectura
 
 ```

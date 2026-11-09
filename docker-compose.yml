@@ -166,6 +166,11 @@ services:
       AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-qwen3.8-flash}
       AI_DAILY_MAX_CALLS: ${AI_DAILY_MAX_CALLS:-2000}
+      DEV11_CTL_URL: ${DEV11_CTL_URL:-}
+      DEV11_CTL_TOKEN: ${DEV11_CTL_TOKEN:-}
+    # Para llegar al controlador de DEV11 que corre en el host de la VM.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - backend-data:/app/data
     mem_limit: 256m

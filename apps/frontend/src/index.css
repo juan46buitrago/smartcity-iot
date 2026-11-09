@@ -25,6 +25,10 @@
   --accent: oklch(0.83 0.165 152);
   --accent-soft: oklch(0.83 0.165 152 / 0.13);
   --accent-ink: oklch(0.21 0.045 152);
+  /* Segundo acento: solo para la voz de la IA (Nodo). Lavanda apagada, nunca para estados. */
+  --ai: oklch(0.77 0.105 295);
+  --ai-soft: oklch(0.77 0.105 295 / 0.15);
+  --ai-ink: oklch(0.2 0.04 295);
   --warn: oklch(0.84 0.15 82);
   --warn-soft: oklch(0.84 0.15 82 / 0.14);
   --crit: oklch(0.7 0.19 24);
@@ -59,6 +63,9 @@
   --accent: oklch(0.52 0.135 152);
   --accent-soft: oklch(0.52 0.135 152 / 0.1);
   --accent-ink: oklch(0.985 0.01 152);
+  --ai: oklch(0.5 0.15 295);
+  --ai-soft: oklch(0.5 0.15 295 / 0.1);
+  --ai-ink: oklch(0.985 0.01 295);
   --warn: oklch(0.58 0.14 68);
   --warn-soft: oklch(0.58 0.14 68 / 0.11);
   --crit: oklch(0.54 0.2 26);
@@ -94,6 +101,9 @@
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-accent-ink: var(--accent-ink);
+  --color-ai: var(--ai);
+  --color-ai-soft: var(--ai-soft);
+  --color-ai-ink: var(--ai-ink);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
   --color-crit: var(--crit);
@@ -326,4 +336,113 @@ input[type='range'] {
 .gps-track {
   stroke: var(--ink-2);
   stroke-opacity: 0.85;
+}
+
+/* ───────── Nodo, la mascota del asistente ───────── */
+.nodo {
+  overflow: visible;
+  display: block;
+}
+.nodo-body,
+.nodo-antenna,
+.nodo-eye,
+.nodo-arm,
+.nodo-shadow {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.nodo-eyes {
+  transition: transform 0.12s ease-out;
+}
+.nodo-talk {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.nodo-bounce .nodo-body {
+  transform-origin: 50% 100%;
+  animation: nodo-bounce 2.2s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+}
+.nodo-bounce .nodo-shadow {
+  animation: nodo-shadow 2.2s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+}
+@keyframes nodo-bounce {
+  0%, 100% { transform: translateY(0) scale(1.04, 0.95); }
+  18% { transform: translateY(-9px) scale(0.97, 1.05); }
+  46% { transform: translateY(0) scale(1.04, 0.95); }
+  58% { transform: translateY(-3px) scale(1, 1); }
+  72% { transform: translateY(0) scale(1.01, 0.99); }
+}
+@keyframes nodo-shadow {
+  0%, 100% { transform: scaleX(1.05); opacity: 0.2; }
+  18% { transform: scaleX(0.7); opacity: 0.1; }
+  46% { transform: scaleX(1.05); opacity: 0.2; }
+}
+.nodo-eye {
+  animation: nodo-blink 4.6s infinite;
+}
+.nodo-eye:nth-child(2) {
+  animation-delay: 0.03s;
+}
+@keyframes nodo-blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.08); }
+}
+.nodo-bulb {
+  animation: nodo-glow 2.4s ease-in-out infinite;
+}
+@keyframes nodo-glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.nodo-arm-l { animation: nodo-wave-l 2.2s ease-in-out infinite; transform-origin: 80% 20%; }
+.nodo-arm-r { animation: nodo-wave-r 2.2s ease-in-out infinite; transform-origin: 20% 20%; }
+@keyframes nodo-wave-l { 0%, 100% { transform: rotate(0); } 18% { transform: rotate(14deg); } }
+@keyframes nodo-wave-r { 0%, 100% { transform: rotate(0); } 18% { transform: rotate(-14deg); } }
+/* pensando: antena que oscila y ojos entrecerrados */
+.nodo[data-mood='thinking'] .nodo-antenna {
+  transform-origin: 50% 100%;
+  animation: nodo-sway 0.9s ease-in-out infinite;
+}
+.nodo[data-mood='thinking'] .nodo-bulb {
+  fill: var(--warn);
+  animation: nodo-glow 0.6s ease-in-out infinite;
+}
+.nodo[data-mood='thinking'] .nodo-eye {
+  animation: nodo-think 1.4s ease-in-out infinite;
+}
+@keyframes nodo-sway { 0%, 100% { transform: rotate(-14deg); } 50% { transform: rotate(14deg); } }
+@keyframes nodo-think { 0%, 100% { transform: translateY(-2px) scaleY(0.55); } 50% { transform: translateY(-2px) scaleY(0.8) scaleX(1.1); } }
+/* hablando: la boca late */
+.nodo[data-mood='talking'] .nodo-mouth {
+  opacity: 0;
+}
+.nodo[data-mood='talking'] .nodo-talk {
+  opacity: 1;
+  animation: nodo-talk 0.34s ease-in-out infinite;
+}
+@keyframes nodo-talk { 0%, 100% { transform: scaleY(0.35) scaleX(0.8); } 50% { transform: scaleY(1.15) scaleX(1.05); } }
+/* contento: ojos en arco y salto más rápido */
+.nodo[data-mood='happy'] .nodo-eye {
+  animation: none;
+  transform: scaleY(0.45) translateY(1px);
+}
+.nodo[data-mood='happy'] .nodo-body {
+  animation-duration: 0.9s;
+}
+/* alerta: se sacude y la antena se pone roja */
+.nodo[data-mood='alert'] .nodo-bulb {
+  fill: var(--crit);
+  animation: nodo-glow 0.45s ease-in-out infinite;
+}
+.nodo[data-mood='alert'] .nodo-body {
+  animation: nodo-shake 0.5s ease-in-out infinite;
+}
+@keyframes nodo-shake { 0%, 100% { transform: translateX(0) rotate(0); } 25% { transform: translateX(-3px) rotate(-3deg); } 75% { transform: translateX(3px) rotate(3deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .nodo *,
+  .nodo-eyes {
+    animation: none !important;
+    transition: none !important;
+  }
 }

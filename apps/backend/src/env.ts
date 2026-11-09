@@ -30,6 +30,10 @@ const EnvSchema = z.object({
   AI_MODEL: z.string().default('qwen3.8-flash'),
   AI_TIMEOUT_MS: z.coerce.number().int().min(1000).default(15_000),
   AI_DAILY_MAX_CALLS: z.coerce.number().int().min(1).default(2000),
+
+  // DEV11 bajo demanda: controlador en la VM (firmware/dev11-esp32/vm/controller.py). Ambos o ninguno.
+  DEV11_CTL_URL: z.string().url().optional().or(z.literal('').transform(() => undefined)),
+  DEV11_CTL_TOKEN: z.string().min(16).optional().or(z.literal('').transform(() => undefined)),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

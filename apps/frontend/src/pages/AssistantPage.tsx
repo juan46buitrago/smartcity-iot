@@ -2,6 +2,7 @@ import { DEVICE_CATALOG, DEVICE_IDS, type DeviceId } from '@scbga/shared';
 import { Bot, Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { AGENT_ICON, AssistantChat } from '../components/AssistantChat';
+import { Nodo } from '../components/Nodo';
 import { Button, Card, CardHeader, Empty, PageHeader, ProvenanceTag, cx, inputCls } from '../components/ui';
 import { api } from '../lib/api';
 import { useAssistant } from '../lib/assistant';
@@ -116,8 +117,8 @@ function AgentsGuide() {
           const on = a.id === agent.id;
           return (
             <li key={a.id}>
-              <button onClick={() => setAgent(a.id)} className={cx('flex w-full items-start gap-3 px-5 py-3 text-left transition-colors hover:bg-surface-2', on && 'bg-accent-soft')} aria-pressed={on}>
-                <Icon className={cx('mt-0.5 size-5 shrink-0', on ? 'text-accent' : 'text-ink-3')} aria-hidden />
+              <button onClick={() => setAgent(a.id)} className={cx('flex w-full items-start gap-3 px-5 py-3 text-left transition-colors hover:bg-surface-2', on && 'bg-ai-soft')} aria-pressed={on}>
+                <Icon className={cx('mt-0.5 size-5 shrink-0', on ? 'text-ai' : 'text-ink-3')} aria-hidden />
                 <span className="min-w-0">
                   <span className="block font-semibold">{a.name}</span>
                   <span className="block text-[13px] text-ink-2">{a.description}</span>
@@ -138,7 +139,8 @@ export function AssistantPage() {
       <PageHeader
         code="IA · Asistente"
         title="Asistente"
-        subtitle="Pregunta en lenguaje natural por los datos de la ciudad. Elige un agente experto o deja que el general escoja el tema; los cálculos se hacen sobre InfluxDB, no en el modelo. También lo tienes en el botón «Pregúntale a la IA» de cualquier página."
+        subtitle="Pregunta en lenguaje natural por los datos de la ciudad. Elige un agente experto o deja que el general escoja el tema; los cálculos se hacen sobre InfluxDB, no en el modelo. También lo tienes en el botón «Pregúntale a Nodo» de cualquier página."
+        action={<Nodo mood="happy" size={112} />}
       />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
         <Card className="flex h-[calc(100dvh-14rem)] min-h-[520px] flex-col overflow-hidden">

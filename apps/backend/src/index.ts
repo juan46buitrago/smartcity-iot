@@ -6,6 +6,7 @@ import { buildApp } from './app.js';
 import { openDb } from './db.js';
 import { loadEnv } from './env.js';
 import { Hub } from './hub.js';
+import { Dev11Client } from './dev11.js';
 import { InfluxService } from './influx.js';
 import { MqttBridge } from './mqttBridge.js';
 import { LiveState } from './state.js';
@@ -38,7 +39,8 @@ const llm = env.AI_API_KEY
 if (!llm) log.warn('AI_API_KEY no definida: asistente IA deshabilitado');
 const ai = new AiService(llm, { data: influx, live, alerts, db }, db, { dailyMaxCalls: env.AI_DAILY_MAX_CALLS });
 
-const app = await buildApp({ env, db, live, alerts, bridge, influx, hub, ai });
+const dev11 = new Dev11Client(env.DEV11_CTL_URL, env.DEV11_CTL_TOKEN);
+const app = await buildApp({ env, db, live, alerts, bridge, influx, hub, ai, dev11: dev11.available ? dev11 : undefined });
 bridge.start();
 await app.listen({ port: env.PORT, host: env.HOST });
 

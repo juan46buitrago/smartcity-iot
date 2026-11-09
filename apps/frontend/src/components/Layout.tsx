@@ -1,11 +1,13 @@
 import { DEVICE_IDS } from '@scbga/shared';
-import { Bell, Bot, Cpu, Gauge, History, Map as MapIcon, Moon, Settings2, Sun } from 'lucide-react';
+import { Bell, Bot, CircleHelp, Cpu, Gauge, History, Map as MapIcon, Moon, Settings2, Sun } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAssistant } from '../lib/assistant';
 import { TZ } from '../lib/format';
 import { isOnline, useLive } from '../lib/live';
 import { AssistantDrawer } from './AssistantDrawer';
+import { useDev11Heartbeat } from './Dev11Power';
+import { Welcome, useWelcome } from './Welcome';
 import { LoginPopover } from './LoginDialog';
 import { cx } from './ui';
 
@@ -67,6 +69,8 @@ export function Layout({ children }: { children: ReactNode }) {
   const { ws, alerts, list } = useLive();
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const assistant = useAssistant();
+  const welcome = useWelcome();
+  useDev11Heartbeat();
   const online = list.filter((d) => isOnline(d)).length;
   const openAlerts = alerts.filter((a) => a.status === 'abierta').length;
 
@@ -119,6 +123,14 @@ export function Layout({ children }: { children: ReactNode }) {
             <Clock />
             <div className="flex items-center gap-1.5">
               <button
+                onClick={welcome.show}
+                className="grid size-9 place-items-center rounded-[5px] text-ink-3 transition-colors hover:bg-surface-2 hover:text-ink"
+                aria-label="¿Cómo se usa? Guía del sitio"
+                title="¿Cómo se usa?"
+              >
+                <CircleHelp className="size-[18px]" />
+              </button>
+              <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 className="grid size-9 place-items-center rounded-[5px] text-ink-3 transition-colors hover:bg-surface-2 hover:text-ink"
                 aria-label={theme === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
@@ -136,6 +148,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <main className="mx-auto w-full max-w-[1680px] min-w-0 flex-1 px-4 pt-6 pb-28 sm:px-6 lg:pb-12">{children}</main>
       </div>
       <AssistantDrawer />
+      {welcome.open && <Welcome onClose={welcome.close} />}
 
       {/* Navegación inferior (móvil y tableta) */}
       <nav className="fixed inset-x-0 bottom-0 z-[1000] grid grid-cols-7 border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Principal">

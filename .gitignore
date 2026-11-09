@@ -49,3 +49,6 @@ tarea.txt
 
 # Credenciales del firmware ESP32
 firmware/**/secrets.h
+
+__pycache__/
+*.pyc

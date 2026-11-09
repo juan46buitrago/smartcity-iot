@@ -21,7 +21,7 @@ export const AGENTS: Record<AgentId, AgentSpec> = {
     name: 'General',
     description: 'Toda la ciudad: elige el tema por ti.',
     devices: DEVICE_IDS,
-    suggestions: ['¿Cómo está la ciudad ahora?', '¿Cuál es la temperatura actual?', '¿A qué hora hay más tráfico?', 'Compara el ruido con el flujo vehicular esta semana'],
+    suggestions: ['¿Cómo está la ciudad ahora?', '¿Cuál es la temperatura actual?', '¿A qué hora hay más tráfico?', 'Resumen del día', 'Compara el ruido con el flujo vehicular esta semana', 'Temperatura de hoy en barras'],
   },
   clima: {
     id: 'clima',
@@ -56,14 +56,14 @@ export const AGENTS: Record<AgentId, AgentSpec> = {
     name: 'Alumbrado',
     description: 'Luz ambiente, nivel de iluminación, potencia y energía (DEV07).',
     devices: ['DEV07'],
-    suggestions: ['¿Cuánta energía gastó el alumbrado hoy?', 'Potencia del alumbrado por hora del día', '¿A qué hora se encienden las luminarias?', 'Luz ambiente de ayer'],
+    suggestions: ['¿Cuánta energía gastó el alumbrado hoy?', 'Potencia del alumbrado por hora del día', '¿A qué hora se encienden las luminarias?', 'Luz ambiente de ayer', 'Apaga el alumbrado'],
   },
   operacion: {
     id: 'operacion',
     name: 'Operación',
     description: 'Estado de los equipos, alertas e incidentes de toda la red.',
     devices: DEVICE_IDS,
-    suggestions: ['¿Hay algún problema?', '¿Qué alertas hay activas?', '¿Qué dispositivos hay?', '¿Qué equipos están fuera de línea?'],
+    suggestions: ['¿Hay algún problema?', '¿Qué alertas hay activas?', '¿Qué dispositivos hay?', '¿Qué equipos están fuera de línea?', 'Resumen del día'],
   },
 };
 

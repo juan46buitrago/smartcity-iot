@@ -13,7 +13,7 @@ import { z } from 'zod';
 import { AGENTS, type AgentSpec } from './agents.js';
 import type { LlmClient, LlmUsage } from './client.js';
 
-export const EXPERTS = ['estadisticas', 'serie', 'perfil_horario', 'estado', 'resumen', 'alertas', 'incidentes', 'dispositivos', 'ayuda', 'fuera_de_tema'] as const;
+export const EXPERTS = ['estadisticas', 'serie', 'perfil_horario', 'estado', 'resumen', 'alertas', 'incidentes', 'dispositivos', 'resumen_dia', 'accion', 'ayuda', 'fuera_de_tema'] as const;
 export type Expert = (typeof EXPERTS)[number];
 export const HOURS = [1, 3, 6, 12, 24, 48, 72, 144, 168] as const;
 export const OFFSETS = [0, 24, 48, 72] as const;
@@ -65,6 +65,7 @@ export function systemPrompt(agent: AgentSpec = AGENTS.general): string {
     'Expertos: estado=valor ACTUAL de variables ("temperatura actual", "está lloviendo", "dónde está", "hay cupo"); estadisticas=promedio/mín/máx/conteo en una ventana;',
     'serie=gráfica en el tiempo, evolución o comparar variables; perfil_horario=a qué hora sube o baja (promedio por hora del día);',
     'resumen=cómo está la ciudad/el tema, resumen general, si hay problemas; alertas=alertas activas; incidentes=incidentes o accidentes viales (conteo por tipo);',
+    'resumen_dia=balance del día ("resumen del día", "cómo estuvo hoy", "qué pasó hoy"); accion=el usuario ORDENA algo a un dispositivo (apaga, enciende, mide cada N segundos, cambia el modo, reinicia); una pregunta nunca es accion;',
     'dispositivos=qué sensores/equipos hay, cuáles están en línea o fuera de línea; ayuda=qué se puede preguntar o saludo; fuera_de_tema=no trata de la ciudad ni de sus datos.',
     'series: variables del vocabulario (máx 4) que respondan la pregunta; si piden "temperatura" sin decir cuál, usa las de temperatura disponibles. [] solo si el experto no las usa.',
     'horas: ventana; desfase_horas: cuánto atrás termina (ayer → horas 24, desfase 24; esta semana → 168). Por defecto horas 24, desfase 0.',
@@ -75,6 +76,8 @@ export function systemPrompt(agent: AgentSpec = AGENTS.general): string {
     '"temperatura actual"→{"experto":"estado","series":["DEV01.temperature","DEV10.temperature"],"horas":24,"desfase_horas":0}',
     '"compara temperatura de la estación y la meteorológica esta semana"→{"experto":"serie","series":["DEV01.temperature","DEV10.temperature"],"horas":168,"desfase_horas":0}',
     '"a qué hora hay más tráfico"→{"experto":"perfil_horario","series":["DEV05.vehicles_per_min"],"horas":144,"desfase_horas":0}',
+    '"resumen del día"→{"experto":"resumen_dia","series":[],"horas":24,"desfase_horas":0}',
+    '"apaga la farola"→{"experto":"accion","series":[],"horas":24,"desfase_horas":0}',
     '"hay algún problema"→{"experto":"resumen","series":[],"horas":24,"desfase_horas":0}',
   ].join('\n');
 }

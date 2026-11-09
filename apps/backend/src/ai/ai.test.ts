@@ -8,7 +8,7 @@ import { AGENTS } from './agents.js';
 import { OpenAiCompatClient, type ChatMessage, type CompleteOptions, type LlmClient, type LlmResult } from './client.js';
 import { hourlyProfile, hhmm, runExpert, type DataPort, type ExpertDeps } from './experts.js';
 import { decisionJsonSchema, decisionSchema, route, RouterError, seriesVocabulary, systemPrompt } from './router.js';
-import { AiService, normalizeQuestion } from './service.js';
+import { AiService, chartStyleOf, normalizeQuestion } from './service.js';
 
 /* ------------------------------ dobles de prueba ------------------------------ */
 
@@ -79,7 +79,7 @@ describe('enrutador', () => {
 
   it('el prompt de sistema es compacto y no incluye datos', () => {
     const p = systemPrompt();
-    expect(p.length).toBeLessThan(3500); // ≈ 800 tokens como cota superior holgada
+    expect(p.length).toBeLessThan(4000); // ≈ 800 tokens como cota superior holgada
     expect(p).toContain('DEV03');
     expect(p).not.toMatch(/\d{4}-\d{2}-\d{2}T/); // ninguna marca de tiempo / lectura
   });
@@ -399,5 +399,70 @@ describe('rutas /api/ai', () => {
     expect(r.statusCode).toBe(502);
     expect(r.json().error).toMatch(/reformularla/);
     await app.close();
+  });
+});
+
+/* ------------------------------ resumen del día, órdenes y estilos ------------------------------ */
+
+describe('resumen del día', () => {
+  it('resume las últimas 24 h sin llamar a más modelos', async () => {
+    const d = deps();
+    const r = await runExpert({ experto: 'resumen_dia', series: [], horas: 24, desfase_horas: 0 }, d, AGENTS.clima);
+    expect(r.text).toMatch(/Resumen del día en clima/);
+    expect(r.text).toMatch(/promedio 22,5/);
+    expect(r.text).toMatch(/equipos en línea/);
+  });
+});
+
+describe('órdenes por lenguaje natural', () => {
+  const cmd = (o: Record<string, unknown>) => JSON.stringify({ dispositivo: 'DEV07', accion: 'power', bandera: 'no', valor: 0, modo: 'na', parametro: 'na', ...o });
+
+  it('propone la orden validada y NO la ejecuta', async () => {
+    const d = deps();
+    const llm = new FakeLlm([decision({ experto: 'accion', series: [] }), cmd({})]);
+    const r = await new AiService(llm, d, d.db).chat('apaga la farola');
+    expect(r.proposal).toEqual({ device_id: 'DEV07', action: 'power', params: { on: false }, summary: 'Apagar Alumbrado público (DEV07)' });
+    expect(r.text).toMatch(/Confírmalo/);
+    expect(llm.calls).toHaveLength(2); // enrutador + intérprete de la orden
+    expect(r.usage.prompt_tokens).toBe(500);
+  });
+
+  it('rechaza valores fuera de rango del catálogo', async () => {
+    const d = deps();
+    const llm = new FakeLlm([decision({ experto: 'accion', series: [] }), cmd({ accion: 'set_interval', bandera: 'na', valor: 1 })]);
+    const r = await new AiService(llm, d, d.db).chat('mide cada segundo la farola');
+    expect(r.proposal).toBeUndefined();
+    expect(r.text).toMatch(/No puedo enviar esa orden/);
+  });
+
+  it('un dispositivo fuera del agente no se puede ordenar', async () => {
+    const d = deps();
+    const llm = new FakeLlm([decision({ experto: 'accion', series: [] }), cmd({ dispositivo: 'DEV03' })]);
+    const r = await new AiService(llm, d, d.db).chat('apaga el ruido', { agent: 'alumbrado' });
+    expect(r.proposal).toBeUndefined();
+  });
+
+  it('una respuesta del modelo que no es JSON no produce orden', async () => {
+    const d = deps();
+    const llm = new FakeLlm([decision({ experto: 'accion', series: [] }), 'no sé']);
+    const r = await new AiService(llm, d, d.db).chat('haz algo');
+    expect(r.proposal).toBeUndefined();
+    expect(r.text).toMatch(/No pude convertir/);
+  });
+});
+
+describe('estilo de gráfica', () => {
+  it('detecta barras, área y torta por palabras', () => {
+    expect(chartStyleOf('temperatura de hoy en barras')).toBe('bars');
+    expect(chartStyleOf('muéstrame como área')).toBe('area');
+    expect(chartStyleOf('dispositivos en torta')).toBe('pie');
+    expect(chartStyleOf('temperatura de hoy')).toBeNull();
+  });
+
+  it('se aplica a la gráfica de la respuesta', async () => {
+    const d = deps();
+    const llm = new FakeLlm([decision({ experto: 'serie' })]);
+    const r = await new AiService(llm, d, d.db).chat('temperatura de hoy en barras');
+    expect(r.chart?.type === 'line' && r.chart.style).toBe('bars');
   });
 });

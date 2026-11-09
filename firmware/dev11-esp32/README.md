@@ -47,6 +47,31 @@ Si ese archivo no existe, el simulador **no carga**.
 
 Cada vez que cambie `sketch.ino` o `secrets.h`, vuelva a correr `build.sh`.
 
+## Ejecutar en la VM, bajo demanda (Wokwi CLI)
+
+DEV11 corre en la VM **solo cuando alguien lo enciende desde la página** y se apaga solo si nadie la mira. Así sirve para demostraciones sin gastar simulador el resto del tiempo. Los sensores quedan fijos en los valores de `diagram.json` (24,5 °C, 60 %).
+
+```
+navegador ──► backend (/api/dev11, operador) ──► controlador (VM, :8790, token) ──► wokwi-cli ──► MQTT/TLS 8883
+```
+
+- **Encender/apagar:** en la ficha de DEV11 (`/dispositivos/DEV11`) el botón «Encender para la demostración» (pide la sesión de operador). El simulador tarda 1–2 min en conectarse.
+- **Apagado automático:** mientras alguien tenga una pestaña visible, la web renueva un «arriendo» de 150 s (`POST /api/dev11/ping`). Sin latidos el controlador lo apaga. Tope por sesión: 90 min.
+- **Límite de la cuenta gratis de Wokwi:** cada simulación se corta a los 5 min; el controlador la relanza mientras haya arriendo (se ve un par de cortes cortos de DEV11).
+- **Seguridad:** el controlador solo acepta peticiones con `Authorization: Bearer $CTL_TOKEN`, que conoce únicamente el backend (`DEV11_CTL_TOKEN` en el `.env`). El navegador nunca lo ve; encender y apagar exigen operador, el ping es público pero solo renueva un arriendo ya activo.
+
+Instalación (una vez), con `~/dev11/` en la VM:
+
+1. Token de Wokwi CI: wokwi.com/dashboard/ci. Es secreto; no lo pegue en el chat ni en Git.
+2. Compile en su PC (`bash firmware/dev11-esp32/build.sh`) y copie a `~/dev11/`: `wokwi.toml`, `diagram.json`, `build/dev11-esp32.ino.{bin,elf}` y `vm/`.
+3. En la VM: `curl -L https://wokwi.com/ci/install.sh | sh`
+4. `~/dev11/controller.env` (permisos 600) con `CTL_TOKEN=<aleatorio de 32+ caracteres>` y `WOKWI_CLI_TOKEN=<token de Wokwi>`.
+5. `sudo cp ~/dev11/vm/dev11-controller.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now dev11-controller`
+6. En el `.env` del servidor: `DEV11_CTL_URL=http://host.docker.internal:8790` y `DEV11_CTL_TOKEN=<el mismo CTL_TOKEN>`; luego desplegar (`bash infra/scripts/deploy.sh backend`).
+7. Logs (monitor serie del ESP32): `journalctl -u dev11-controller -f`
+
+El puerto 8790 no está abierto en el NSG de Azure: solo lo alcanza el backend por la red de Docker.
+
 ## Ejecutar en wokwi.com (navegador)
 
 1. Cree la contraseña de DEV11 en el servidor (ver «Producción» abajo) y téngala a mano. **No la pegue en el chat ni en Git.**

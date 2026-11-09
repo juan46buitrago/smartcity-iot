@@ -55,8 +55,8 @@ export interface AiChartSeries {
   points: { t: string; v: number }[];
 }
 export type AiChartSpec =
-  | { type: 'line'; title: string; series: AiChartSeries[]; refs?: { label: string; value: number }[] }
-  | { type: 'bar'; title: string; unit: string | null; bars: { label: string; value: number }[] };
+  | { type: 'line'; title: string; series: AiChartSeries[]; refs?: { label: string; value: number }[]; style?: 'line' | 'area' | 'bars' }
+  | { type: 'bar'; title: string; unit: string | null; bars: { label: string; value: number }[]; style?: 'bars' | 'pie' };
 
 export interface AiAgent {
   id: string;
@@ -69,6 +69,8 @@ export interface AiAgent {
 export interface AiChatResponse {
   text: string;
   chart?: AiChartSpec;
+  /** Orden propuesta por Nodo: no se ejecuta hasta que el operador la confirma. */
+  proposal?: { device_id: string; action: string; params: Record<string, unknown>; summary: string };
   links?: { label: string; to: string }[];
   synthetic: boolean;
   agent: string;

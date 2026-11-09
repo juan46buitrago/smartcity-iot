@@ -10,6 +10,7 @@ import { COMMAND_ACTIONS, DEVICE_CATALOG, DEVICE_IDS, INCIDENT_SEVERITIES, INCID
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { registerAiRoutes } from './ai/routes.js';
+import { registerDev11Routes, type Dev11Client } from './dev11.js';
 import type { AiService } from './ai/service.js';
 import type { AlertEngine } from './alerts.js';
 import { safeEqual, verifyPassword } from './auth.js';
@@ -36,6 +37,8 @@ export interface AppDeps {
   influx: InfluxService;
   hub: Hub;
   ai?: AiService;
+  /** DEV11 bajo demanda (opcional: sin controlador la función no existe). */
+  dev11?: Dev11Client;
 }
 
 const MAX_RANGE_MS = 90 * 24 * 3600_000;
@@ -263,6 +266,7 @@ export async function buildApp(deps: AppDeps) {
   /* ------------------------------ asistente IA ------------------------------ */
 
   if (deps.ai) registerAiRoutes(app, deps.ai, requireOperator);
+  if (deps.dev11) registerDev11Routes(app, deps.dev11, requireOperator);
 
   /* ------------------------------ WebSocket (solo lectura) ------------------------------ */
 

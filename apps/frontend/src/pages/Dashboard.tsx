@@ -2,9 +2,11 @@ import { DEVICE_IDS, type DeviceId } from '@scbga/shared';
 import { ArrowUpRight, Navigation } from 'lucide-react';
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { Nodo } from '../components/Nodo';
 import { Sparkline } from '../components/Sparkline';
 import { Card, STATE_LABEL, StatusDot, cx } from '../components/ui';
 import { aqiCategory, fmtNum, fmtTime, timeAgo, windDir } from '../lib/format';
+import { useAssistant } from '../lib/assistant';
 import { isOnline, useLive } from '../lib/live';
 import { deviceState } from '../lib/state';
 import type { DeviceView } from '../lib/types';
@@ -139,7 +141,13 @@ function Bar({ pct, warnAt = 85, critAt = 95 }: { pct: number; warnAt?: number; 
 /* Página                                                              */
 /* ------------------------------------------------------------------ */
 
+function greeting() {
+  const h = new Date().getHours();
+  return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+}
+
 export function Dashboard() {
+  const assistant = useAssistant();
   const { list, alerts, incidents, feed, devices } = useLive();
   const now = useNow(5000);
   const online = list.filter((d) => isOnline(d)).length;
@@ -162,11 +170,19 @@ export function Dashboard() {
     <div className="space-y-5">
       {/* Franja de estado */}
       <section className="rise flex flex-wrap items-end justify-between gap-x-10 gap-y-4 border-b border-line pb-5">
-        <div className="min-w-0">
+        <div className="flex min-w-0 items-end gap-4">
+          <button onClick={() => assistant.setOpen(true)} className="group hidden shrink-0 items-end gap-2 text-left sm:flex" aria-label="Hablar con Nodo">
+            <Nodo mood={assistant.busy ? 'thinking' : 'idle'} size={76} />
+          </button>
+          <div className="min-w-0">
           <p className="label">Santander, Colombia · 7°07′ N 73°07′ O · 959 m s. n. m.</p>
           <h1 className="display mt-2 text-[56px] font-extrabold uppercase sm:text-[68px]">
             La ciudad, <span className="text-accent">ahora</span>
           </h1>
+          <button onClick={() => assistant.setOpen(true)} className="mt-2 text-[13.5px] text-ink-3 hover:text-ink">
+            <span className="font-semibold text-ai">Nodo:</span> {greeting()}. Toca aquí y pregúntame lo que quieras.
+          </button>
+          </div>
         </div>
         <dl className="grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-4">
           {strip.map((s) => (
@@ -318,7 +334,7 @@ export function Dashboard() {
               const t = dev.live.telemetry;
               return (
                 <li key={dev.id}>
-                  <Link to={`/dispositivos/${dev.id}`} className="block h-full px-4 py-3 transition-colors hover:bg-surface-2">
+                  <Link to={`/dispositivos/${dev.id}`} className="group block h-full px-4 py-3 transition-colors hover:bg-surface-2">
                     <div className="flex items-center justify-between">
                       <span className="display text-[30px] font-bold text-ink-3 group-hover:text-ink">{dev.id.slice(3)}</span>
                       <StatusDot state={st} />

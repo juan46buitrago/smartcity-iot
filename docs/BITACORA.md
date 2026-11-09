@@ -17,7 +17,7 @@ Documentos de detalle: [`PLAN.md`](PLAN.md) · [`PRUEBAS.md`](PRUEBAS.md) · [`D
 | Nube con URL propia | ✅ https://smartcitybga.duckdns.org (Azure) | `DESPLIEGUE.md` |
 | 4–6 días de datos | 🟡 captura desde 2026-11-07; meta 6 días el 2026-11-13 | esta bitácora |
 | Análisis de gráficas con IA | 🟡 módulo IA en construcción | §2026-11-08 |
-| Documento PDF | ⏳ al cerrar la captura | `docs/INFORME.md` |
+| Documento PDF | ⏳ al cerrar la captura | `docs/informe/INFORME-SmartCityBGA.pdf` |
 
 ---
 
@@ -213,3 +213,16 @@ en escritorio (acoplado) y móvil revisadas.
 
 **Despliegues:** backend 18:13 COT (`0719b88`) y backend + web 18:17:46–18:18:25 COT. Solo se reinició el
 backend (la captura sigue por Node-RED → InfluxDB) y la web: **sin hueco de captura**.
+
+## 2026-11-08 · Nodo, acento de la IA, DEV11 en la VM y capturas
+
+- **DEV11 en la VM con Wokwi CLI, bajo demanda** (`firmware/dev11-esp32/vm/`): primero como servicio permanente; la cuenta gratis corta cada simulación a 5 min y dejaba a DEV11 desconectado ~30 % del tiempo (con alertas de desconexión). Ahora lo enciende el operador desde la ficha del dispositivo y se apaga solo sin espectadores (controlador + `/api/dev11`). Token de Wokwi y del controlador solo en la VM (600), fuera de Git.
+- **Personalidad del asistente:** se llama **Nodo**. Saludo según la hora, textos de ayuda/fuera de tema con voz propia (`experts.ts`). Solo cambian textos; el esquema del enrutador y los expertos no.
+- **Segundo acento `--ai` (lavanda apagado, oklch 295):** únicamente para la voz de la IA (botón, avatar, agente elegido). Nunca para estados; ámbar/rojo/verde siguen siendo semánticos. Excepción deliberada a «sin púrpura» de `.impeccable.md`: es apagado y acotado a un solo rol.
+- **UX menor:** 404 con enlace de vuelta, `group` faltante en el hover de las tarjetas del panel.
+- **Verificación:** typecheck y 89 pruebas en verde (21 + 22 + 46); capturas revisadas en `docs/capturas/`.
+- **Hallazgos pendientes de la auditoría (no hechos):** sin pruebas de frontend ni de rutas HTTP del backend (login, alertas, captura, `/ws`) ni de `mqttBridge`; sin CI; texto de 10–11 px en panel/mapa; estado de dispositivo solo por color en el mapa; errores tratados como «vacío» en Alertas/Asistente; sin confirmación al apagar/reiniciar un dispositivo; panel del asistente en móvil sin `role=dialog` ni gestión de foco.
+- **Nodo cobra vida:** mascota SVG animada (rebota, parpadea, sigue el cursor, 5 humores), voz TTS opcional, resumen del día, órdenes propuestas con confirmación y estilos de gráfica por palabras. Ver `docs/IA.md`.
+- **Ilustración de cada dispositivo** con «qué representa» (sin presentar lo simulado como medido) y «dónde está» con salto al mapa (`/mapa?dev=DEVxx`).
+- **Primera visita:** guía de bienvenida de Nodo con dónde está cada cosa, reabrible con el botón «¿Cómo se usa?» del encabezado (`?bienvenida=0` la omite, p. ej. para capturas).
+- **Verificación:** typecheck y 99 pruebas en verde (21 + 22 + 56).

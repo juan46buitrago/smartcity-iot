@@ -1,4 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
+import { Dev11Power } from '../components/Dev11Power';
+import { DEVICE_KIND, DeviceScene } from '../components/DeviceScene';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -263,6 +265,8 @@ export function DeviceDetail() {
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_440px]">
         <div className="space-y-5">
+          {d.id === 'DEV11' && <Dev11Power online={st !== 'offline'} />}
+          <DeviceScene id={d.id} kind={DEVICE_KIND[d.id] ?? d.description} description={d.description} place={t?.location.name ?? d.location.name} lat={t?.location.lat ?? d.location.lat} lon={t?.location.lon ?? d.location.lon} />
           {/* Lecturas */}
           <Card className="rise overflow-hidden" style={{ ['--i' as string]: 1 }}>
             <CardHeader eyebrow="Última lectura" title={t ? `${fmtDateTime(t.timestamp)} · ${timeAgo(t.timestamp)}` : 'Sin lecturas aún'} action={<DeviceGlyph device={d} size="sm" />} />

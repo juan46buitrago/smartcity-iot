@@ -1,5 +1,6 @@
 import { Layers, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { CityMap, MapLegend, SEV_VAR, TYPE_LABEL, devicePosition } from '../components/CityMap';
 import { CATEGORY_LABEL, DeviceIcon } from '../components/DeviceIcon';
 import { Card, ProvenanceTag, StatusDot, Switch, cx } from '../components/ui';
@@ -19,6 +20,19 @@ export function MapPage() {
     setSelected(id);
     setTarget([pos[0] + Math.random() * 1e-9, pos[1]]); // fuerza el vuelo aunque sea el mismo punto
   };
+
+  // /mapa?dev=DEV01 (desde la ficha del dispositivo) centra el mapa en ese equipo una sola vez.
+  const [params] = useSearchParams();
+  const flown = useRef<string | null>(null);
+  const wanted = params.get('dev')?.toUpperCase() ?? null;
+  useEffect(() => {
+    if (!wanted || flown.current === wanted) return;
+    const d = list.find((x) => x.id === wanted);
+    if (!d) return;
+    flown.current = wanted;
+    go(d.id, devicePosition(d));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wanted, list]);
 
   return (
     <div className="grid grid-cols-1 gap-5 xl:h-[calc(100vh-8.5rem)] xl:grid-cols-[minmax(0,1fr)_380px]">

@@ -82,6 +82,16 @@ no logró decidir o el proveedor no respondió), 503 (sin `AI_API_KEY`).
 | `AI_MODEL` | `qwen3.8-flash` | Elegido por medición (abajo) |
 | `AI_DAILY_MAX_CALLS` | `2000` | Llamadas reales al modelo en 24 h |
 
+## Nodo: personalidad, voz, órdenes y gráficas (2026-11-08)
+
+- **Identidad.** El asistente es **Nodo**, un robot-nodo de red (cuerpo lavanda, ojos verdes) que vive en la app: rebota en la esquina de cada página, parpadea, sus ojos siguen el cursor y cambia de humor (`reposo`, `pensando`, `hablando`, `alerta`, `contento`). Es SVG + CSS (`components/Nodo.tsx`, sección «Nodo» de `index.css`); con `prefers-reduced-motion` queda quieto. El segundo acento `--ai` (lavanda apagado) se reserva a la voz de la IA.
+- **Voz (TTS).** `lib/speech.ts` usa la Web Speech API del navegador (voz en español, es-CO si existe): sin servidor, sin costo y sin enviar texto a terceros. Botón de altavoz en el panel; la preferencia se guarda en el navegador.
+- **Resumen del día** (`resumen_dia`): promedio, rango y hora del máximo de la variable principal de cada equipo en 24 h, más equipos en línea y alertas. Cálculo en código, 0 tokens extra.
+- **Órdenes en lenguaje natural** (`accion`): Nodo **solo propone**. Un segundo llamado (salida cerrada, ~90 tokens, solo cuando la pregunta es una orden) convierte la frase en `{dispositivo, acción, valor…}`; `validateCommand` (el mismo del catálogo) la valida y se devuelve una *propuesta*. La app muestra «Orden lista para enviar» y, al confirmar, la envía a `POST /api/devices/:id/commands`, que exige sesión de operador. Autorización y confirmación siguen siendo humanas. Acciones permitidas: encender/apagar, intervalo, modo, parámetros y reinicio (no calibración ni pruebas de incidente).
+- **Formas de gráfica.** Palabras como «en barras», «como área» o «en torta» fijan `chart.style` (`chartStyleOf`, sin tokens). Línea/área/barras para series y barras/torta para conteos.
+- **Costo.** El enrutador sigue siendo una sola llamada pequeña (el prompt creció ≈ 8 % por los dos expertos nuevos); la segunda llamada existe únicamente para órdenes.
+- **Pruebas.** 43 en `ai.test.ts` (7 nuevas: resumen del día, propuesta de orden, rango inválido, dispositivo fuera del agente, JSON inválido, estilos) y 3 en `dev11.test.ts`.
+
 ## Mediciones (2026-11-08)
 
 Prueba de humo `apps/backend/src/scripts/ai-smoke.ts` (10 preguntas variadas contra el proveedor real;

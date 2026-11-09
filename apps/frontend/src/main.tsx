@@ -1,7 +1,8 @@
 import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
+import { Nodo } from './components/Nodo';
 import './index.css';
 import { AssistantProvider } from './lib/assistant';
 import { AuthProvider } from './lib/auth';
@@ -44,7 +45,7 @@ createRoot(document.getElementById('root')!).render(
                   <Route path="/alertas" element={<AlertsPage />} />
                   <Route path="/asistente" element={<AssistantPage />} />
                   <Route path="/configuracion" element={<SettingsPage />} />
-                  <Route path="*" element={<p className="text-sm text-ink-3">Página no encontrada.</p>} />
+                  <Route path="*" element={<div className="flex items-center gap-4"><Nodo mood="thinking" size={72} /><p className="text-sm text-ink-3">Esa calle no está en el mapa. <Link to="/" className="font-semibold text-accent underline">Volver al panel</Link></p></div>} />
                 </Routes>
               </Suspense>
             </Layout>

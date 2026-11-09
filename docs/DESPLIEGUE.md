@@ -99,6 +99,10 @@ docker compose restart <servicio>
 - **Azure Maps**: la aplicación no usa Azure Maps (el mapa usa teselas de OpenStreetMap), así que no necesita
   ninguna clave. Las claves antiguas de la colección Postman siguen pendientes de rotación por el propietario.
 
+## DEV11 bajo demanda (2026-11-08)
+
+El ESP32 DEV11 (Wokwi CLI) no corre todo el tiempo: se enciende desde `/dispositivos/DEV11` y se apaga solo cuando nadie mira la página. Piezas: controlador `firmware/dev11-esp32/vm/controller.py` (servicio systemd `dev11-controller`, puerto 8790 solo en el host), `DEV11_CTL_URL` y `DEV11_CTL_TOKEN` en el `.env`, y `extra_hosts: host.docker.internal` en el backend. Detalle y pasos en `firmware/dev11-esp32/README.md`.
+
 ## 6. Pendientes
 
 | # | Pendiente | Responsable |

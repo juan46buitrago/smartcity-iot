@@ -4,6 +4,7 @@
  */
 import { DEVICE_CATALOG, type DeviceId } from '@scbga/shared';
 import type { Db } from '../db.js';
+import { proposeCommand } from './actions.js';
 import { agentOf, type AgentSpec } from './agents.js';
 import type { LlmClient, LlmUsage } from './client.js';
 import { hourlyProfile, runExpert, type ExpertAnswer, type ExpertDeps } from './experts.js';
@@ -54,6 +55,23 @@ export class AiBudgetError extends Error {
 
 const HELP_RE = /^\s*(ayuda|help|\?|qu[eé] puedo preguntar\??)\s*$/i;
 const CACHE_MAX = 200;
+
+export type ChartStyle = 'area' | 'bars' | 'pie';
+
+/** «Muéstramelo en barras / como área / en torta»: el estilo se detecta con palabras, sin gastar tokens. */
+export function chartStyleOf(question: string): ChartStyle | null {
+  const q = question.toLowerCase();
+  if (/\b(torta|pastel|dona|circular)\b/.test(q)) return 'pie';
+  if (/\b(barras?|columnas?|histograma)\b/.test(q)) return 'bars';
+  // \b no entiende la «á» (no es ASCII), por eso se delimita con espacios o puntuación.
+  if (/(^|[\s,.¿?¡!])(área|áreas|area|areas)($|[\s,.¿?¡!])/.test(q)) return 'area';
+  return null;
+}
+
+export function applyStyle(chart: NonNullable<ExpertAnswer['chart']>, style: ChartStyle): NonNullable<ExpertAnswer['chart']> {
+  if (chart.type === 'line') return style === 'pie' ? chart : { ...chart, style: style === 'bars' ? 'bars' : 'area' };
+  return style === 'pie' ? { ...chart, style: 'pie' } : { ...chart, style: 'bars' };
+}
 
 export function normalizeQuestion(q: string) {
   return q
@@ -134,7 +152,19 @@ export class AiService {
       this.cache.set(key, decision);
       if (this.cache.size > CACHE_MAX) this.cache.delete(this.cache.keys().next().value!);
     }
-    const answer = await runExpert(decision, this.deps, agent);
+    let answer: ExpertAnswer;
+    if (decision.experto === 'accion' && this.llm) {
+      // Segundo llamado, solo para órdenes: propone una acción validada; nunca la ejecuta.
+      if (this.callsToday() >= this.opts.dailyMaxCalls) throw new AiBudgetError('Se alcanzó el límite diario de consultas al asistente');
+      const p = await proposeCommand(this.llm, question, agent);
+      answer = { ...p.answer, synthetic: false };
+      usage = { prompt_tokens: usage.prompt_tokens + p.usage.prompt_tokens, completion_tokens: usage.completion_tokens + p.usage.completion_tokens };
+      llmMs += p.ms;
+    } else {
+      answer = await runExpert(decision, this.deps, agent);
+    }
+    const style = chartStyleOf(question);
+    if (answer.chart && style) answer = { ...answer, chart: applyStyle(answer.chart, style) };
     const total = Date.now() - t0;
     this.log({ kind: 'chat', usage, llm_ms: llmMs, total_ms: total, ok: true, cached, expert: decision.experto, question, agent: agent.id });
     return { ...answer, decision, agent: agent.id, usage, ms: { llm: llmMs, total }, cached, model: this.llm?.model ?? null };

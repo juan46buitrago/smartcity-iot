@@ -9,6 +9,7 @@ import type { Db } from '../db.js';
 import type { SeriesPoint, VariableStats } from '../influx.js';
 import type { LiveState } from '../state.js';
 import { AGENTS, type AgentSpec } from './agents.js';
+import type { CommandProposal } from './actions.js';
 import type { Decision } from './router.js';
 
 export interface DataPort {
@@ -34,9 +35,10 @@ export interface ChartSeries {
   synthetic: boolean;
   points: SeriesPoint[];
 }
+/** `style` lo fija el usuario con palabras como «en barras», «área» o «torta»; sin él, el frontend usa el natural. */
 export type ChartSpec =
-  | { type: 'line'; title: string; series: ChartSeries[]; refs?: { label: string; value: number }[] }
-  | { type: 'bar'; title: string; unit: string | null; bars: { label: string; value: number }[] };
+  | { type: 'line'; title: string; series: ChartSeries[]; refs?: { label: string; value: number }[]; style?: 'line' | 'area' | 'bars' }
+  | { type: 'bar'; title: string; unit: string | null; bars: { label: string; value: number }[]; style?: 'bars' | 'pie' };
 
 export interface ExpertAnswer {
   text: string;
@@ -45,6 +47,8 @@ export interface ExpertAnswer {
   links?: { label: string; to: string }[];
   /** Verdadero si alguna serie usada proviene de simulación. */
   synthetic: boolean;
+  /** Orden propuesta (no ejecutada): el usuario la confirma en la app con su sesión de operador. */
+  proposal?: CommandProposal;
 }
 
 const BOGOTA_OFFSET_H = -5;
@@ -267,6 +271,31 @@ function resumen(deps: ExpertDeps, agent: AgentSpec): ExpertAnswer {
   };
 }
 
+/** Balance de las últimas 24 h: variable principal de cada equipo (promedio y rango), equipos y alertas. */
+async function resumenDia(deps: ExpertDeps, agent: AgentSpec, now: Date): Promise<ExpertAnswer> {
+  const from = new Date(now.getTime() - 24 * 3600_000);
+  const metas = agent.devices.map((id) => meta(`${id}.${HEADLINE[id]}`)).filter((m): m is NonNullable<ReturnType<typeof meta>> => !!m).slice(0, 8);
+  const stats = await Promise.all(metas.map((m) => deps.data.stats(m.device, m.variable, from, now)));
+  const lines = metas.flatMap((m, i) => {
+    const s = stats[i]!;
+    if (!s.count) return [];
+    return [`• ${DEVICE_CATALOG[m.device].name} — ${bareLabel(m)}: promedio ${fmt(s.mean, m.decimals, m.unit)}, de ${fmt(s.min, m.decimals, m.unit)} a ${fmt(s.max, m.decimals, m.unit)} (máximo a las ${hhmm(s.max_at)})`];
+  });
+  const offline = agent.devices.filter((id) => !deps.live.isOnline(id));
+  const rows = activeAlerts(deps, agent.devices);
+  const scope = agent.id === 'general' || agent.id === 'operacion' ? 'la ciudad' : agent.name.toLowerCase();
+  const text = [
+    `Resumen del día en ${scope} (últimas 24 h):`,
+    lines.length ? lines.join('\n') : 'Todavía no hay lecturas suficientes en la ventana.',
+    `${agent.devices.length - offline.length} de ${agent.devices.length} equipos en línea${offline.length ? ` (fuera de línea: ${offline.join(', ')})` : ''}; ${rows.length ? `${rows.length} ${rows.length === 1 ? 'alerta activa' : 'alertas activas'}` : 'sin alertas activas'}.`,
+  ].join('\n');
+  return {
+    text,
+    synthetic: metas.some((m) => m.synthetic),
+    links: [{ label: 'Ver histórico', to: '/historico' }, ...(rows.length ? [{ label: 'Ver alertas', to: '/alertas' }] : [])],
+  };
+}
+
 const SOURCE_TEXT: Record<string, string> = { simulated: 'simulado', digital_twin: 'gemelo digital', api: 'API', dataset: 'dataset', real: 'real (ESP32)' };
 
 function dispositivos(deps: ExpertDeps, agent: AgentSpec): ExpertAnswer {
@@ -289,7 +318,7 @@ function dispositivos(deps: ExpertDeps, agent: AgentSpec): ExpertAnswer {
 }
 
 export const HELP_TEXT =
-  'Puedo responder sobre los datos de la ciudad. Ejemplos:\n• "Promedio, mínimo y máximo de temperatura hoy"\n• "Compara el ruido con el flujo vehicular esta semana"\n• "¿A qué hora hay más tráfico?"\n• "¿Qué alertas hay activas?"\n• "¿Cuántos incidentes hubo ayer?"\n• "¿Qué dispositivos están fuera de línea?"';
+  'Soy Nodo y leo los sensores de la ciudad. Ejemplos de lo que puedes preguntarme:\n• "Promedio, mínimo y máximo de temperatura hoy"\n• "Compara el ruido con el flujo vehicular esta semana"\n• "¿A qué hora hay más tráfico?"\n• "¿Qué alertas hay activas?"\n• "¿Cuántos incidentes hubo ayer?"\n• "¿Qué dispositivos están fuera de línea?"\n• "Resumen del día" o "temperatura de hoy en barras / área"\n• "Apaga el alumbrado": te pido confirmación antes de enviar cualquier orden';
 
 export async function runExpert(d: Decision, deps: ExpertDeps, agent: AgentSpec = AGENTS.general): Promise<ExpertAnswer> {
   const now = deps.now?.() ?? new Date();
@@ -311,9 +340,14 @@ export async function runExpert(d: Decision, deps: ExpertDeps, agent: AgentSpec 
       return resumen(deps, agent);
     case 'dispositivos':
       return dispositivos(deps, agent);
+    case 'resumen_dia':
+      return resumenDia(deps, agent, now);
+    case 'accion':
+      // Las órdenes las prepara el servicio con un segundo llamado (actions.ts); aquí solo llega sin modelo.
+      return { text: 'Dime a qué dispositivo y qué hacer, por ejemplo: «apaga el alumbrado».', synthetic: false };
     case 'ayuda':
       return { text: HELP_TEXT, synthetic: false };
     case 'fuera_de_tema':
-      return { text: 'Solo puedo responder sobre los sensores y datos de SmartCityBGA. Escribe "ayuda" para ver ejemplos.', synthetic: false };
+      return { text: 'Eso se me escapa: yo solo leo los sensores y datos de SmartCityBGA. Escribe "ayuda" y te muestro qué puedo contarte.', synthetic: false };
   }
 }

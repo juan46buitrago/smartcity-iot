@@ -1,0 +1,18 @@
+# Controlador de DEV11 bajo demanda (reemplaza al servicio dev11-wokwi, que lo dejaba siempre encendido).
+# sudo cp dev11-controller.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now dev11-controller
+# /home/azureuser/dev11/controller.env (600) debe traer CTL_TOKEN=... y WOKWI_CLI_TOKEN=...
+[Unit]
+Description=Controlador de DEV11 (Wokwi bajo demanda)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=azureuser
+EnvironmentFile=/home/azureuser/dev11/controller.env
+ExecStart=/usr/bin/python3 /home/azureuser/dev11/vm/controller.py
+KillMode=control-group
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

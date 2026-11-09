@@ -1,6 +1,7 @@
 import { DEVICE_CATALOG, DEVICE_IDS } from '@scbga/shared';
 import { Bell, Check, CheckCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Nodo } from '../components/Nodo';
 import { Badge, Button, Card, Empty, PageHeader, Segmented, cx, inputCls } from '../components/ui';
 import { api, qs } from '../lib/api';
 import { useAuth } from '../lib/auth';
@@ -74,7 +75,9 @@ export function AlertsPage() {
         {rows === null ? (
           <p className="px-5 py-8 text-sm text-ink-3">Cargando…</p>
         ) : rows.length === 0 ? (
-          <Empty icon={<Bell className="size-6" />} title="No hay alertas con este filtro" />
+          <Empty icon={<Nodo mood="happy" size={64} />} title="No hay alertas con este filtro">
+            Todo tranquilo por aquí. Si algo se sale de rango, te aviso.
+          </Empty>
         ) : (
           <ul className="divide-y divide-line">
             {rows.map((a) => (

@@ -2,12 +2,16 @@
  * Chat del asistente (panel lateral y página /asistente). Agentes expertos por tema, respuestas
  * con viñetas, gráfica, accesos a la vista relacionada y reintento si algo falla.
  */
-import { ArrowUp, Bot, CloudSun, Droplets, Lamp, LayoutGrid, RotateCcw, ShieldAlert, Trash2, Wind, Car, type LucideIcon } from 'lucide-react';
+import { ArrowUp, Bot, Check, Lock, CloudSun, Droplets, Lamp, LayoutGrid, RotateCcw, ShieldAlert, Trash2, Wind, Car, type LucideIcon } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { api } from '../lib/api';
+import { useAuth } from '../lib/auth';
+import { useToast } from '../lib/toast';
 import { useAssistant, type ChatMsg } from '../lib/assistant';
-import type { AiChatResponse } from '../lib/types';
+import type { AiChatResponse, CommandRecord } from '../lib/types';
 import { AiChart } from './AiChart';
+import { Nodo } from './Nodo';
 import { Button, ProvenanceTag, cx } from './ui';
 
 export const AGENT_ICON: Record<string, LucideIcon> = {
@@ -29,6 +33,8 @@ const EXPERT_LABEL: Record<string, string> = {
   alertas: 'alertas',
   incidentes: 'incidentes',
   dispositivos: 'dispositivos',
+  resumen_dia: 'resumen del día',
+  accion: 'orden',
   ayuda: 'ayuda',
   fuera_de_tema: 'fuera de tema',
 };
@@ -65,12 +71,61 @@ function RichText({ text }: { text: string }) {
   );
 }
 
+/** Orden propuesta por Nodo: se confirma con un clic y se envía con la sesión de operador (la misma de los controles). */
+function ProposalCard({ proposal }: { proposal: NonNullable<AiChatResponse['proposal']> }) {
+  const { user, requestLogin } = useAuth();
+  const toast = useToast();
+  const [state, setState] = useState<'idle' | 'sending' | 'done' | 'cancelled'>('idle');
+  const send = async () => {
+    if (!user) {
+      requestLogin();
+      return;
+    }
+    setState('sending');
+    try {
+      const rec = await api<CommandRecord>(`/api/devices/${proposal.device_id}/commands`, { body: { action: proposal.action, params: proposal.params }, auth: true });
+      if (rec.status === 'confirmed') toast({ tone: 'ok', title: `${proposal.device_id}: ${proposal.summary}`, detail: 'Confirmado por el dispositivo' });
+      else if (rec.status === 'rejected') toast({ tone: 'error', title: `${proposal.device_id} rechazó la orden`, detail: rec.error ?? undefined });
+      else toast({ tone: 'error', title: `${proposal.device_id} no respondió`, detail: 'Sin confirmación en 10 s' });
+      setState('done');
+    } catch (e) {
+      toast({ tone: 'error', title: 'No se envió la orden', detail: (e as Error).message });
+      setState('idle');
+    }
+  };
+  if (state === 'cancelled') return <p className="mt-3 text-[13px] text-ink-3">Orden cancelada. No se envió nada.</p>;
+  if (state === 'done') return <p className="mt-3 flex items-center gap-1.5 text-[13px] font-semibold text-accent"><Check className="size-4" aria-hidden /> Orden enviada.</p>;
+  return (
+    <div className="mt-3 rounded-[6px] border border-ai/50 bg-ai-soft p-3">
+      <p className="label text-ai">Orden lista para enviar</p>
+      <p className="mt-1 text-[14.5px] font-semibold">{proposal.summary}</p>
+      <div className="mt-2.5 flex flex-wrap items-center gap-2">
+        <Button size="sm" onClick={send} disabled={state === 'sending'}>
+          {user ? (
+            <>
+              <Check className="size-4" aria-hidden /> {state === 'sending' ? 'Enviando…' : 'Confirmar y enviar'}
+            </>
+          ) : (
+            <>
+              <Lock className="size-4" aria-hidden /> Desbloquear para enviar
+            </>
+          )}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => setState('cancelled')} disabled={state === 'sending'}>
+          Cancelar
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function Answer({ res, compact, onNavigate }: { res: AiChatResponse; compact?: boolean; onNavigate?: () => void }) {
   const tokens = res.usage.prompt_tokens + res.usage.completion_tokens;
   return (
     <div className="min-w-0 flex-1">
       <RichText text={res.text} />
       {res.chart && <AiChart spec={res.chart} compact={compact} />}
+      {res.proposal && <ProposalCard proposal={res.proposal} />}
       {!!res.links?.length && (
         <div className="mt-3 flex flex-wrap gap-2">
           {res.links.map((l) => (
@@ -110,12 +165,15 @@ function Message({ m, compact, onNavigate, onRetry }: { m: ChatMsg; compact?: bo
     );
   return (
     <div className="flex gap-2.5">
-      <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-        <Bot className="size-3.5" aria-hidden />
-      </span>
+      <Nodo mood="idle" size={30} bounce={false} className="mt-0 shrink-0" />
       <Answer res={m.res} compact={compact} onNavigate={onNavigate} />
     </div>
   );
+}
+
+function saludo(): string {
+  const h = new Date().getHours();
+  return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
 }
 
 export function AgentPicker({ compact }: { compact?: boolean }) {
@@ -135,7 +193,7 @@ export function AgentPicker({ compact }: { compact?: boolean }) {
             title={a.description}
             className={cx(
               'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[12.5px] font-semibold transition-colors disabled:opacity-60',
-              on ? 'border-transparent bg-accent text-accent-ink' : 'border-line-strong text-ink-2 hover:bg-surface-2 hover:text-ink',
+              on ? 'border-transparent bg-ai text-ai-ink' : 'border-line-strong text-ink-2 hover:bg-surface-2 hover:text-ink',
             )}
           >
             <Icon className="size-3.5" aria-hidden />
@@ -196,8 +254,11 @@ export function AssistantChat({ variant = 'panel', onNavigate }: { variant?: 'pa
       <div className={cx('min-h-0 flex-1 space-y-5 overflow-y-auto', compact ? 'px-4 py-4' : 'px-5 py-5')} aria-live="polite">
         {msgs.length === 0 && (
           <div>
+            <p className="mb-4 text-[15px] text-ink-2">
+              {saludo()}, soy <strong className="font-semibold text-ink">Nodo</strong>. Leo los sensores de Bucaramanga en vivo; pregúntame lo que quieras ver.
+            </p>
             <div className="flex items-start gap-3">
-              <span className="grid size-9 shrink-0 place-items-center rounded-[8px] bg-accent-soft text-accent">
+              <span className="grid size-9 shrink-0 place-items-center rounded-[8px] bg-ai-soft text-ai">
                 <AgentIcon className="size-5" aria-hidden />
               </span>
               <div>
@@ -208,7 +269,7 @@ export function AssistantChat({ variant = 'panel', onNavigate }: { variant?: 'pa
             <p className="mt-5 mb-2 text-[13px] text-ink-3">Toca una pregunta o escribe la tuya:</p>
             <div className="flex flex-col items-start gap-2">
               {agent.suggestions.map((s) => (
-                <button key={s} onClick={() => send(s)} disabled={busy || disabled} className="rounded-[6px] border border-line-strong px-3 py-1.5 text-left text-[13.5px] text-ink-2 transition-colors hover:border-accent hover:text-ink disabled:opacity-45">
+                <button key={s} onClick={() => send(s)} disabled={busy || disabled} className="rounded-[6px] border border-line-strong px-3 py-1.5 text-left text-[13.5px] text-ink-2 transition-colors hover:border-ai hover:text-ink disabled:opacity-45">
                   {s}
                 </button>
               ))}
@@ -221,15 +282,13 @@ export function AssistantChat({ variant = 'panel', onNavigate }: { variant?: 'pa
         ))}
         {busy && (
           <div className="flex items-center gap-2.5 text-[13px] text-ink-3">
-            <span className="grid size-6 place-items-center rounded-full bg-accent-soft text-accent">
-              <Bot className="size-3.5" aria-hidden />
-            </span>
+            <Nodo mood="thinking" size={34} bounce={false} />
             <span className="flex gap-1" aria-label="Pensando">
               {[0, 1, 2].map((i) => (
                 <span key={i} className="size-1.5 animate-pulse rounded-full bg-ink-3" style={{ animationDelay: `${i * 160}ms` }} />
               ))}
             </span>
-            Consultando a {agent.name}…
+            Nodo está consultando a {agent.name}…
           </div>
         )}
         <div ref={endRef} />

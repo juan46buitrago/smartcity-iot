@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { fmtDateShort, fmtNum } from '../lib/format';
 import type { AiChartSeries, AiChartSpec } from '../lib/types';
 import { ChartTooltip } from './ChartTooltip';
@@ -40,7 +40,7 @@ function exportPng(container: HTMLElement | null, name: string) {
 }
 
 /** Una gráfica de líneas con un solo eje: todas sus series comparten unidad. */
-function LinePanel({ series, refs, colorOf, height, title }: { series: AiChartSeries[]; refs?: { label: string; value: number }[]; colorOf: (k: string) => string; height: number; title?: string }) {
+function LinePanel({ series, refs, colorOf, height, title, style = 'line' }: { series: AiChartSeries[]; refs?: { label: string; value: number }[]; colorOf: (k: string) => string; height: number; title?: string; style?: 'line' | 'area' | 'bars' }) {
   const rows = useMemo(() => {
     const byT = new Map<number, Record<string, number>>();
     for (const s of series)
@@ -50,18 +50,42 @@ function LinePanel({ series, refs, colorOf, height, title }: { series: AiChartSe
         row[s.key] = p.v;
         byT.set(t, row);
       }
-    return [...byT.values()].sort((a, b) => a.t! - b.t!);
-  }, [series]);
+    const all = [...byT.values()].sort((a, b) => a.t! - b.t!);
+    if (style !== 'bars' || all.length <= 36) return all;
+    // Barras: se promedian los puntos en ≤ 36 cubetas para que sigan siendo legibles.
+    const size = Math.ceil(all.length / 36);
+    const out: Record<string, number>[] = [];
+    for (let i = 0; i < all.length; i += size) {
+      const chunk = all.slice(i, i + size);
+      const row: Record<string, number> = { t: chunk[0]!.t! };
+      for (const s of series) {
+        const vs = chunk.map((r) => r[s.key]).filter((v): v is number => typeof v === 'number');
+        if (vs.length) row[s.key] = vs.reduce((a, b) => a + b, 0) / vs.length;
+      }
+      out.push(row);
+    }
+    return out;
+  }, [series, style]);
   const unitOf = (k: string) => series.find((s) => s.key === k)?.unit ?? '';
   if (rows.length < 2) return <p className="py-6 text-sm text-ink-3">Sin datos suficientes para graficar en esta ventana.</p>;
+  const Chart = style === 'bars' ? BarChart : style === 'area' ? AreaChart : LineChart;
   return (
     <div>
       {title && <p className="mb-1 text-[12px] font-semibold text-ink-2">{title}</p>}
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={rows} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
+          <Chart data={rows} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
             <CartesianGrid stroke="var(--grid)" vertical={false} />
-            <XAxis dataKey="t" type="number" scale="time" domain={['dataMin', 'dataMax']} tickFormatter={(v) => fmtDateShort(v)} stroke="var(--ink-3)" fontSize={11} tickLine={false} axisLine={{ stroke: 'var(--line)' }} minTickGap={60} />
+            <XAxis
+              dataKey="t"
+              {...(style === 'bars' ? {} : { type: 'number' as const, scale: 'time' as const, domain: ['dataMin', 'dataMax'] as [string, string] })}
+              tickFormatter={(v) => fmtDateShort(v)}
+              stroke="var(--ink-3)"
+              fontSize={11}
+              tickLine={false}
+              axisLine={{ stroke: 'var(--line)' }}
+              minTickGap={60}
+            />
             <YAxis stroke="var(--ink-3)" fontSize={11} tickLine={false} axisLine={false} width={48} domain={['auto', 'auto']} tickFormatter={(v) => fmtNum(v, 1)} />
             <Tooltip
               cursor={{ stroke: 'var(--line-strong)', strokeWidth: 1 }}
@@ -73,10 +97,16 @@ function LinePanel({ series, refs, colorOf, height, title }: { series: AiChartSe
             {refs?.map((r) => (
               <ReferenceLine key={r.label} y={r.value} stroke={REF_COLORS[r.label] ?? 'var(--ink-3)'} strokeDasharray="4 4" label={{ value: `${r.label} ${fmtNum(r.value, 1)}`, position: 'insideTopRight', fill: 'var(--ink-2)', fontSize: 11 }} />
             ))}
-            {series.map((s) => (
-              <Line key={s.key} type="monotone" dataKey={s.key} stroke={colorOf(s.key)} strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />
-            ))}
-          </LineChart>
+            {series.map((s) =>
+              style === 'bars' ? (
+                <Bar key={s.key} dataKey={s.key} fill={colorOf(s.key)} radius={[2, 2, 0, 0]} isAnimationActive={false} />
+              ) : style === 'area' ? (
+                <Area key={s.key} type="monotone" dataKey={s.key} stroke={colorOf(s.key)} strokeWidth={2} fill={colorOf(s.key)} fillOpacity={0.16} dot={false} connectNulls isAnimationActive={false} />
+              ) : (
+                <Line key={s.key} type="monotone" dataKey={s.key} stroke={colorOf(s.key)} strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />
+              ),
+            )}
+          </Chart>
         </ResponsiveContainer>
       </div>
     </div>
@@ -115,8 +145,22 @@ export function AiChart({ spec, compact }: { spec: AiChartSpec; compact?: boolea
               colorOf={colorOf}
               height={groups.length > 1 ? Math.round(h * 0.7) : h}
               title={groups.length > 1 ? g.map((s) => s.label).join(' · ') + (g[0]!.unit ? ` (${g[0]!.unit})` : '') : undefined}
+              style={spec.style}
             />
           ))
+        ) : spec.style === 'pie' ? (
+          <div style={{ height: h }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={spec.bars} dataKey="value" nameKey="label" innerRadius="52%" outerRadius="82%" paddingAngle={2} stroke="var(--surface)" isAnimationActive={false} label={({ name, value }) => `${name}: ${value}`}>
+                  {spec.bars.map((b, i) => (
+                    <Cell key={b.label} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<ChartTooltip format={(v) => `${fmtNum(v, 2)} ${spec.unit ?? ''}`} labels={{ value: spec.title }} labelFormat={(l) => String(l)} />} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         ) : (
           <div style={{ height: h }}>
             <ResponsiveContainer width="100%" height="100%">
