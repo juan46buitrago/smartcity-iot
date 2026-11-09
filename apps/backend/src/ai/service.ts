@@ -53,6 +53,8 @@ export class AiBudgetError extends Error {
   readonly statusCode = 429;
 }
 
+// «Resumen del día» es una frase fija: se resuelve sin modelo (0 tokens), como la ayuda.
+const DAY_RE = /^\s*(dame |hazme |necesito )?(un |el )?(res[uú]men|balance) (del d[ií]a|de hoy)\s*[.?!]*\s*$|^\s*(c[oó]mo estuvo|qu[eé] pas[oó]) (el d[ií]a|hoy)\s*[.?!¿]*\s*$/i;
 const HELP_RE = /^\s*(ayuda|help|\?|qu[eé] puedo preguntar\??)\s*$/i;
 const CACHE_MAX = 200;
 
@@ -127,6 +129,10 @@ export class AiService {
     const agent: AgentSpec = agentOf(opts.agent);
     if (HELP_RE.test(question)) {
       const d: Decision = { experto: 'ayuda', series: [], horas: 24, desfase_horas: 0 };
+      return { ...(await runExpert(d, this.deps, agent)), decision: d, agent: agent.id, usage: zero, ms: { llm: 0, total: Date.now() - t0 }, cached: true, model: null };
+    }
+    if (DAY_RE.test(question)) {
+      const d: Decision = { experto: 'resumen_dia', series: [], horas: 24, desfase_horas: 0 };
       return { ...(await runExpert(d, this.deps, agent)), decision: d, agent: agent.id, usage: zero, ms: { llm: 0, total: Date.now() - t0 }, cached: true, model: null };
     }
     // El contexto solo se acepta si es una decisión válida del vocabulario del agente.

@@ -89,6 +89,7 @@ export function buildProposal(raw: RawCommand, devices: readonly DeviceId[]): { 
       summary = `${raw.bandera === 'si' ? 'Encender' : 'Apagar'} ${spec.name} (${id})`;
       break;
     case 'set_interval':
+      if (raw.valor < spec.interval.min || raw.valor > spec.interval.max) return { ok: false, error: `${spec.name} solo admite un intervalo entre ${spec.interval.min} y ${spec.interval.max} segundos.` };
       params = { interval_s: Math.round(raw.valor) };
       summary = `Cambiar el intervalo de ${spec.name} (${id}) a ${Math.round(raw.valor)} s`;
       break;

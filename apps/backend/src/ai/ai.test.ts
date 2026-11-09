@@ -427,12 +427,21 @@ describe('órdenes por lenguaje natural', () => {
     expect(r.usage.prompt_tokens).toBe(500);
   });
 
+  it('"resumen del día" se resuelve sin modelo', async () => {
+    const d = deps();
+    const llm = new FakeLlm([decision({})]);
+    const r = await new AiService(llm, d, d.db).chat('Resumen del día');
+    expect(llm.calls).toHaveLength(0);
+    expect(r.decision?.experto).toBe('resumen_dia');
+    expect(r.text).toMatch(/Resumen del día/);
+  });
+
   it('rechaza valores fuera de rango del catálogo', async () => {
     const d = deps();
     const llm = new FakeLlm([decision({ experto: 'accion', series: [] }), cmd({ accion: 'set_interval', bandera: 'na', valor: 1 })]);
     const r = await new AiService(llm, d, d.db).chat('mide cada segundo la farola');
     expect(r.proposal).toBeUndefined();
-    expect(r.text).toMatch(/No puedo enviar esa orden/);
+    expect(r.text).toMatch(/solo admite un intervalo entre/);
   });
 
   it('un dispositivo fuera del agente no se puede ordenar', async () => {
