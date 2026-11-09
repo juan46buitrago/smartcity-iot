@@ -13,6 +13,8 @@ export interface Dev11Status {
   running: boolean;
   lease_s: number;
   max_s: number;
+  /** Motivo por el que el simulador no arrancó (p. ej. cuota de Wokwi agotada). */
+  error?: string | null;
 }
 
 export class Dev11Client {
@@ -27,11 +29,11 @@ export class Dev11Client {
   }
 
   private async call(method: 'GET' | 'POST', path: string): Promise<Dev11Status> {
-    if (!this.available) return { available: false, running: false, lease_s: 0, max_s: 0 };
+    if (!this.available) return { available: false, running: false, lease_s: 0, max_s: 0, error: null };
     const res = await fetch(new URL(path, this.url), { method, headers: { Authorization: `Bearer ${this.token}` }, signal: AbortSignal.timeout(this.timeoutMs) });
     if (!res.ok) throw new Error(`controlador DEV11: HTTP ${res.status}`);
-    const b = (await res.json()) as { running: boolean; lease_s: number; max_s: number };
-    return { available: true, running: !!b.running, lease_s: b.lease_s ?? 0, max_s: b.max_s ?? 0 };
+    const b = (await res.json()) as { running: boolean; lease_s: number; max_s: number; error?: string | null };
+    return { available: true, running: !!b.running, lease_s: b.lease_s ?? 0, max_s: b.max_s ?? 0, error: b.error ?? null };
   }
 
   status = () => this.call('GET', '/status');

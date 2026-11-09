@@ -21,7 +21,7 @@ describe('controlador de DEV11', () => {
   it('sin URL o token la función no está disponible y no hace peticiones', async () => {
     const c = new Dev11Client(undefined, undefined);
     expect(c.available).toBe(false);
-    expect(await c.start()).toEqual({ available: false, running: false, lease_s: 0, max_s: 0 });
+    expect(await c.start()).toEqual({ available: false, running: false, lease_s: 0, max_s: 0, error: null });
   });
 
   it('enciende, renueva y apaga con el token', async () => {

@@ -225,4 +225,5 @@ backend (la captura sigue por Node-RED → InfluxDB) y la web: **sin hueco de ca
 - **Nodo cobra vida:** mascota SVG animada (rebota, parpadea, sigue el cursor, 5 humores), voz TTS opcional, resumen del día, órdenes propuestas con confirmación y estilos de gráfica por palabras. Ver `docs/IA.md`.
 - **Ilustración de cada dispositivo** con «qué representa» (sin presentar lo simulado como medido) y «dónde está» con salto al mapa (`/mapa?dev=DEVxx`).
 - **Primera visita:** guía de bienvenida de Nodo con dónde está cada cosa, reabrible con el botón «¿Cómo se usa?» del encabezado (`?bienvenida=0` la omite, p. ej. para capturas).
-- **Verificación:** typecheck y 99 pruebas en verde (21 + 22 + 56).
+- **Hallazgo:** la cuota mensual gratis de minutos de CI de Wokwi se agotó (el servicio permanente de la primera versión, con reinicios cada 5 min, la consumió). El encendido bajo demanda quedó verificado de extremo a extremo salvo la conexión del simulador: arranque, arriendo, apagado automático a los ~155 s sin espectadores, rechazo sin token (401) y freno ante fallos. Hasta que la cuota se renueve (o se use otra cuenta/plan) DEV11 se ejecuta con la extensión de VS Code o un ESP32 físico.
+- **Verificación:** typecheck y 100 pruebas en verde (21 + 22 + 56).

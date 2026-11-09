@@ -33,6 +33,11 @@ proc = None  # subprocess.Popen | None
 wanted = False  # el usuario quiere DEV11 encendido
 lease_until = 0.0
 session_start = 0.0
+spawned_at = 0.0
+quick_fails = 0
+last_error = None
+QUICK_S = 20  # un simulador que dura menos es un fallo, no un corte normal de 5 min
+MAX_QUICK_FAILS = 3
 
 
 def log(msg):
@@ -40,7 +45,8 @@ def log(msg):
 
 
 def _spawn():
-    global proc
+    global proc, spawned_at
+    spawned_at = time.time()
     proc = subprocess.Popen([CLI, "--timeout", "600000", "."], cwd=WORKDIR, start_new_session=True)
     log(f"wokwi-cli pid {proc.pid}")
 
@@ -60,10 +66,12 @@ def _kill():
 
 
 def start():
-    global wanted, lease_until, session_start
+    global wanted, lease_until, session_start, quick_fails, last_error
     with lock:
         if not wanted:
             session_start = time.time()
+            quick_fails = 0
+            last_error = None
         wanted = True
         lease_until = time.time() + LEASE_S
         if proc is None or proc.poll() is not None:
@@ -91,13 +99,16 @@ def status():
         running = wanted and proc is not None and proc.poll() is None
         left = max(0, int(lease_until - time.time())) if wanted else 0
         left_max = max(0, int(session_start + MAX_S - time.time())) if wanted else 0
-        return {"running": bool(wanted), "process": running, "lease_s": left, "max_s": left_max}
+        return {"running": bool(wanted), "process": running, "lease_s": left, "max_s": left_max, "error": last_error}
 
 
 def supervisor():
     """Vence el arriendo, limita la sesión y relanza el simulador si Wokwi lo corta."""
+    global quick_fails, last_error
     while True:
         time.sleep(3)
+        reason = None
+        pause = 0
         with lock:
             now = time.time()
             if not wanted:
@@ -106,12 +117,20 @@ def supervisor():
                 reason = "nadie mira la página"
             elif now > session_start + MAX_S:
                 reason = "tiempo máximo de sesión"
-            else:
-                if proc is None or proc.poll() is not None:
+            elif proc is None or proc.poll() is not None:
+                quick = now - spawned_at < QUICK_S
+                quick_fails = quick_fails + 1 if quick else 0
+                if quick_fails >= MAX_QUICK_FAILS:
+                    reason = "el simulador no arranca"
+                    last_error = "Wokwi rechazó el simulador (cuota gratuita mensual de minutos agotada, token inválido o sin red). Mira el log del controlador."
+                else:
                     log("el simulador terminó; se relanza (límite de la cuenta gratis)")
                     _spawn()
-                continue
-        stop(reason)
+                    pause = 10 if quick else 0
+        if reason:
+            stop(reason)
+        elif pause:
+            time.sleep(pause)  # freno fuera del candado: no martillar la API de Wokwi
 
 
 class Handler(BaseHTTPRequestHandler):

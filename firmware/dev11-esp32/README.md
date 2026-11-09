@@ -58,6 +58,7 @@ navegador ──► backend (/api/dev11, operador) ──► controlador (VM, :8
 - **Encender/apagar:** en la ficha de DEV11 (`/dispositivos/DEV11`) el botón «Encender para la demostración» (pide la sesión de operador). El simulador tarda 1–2 min en conectarse.
 - **Apagado automático:** mientras alguien tenga una pestaña visible, la web renueva un «arriendo» de 150 s (`POST /api/dev11/ping`). Sin latidos el controlador lo apaga. Tope por sesión: 90 min.
 - **Límite de la cuenta gratis de Wokwi:** cada simulación se corta a los 5 min; el controlador la relanza mientras haya arriendo (se ve un par de cortes cortos de DEV11).
+- **Cuota mensual de la cuenta gratis:** Wokwi CI da una cantidad limitada de minutos al mes. Si se agota, el simulador no arranca: tras 3 intentos fallidos rápidos el controlador se detiene y la ficha de DEV11 muestra «No pudo arrancar…». Mientras tanto DEV11 se puede ejecutar con la extensión de VS Code (sección de arriba), que no usa minutos de CI, o con un ESP32 físico.
 - **Seguridad:** el controlador solo acepta peticiones con `Authorization: Bearer $CTL_TOKEN`, que conoce únicamente el backend (`DEV11_CTL_TOKEN` en el `.env`). El navegador nunca lo ve; encender y apagar exigen operador, el ping es público pero solo renueva un arriendo ya activo.
 
 Instalación (una vez), con `~/dev11/` en la VM:

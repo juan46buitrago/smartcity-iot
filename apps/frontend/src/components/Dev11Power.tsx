@@ -10,6 +10,7 @@ interface Dev11State {
   running: boolean;
   lease_s: number;
   max_s: number;
+  error?: string | null;
 }
 
 /**
@@ -84,8 +85,10 @@ export function Dev11Power({ online }: { online: boolean }) {
               <span className={cx('size-2 rounded-full', connecting ? 'animate-pulse bg-warn' : s.running ? 'live-dot bg-accent text-accent' : 'bg-ink-3')} aria-hidden />
               {label}
             </p>
-            <p className="mt-0.5 max-w-[60ch] text-[13px] text-ink-3">
-              {s.running
+            <p className={cx('mt-0.5 max-w-[60ch] text-[13px]', s.error && !s.running ? 'text-warn' : 'text-ink-3')}>
+              {s.error && !s.running
+                ? `No pudo arrancar: ${s.error}`
+                : s.running
                 ? 'Se apaga solo un par de minutos después de que nadie tenga la página abierta.'
                 : 'Este ESP32 corre en un simulador que solo se enciende para demostraciones, así no gasta nada el resto del tiempo.'}
             </p>
