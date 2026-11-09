@@ -17,6 +17,14 @@ Capturas del sitio en vivo (tema oscuro «Sala de control»: verde señal para l
 | **Dispositivos** — control con confirmación<br>![Dispositivos](docs/capturas/dispositivos.png) | **Histórico** — series y comparación<br>![Histórico](docs/capturas/historico.png) |
 | **Alertas**<br>![Alertas](docs/capturas/alertas.png) | **Nodo, el asistente IA** — agentes expertos por tema<br>![Asistente](docs/capturas/asistente.png) |
 
+**Primera visita** — Nodo explica dónde está cada cosa (reabrible con «¿Cómo se usa?»):
+
+![Bienvenida](docs/capturas/bienvenida.png)
+
+**Ficha de dispositivo** — ilustración, qué representa, dónde está y, en DEV11, encendido bajo demanda:
+
+![DEV11](docs/capturas/dispositivo-dev11.png)
+
 El asistente también vive en un panel lateral acoplado a cualquier página:
 
 ![Nodo en el panel lateral](docs/capturas/asistente-panel.png)
