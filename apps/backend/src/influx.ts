@@ -4,6 +4,7 @@
  * y además se validan contra el catálogo antes de llegar aquí.
  */
 import { flux, fluxDateTime, fluxDuration, fluxString, InfluxDB, type QueryApi } from '@influxdata/influxdb-client';
+import { CircuitBreaker, CircuitOpenError } from './circuitBreaker.js';
 
 export interface SeriesPoint {
   t: string;
@@ -32,11 +33,43 @@ export function pickWindow(fromMs: number, toMs: number, maxPoints = 600): strin
   return `${s}s`;
 }
 
-export class InfluxService {
-  private readonly q: QueryApi;
+export class HistoryUnavailableError extends Error {
+  readonly statusCode = 503;
+  constructor() {
+    super('El histórico no está disponible en este momento. Las lecturas en vivo siguen funcionando; inténtalo de nuevo en unos segundos.');
+  }
+}
 
-  constructor(private readonly cfg: { url: string; token: string; org: string; bucketRaw: string; bucketAgg: string }) {
-    this.q = new InfluxDB({ url: cfg.url, token: cfg.token, timeout: 20_000 }).getQueryApi(cfg.org);
+/** Un 4xx significa que InfluxDB respondió y rechazó la consulta: no es una caída. */
+function isOutage(err: unknown): boolean {
+  const status = (err as { statusCode?: unknown }).statusCode;
+  return !(typeof status === 'number' && status < 500);
+}
+
+interface InfluxDeps {
+  query?: Pick<QueryApi, 'collectRows'>;
+  breaker?: { failureThreshold: number; openMs: number };
+}
+
+export class InfluxService {
+  private readonly q: Pick<QueryApi, 'collectRows'>;
+  private readonly breaker: CircuitBreaker;
+
+  constructor(
+    private readonly cfg: { url: string; token: string; org: string; bucketRaw: string; bucketAgg: string },
+    deps: InfluxDeps = {},
+  ) {
+    this.q = deps.query ?? new InfluxDB({ url: cfg.url, token: cfg.token, timeout: 20_000 }).getQueryApi(cfg.org);
+    this.breaker = new CircuitBreaker({ failureThreshold: 3, openMs: 15_000, ...deps.breaker, isFailure: isOutage });
+  }
+
+  private async collect<T>(query: Parameters<QueryApi['collectRows']>[0]): Promise<T[]> {
+    try {
+      return await this.breaker.run(() => this.q.collectRows<T>(query));
+    } catch (err) {
+      if (err instanceof CircuitOpenError || isOutage(err)) throw new HistoryUnavailableError();
+      throw err;
+    }
   }
 
   async ping(): Promise<boolean> {
@@ -63,7 +96,7 @@ export class InfluxService {
           |> filter(fn: (r) => r._measurement == "telemetry" and r.device_id == ${fluxString(device)} and r._field == ${fluxString(field)} and r.stat == "mean")
           |> aggregateWindow(every: ${fluxDuration(every)}, fn: mean, createEmpty: false)
           |> keep(columns: ["_time", "_value"])`;
-    const rows = await this.q.collectRows<{ _time: string; _value: number }>(query);
+    const rows = await this.collect<{ _time: string; _value: number }>(query);
     return {
       every,
       bucket: useRaw ? this.cfg.bucketRaw : this.cfg.bucketAgg,
@@ -78,7 +111,7 @@ export class InfluxService {
       |> filter(fn: (r) => r._measurement == "telemetry" and r.device_id == ${fluxString(device)} and r._field == ${fluxString(field)})
       |> filter(fn: (r) => exists r._value)`;
     const one = async (suffix: string) => {
-      const rows = await this.q.collectRows<{ _time?: string; _value: number }>(`${base}\n${suffix}`);
+      const rows = await this.collect<{ _time?: string; _value: number }>(`${base}\n${suffix}`);
       return rows[0];
     };
     const [count, mean, min, max, stddev, first, last] = await Promise.all([
@@ -105,7 +138,7 @@ export class InfluxService {
 
   /** Disponibilidad: fracción de muestras de estado "online" por dispositivo en el rango. */
   async availability(from: Date, to: Date): Promise<Record<string, number>> {
-    const rows = await this.q.collectRows<{ device_id: string; _value: number }>(flux`from(bucket: ${this.cfg.bucketRaw})
+    const rows = await this.collect<{ device_id: string; _value: number }>(flux`from(bucket: ${this.cfg.bucketRaw})
       |> range(start: ${fluxDateTime(from.toISOString())}, stop: ${fluxDateTime(to.toISOString())})
       |> filter(fn: (r) => r._measurement == "device_status" and r._field == "online")
       |> group(columns: ["device_id"])
@@ -115,7 +148,7 @@ export class InfluxService {
 
   /** Número de lecturas por dispositivo (evidencia de captura). */
   async readingCounts(from: Date, to: Date): Promise<Record<string, number>> {
-    const rows = await this.q.collectRows<{ device_id: string; _value: number }>(flux`from(bucket: ${this.cfg.bucketRaw})
+    const rows = await this.collect<{ device_id: string; _value: number }>(flux`from(bucket: ${this.cfg.bucketRaw})
       |> range(start: ${fluxDateTime(from.toISOString())}, stop: ${fluxDateTime(to.toISOString())})
       |> filter(fn: (r) => r._measurement == "telemetry" and r._field == "seq")
       |> group(columns: ["device_id"])

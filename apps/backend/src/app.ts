@@ -17,7 +17,7 @@ import { safeEqual, verifyPassword } from './auth.js';
 import type { Db } from './db.js';
 import type { Env } from './env.js';
 import type { Hub } from './hub.js';
-import type { InfluxService } from './influx.js';
+import { HistoryUnavailableError, type InfluxService } from './influx.js';
 import { CommandError, type MqttBridge } from './mqttBridge.js';
 import type { LiveState } from './state.js';
 
@@ -43,6 +43,8 @@ export interface AppDeps {
 
 const MAX_RANGE_MS = 90 * 24 * 3600_000;
 const MAX_WS_CLIENTS = 200;
+const WS_HEARTBEAT_MS = 20_000;
+const HEARTBEAT = JSON.stringify({ type: 'heartbeat', data: {} });
 
 const RangeQuery = z.object({
   from: z.iso.datetime({ offset: true }).optional(),
@@ -58,6 +60,12 @@ function parseRange(q: unknown) {
   if (from >= to) throw new HttpError(400, '"from" debe ser anterior a "to"');
   if (to.getTime() - from.getTime() > MAX_RANGE_MS) throw new HttpError(400, 'El rango máximo es de 90 días');
   return { from, to, points: r.data.points };
+}
+
+/** Límite de filas de un listado: entero entre 1 y 200 (50 si falta o no es un número). */
+function listLimit(raw: unknown): number {
+  const n = Math.trunc(Number(raw));
+  return Number.isFinite(n) && n >= 1 ? Math.min(200, n) : 50;
 }
 
 class HttpError extends Error {
@@ -91,14 +99,22 @@ export async function buildApp(deps: AppDeps) {
   });
 
   if (env.CORS_ORIGIN) await app.register(cors, { origin: env.CORS_ORIGIN.split(',').map((s) => s.trim()), credentials: false });
-  await app.register(rateLimit, { global: true, max: 300, timeWindow: '1 minute' });
+  await app.register(rateLimit, {
+    global: true,
+    max: 300,
+    timeWindow: '1 minute',
+    errorResponseBuilder: (_req, ctx) => new HttpError(ctx.statusCode, `Demasiadas solicitudes seguidas. Espera ${Math.ceil(ctx.ttl / 1000)} s e inténtalo de nuevo.`),
+  });
   await app.register(jwt, { secret: env.JWT_SECRET, sign: { expiresIn: env.JWT_TTL } });
   await app.register(websocket, { options: { maxPayload: 1024 } });
 
   app.setErrorHandler((err: Error & { statusCode?: number }, req, reply) => {
-    const status = err instanceof HttpError || err instanceof CommandError ? err.statusCode : (err.statusCode ?? 500);
-    if (status >= 500) req.log.error({ err }, 'Error interno');
-    reply.status(status).send({ error: status >= 500 ? 'Error interno del servidor' : err.message });
+    // Estos errores llevan un mensaje escrito para el usuario, también cuando son 5xx (dependencia caída).
+    const deliberate = err instanceof HttpError || err instanceof CommandError || err instanceof HistoryUnavailableError;
+    const status = err.statusCode ?? 500;
+    if (status >= 500 && !deliberate) req.log.error({ err }, 'Error interno');
+    else if (status >= 500) req.log.warn({ msg: err.message }, 'Dependencia no disponible');
+    reply.status(status).send({ error: deliberate || status < 500 ? err.message : 'Error interno del servidor' });
   });
 
   const requireOperator = async (req: FastifyRequest, reply: FastifyReply) => {
@@ -168,9 +184,9 @@ export async function buildApp(deps: AppDeps) {
   );
 
   app.get<{ Params: { id: string }; Querystring: { limit?: string } }>('/api/devices/:id/commands', async (req) =>
-    bridge.listCommands(deviceParam(req.params.id), Math.min(200, Number(req.query.limit) || 50)),
+    bridge.listCommands(deviceParam(req.params.id), listLimit(req.query.limit)),
   );
-  app.get<{ Querystring: { limit?: string } }>('/api/commands', async (req) => bridge.listCommands(undefined, Math.min(200, Number(req.query.limit) || 50)));
+  app.get<{ Querystring: { limit?: string } }>('/api/commands', async (req) => bridge.listCommands(undefined, listLimit(req.query.limit)));
 
   /* ------------------------------ histórico ------------------------------ */
 
@@ -186,10 +202,11 @@ export async function buildApp(deps: AppDeps) {
     const id = deviceParam(req.params.id);
     const v = numericVariable(id, req.params.variable);
     const { from, to } = parseRange(req.query);
-    return { device_id: id, variable: v.key, unit: v.unit, from, to, synthetic: DEVICE_CATALOG[id].provenance.synthetic, ...(await influx.stats(id, v.key, from, to)) };
+    return { device_id: id, variable: v.key, unit: v.unit, from, to, synthetic: live.view(id).live?.telemetry?.provenance.synthetic ?? DEVICE_CATALOG[id].provenance.synthetic, ...(await influx.stats(id, v.key, from, to)) };
   });
 
   app.get<{ Querystring: { series?: string } }>('/api/compare', async (req) => {
+    if (typeof req.query.series !== 'undefined' && typeof req.query.series !== 'string') throw new HttpError(400, 'Indique las series en un solo parámetro, separadas por comas');
     const list = (req.query.series ?? '').split(',').filter(Boolean);
     if (list.length < 1 || list.length > 4) throw new HttpError(400, 'Indique entre 1 y 4 series con el formato DEV01.temperature');
     const { from, to, points } = parseRange(req.query);
@@ -280,7 +297,13 @@ export async function buildApp(deps: AppDeps) {
     const unsubscribe = hub.subscribe((ev) => {
       if (socket.readyState === socket.OPEN) socket.send(JSON.stringify(ev));
     });
-    const ping = setInterval(() => socket.readyState === socket.OPEN && socket.ping(), 25_000);
+    // Ping de protocolo (mantiene vivos los proxies) y latido de aplicación (el navegador no ve los pings:
+    // con el latido detecta un servidor colgado que deja la conexión abierta sin enviar nada).
+    const ping = setInterval(() => {
+      if (socket.readyState !== socket.OPEN) return;
+      socket.ping();
+      socket.send(HEARTBEAT);
+    }, WS_HEARTBEAT_MS);
     socket.on('message', () => {}); // canal de solo lectura: se ignoran mensajes entrantes
     socket.on('close', () => {
       wsClients--;

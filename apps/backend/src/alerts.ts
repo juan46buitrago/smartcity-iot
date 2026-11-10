@@ -197,7 +197,7 @@ export class AlertEngine {
           variable: null,
           kind: 'offline',
           severity: 'warning',
-          message: `${DEVICE_CATALOG[device].name} sin conexión${reason ? ` (${reason})` : ''}`,
+          message: `${DEVICE_CATALOG[device].name} sin conexión${reason ? `: ${reason}` : ''}`,
           value: null,
           threshold: null,
           ref: null,

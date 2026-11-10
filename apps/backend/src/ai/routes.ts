@@ -52,7 +52,10 @@ export function registerAiRoutes(
 
   app.post('/api/ai/chat', { config: { rateLimit: { max: 12, timeWindow: '1 minute' } } }, async (req, reply) => {
     const body = ChatBody.safeParse(req.body);
-    if (!body.success) return reply.status(400).send({ error: 'Escribe una pregunta de 2 a 300 caracteres' });
+    if (!body.success) {
+      const badAgent = body.error.issues.some((i) => i.path[0] === 'agent');
+      return reply.status(400).send({ error: badAgent ? 'Agente no válido: elige uno de la lista' : 'Escribe una pregunta de 2 a 300 caracteres' });
+    }
     return handle(reply, () => ai.chat(body.data.question, { agent: body.data.agent, previous: body.data.previous }));
   });
 
