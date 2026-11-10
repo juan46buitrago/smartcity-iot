@@ -2,7 +2,7 @@
 
 > Fecha: 2026-11-09 · Sistema bajo prueba: **máquina virtual de Azure** `vm-smartcity-iot` (Standard B2as_v2, Ubuntu 24.04, 2 vCPU,
 > 7,7 GB), **IP pública 158.23.162.76**, publicada como **https://smartcitybga.duckdns.org** · commit base `15d9e4b` ·
-> **correcciones desplegadas en la VM el 2026-11-09 a las 19:24 COT (commit `5605faa`, rama `qa/lanzamiento`) y verificadas en producción** (§7.4).
+> **correcciones desplegadas en la VM el 2026-11-09 a las 19:24 COT (commit `5605faa`, integrado en `main`) y verificadas en producción** (§7.4).
 > Evidencia completa: [`docs/evidencias/qa-lanzamiento/`](evidencias/qa-lanzamiento/).
 
 ## 1. Objetivo, alcance y reglas
@@ -214,4 +214,3 @@ iniciar sesión.
 |---|---|---|
 | 1 | Restringir la regla `SSH_ANY` del NSG a la IP del propietario. No se hizo porque esta máquina no tiene Azure CLI. Comando: `az network nsg rule update -g rg-smartcity-iot --nsg-name vm-smartcity-iot-nsg -n SSH_ANY --source-address-prefixes <su IP>/32` | Propietario |
 | 2 | Backlog 🟡 de §5 (jerga, zonas táctiles, fragmento de gráficas, bienvenida en enlaces directos, mensajes en inglés de Fastify y zod) | Equipo |
-| 3 | Integrar la rama `qa/lanzamiento` en `main` (`git switch main && git merge --ff-only qa/lanzamiento`) para que el próximo despliegue desde `main` no revierta estas correcciones | Equipo |
