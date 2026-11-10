@@ -4,6 +4,7 @@ import { DeviceGlyph } from '../components/DeviceIcon';
 import { DeviceControls } from '../components/DeviceControls';
 import { Badge, Card, CardHeader, PageHeader, Segmented, StatusDot, cx } from '../components/ui';
 import { api } from '../lib/api';
+import { TZ } from '../lib/format';
 import { useAuth } from '../lib/auth';
 import { useLive } from '../lib/live';
 import { deviceState } from '../lib/state';
@@ -20,14 +21,14 @@ interface Health {
 /** Sesión de controles de este navegador: estado y cierre. */
 function SessionRow() {
   const { user, expiresAt, logout, requestLogin } = useAuth();
-  const until = expiresAt?.toLocaleDateString('es-CO', { day: 'numeric', month: 'long' });
+  const until = expiresAt?.toLocaleString('es-CO', { timeZone: TZ, day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hour12: false });
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-[5px] border border-line px-4 py-3">
       <span className="flex items-center gap-3">
         <LockOpen className={cx('size-4 shrink-0', user ? 'text-accent' : 'text-ink-3')} aria-hidden />
         <span>
           <span className="block font-medium">{user ? 'Controles desbloqueados' : 'Controles bloqueados'}</span>
-          <span className="text-xs text-ink-3">{user ? `Este navegador recuerda la sesión hasta el ${until}.` : 'Se pedirá la contraseña al intentar controlar un dispositivo.'}</span>
+          <span className="text-xs text-ink-3">{user ? `Este navegador recuerda la sesión hasta el ${until} (hora de Colombia).` : 'Se pedirá la contraseña al intentar controlar un dispositivo.'}</span>
         </span>
       </span>
       {user ? (
@@ -53,10 +54,11 @@ export function SettingsPage() {
   const { list } = useLive();
   const [tab, setTab] = useState('interval');
   const [selected, setSelected] = useState('DEV04');
-  const [health, setHealth] = useState<Health | null>(null);
+  // undefined = consultando; null = sin respuesta del backend.
+  const [health, setHealth] = useState<Health | null | undefined>(undefined);
 
   useEffect(() => {
-    const load = () => api<Health>('/api/health').then(setHealth).catch(() => setHealth(null));
+    const load = () => api<Health>('/api/health', { expect: ['mqtt_messages'] }).then(setHealth).catch(() => setHealth(null));
     void load();
     const t = setInterval(load, 15000);
     return () => clearInterval(t);
@@ -120,9 +122,13 @@ export function SettingsPage() {
             ].map(([k, ok]) => (
               <div key={k as string} className="border-l border-line pl-3">
                 <dt className="text-[11px] text-ink-3">{k as string}</dt>
-                <dd className={cx('mt-0.5 flex items-center gap-1.5 font-medium', ok ? 'text-accent' : 'text-crit')}>
-                  <StatusDot state={ok ? 'online' : 'offline'} /> {ok ? 'Operativo' : 'Sin respuesta'}
-                </dd>
+                {health === undefined ? (
+                  <dd className="mt-0.5 font-medium text-ink-3">Consultando…</dd>
+                ) : (
+                  <dd className={cx('mt-0.5 flex items-center gap-1.5 font-medium', ok ? 'text-accent' : 'text-crit')}>
+                    <StatusDot state={ok ? 'online' : 'offline'} /> {ok ? 'Operativo' : 'Sin respuesta'}
+                  </dd>
+                )}
               </div>
             ))}
           </dl>

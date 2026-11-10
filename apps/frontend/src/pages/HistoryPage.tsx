@@ -6,6 +6,7 @@ import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContai
 import { Button, Card, CardHeader, Empty, Field, PageHeader, ProvenanceTag, Segmented, Switch, inputCls } from '../components/ui';
 import { api, qs } from '../lib/api';
 import { fmtDateShort, fmtDateTime, fmtNum } from '../lib/format';
+import { validRange } from '../lib/guards';
 
 // Paleta categórica validada (skill dataviz): orden fijo, nunca cíclico; definida por tema en index.css.
 const COLORS = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)', 'var(--series-4)'];
@@ -100,8 +101,12 @@ export function HistoryPage() {
   const [tick, setTick] = useState(0);
   const [view, setView] = useState<'chart' | 'table'>('chart');
 
+  // Un campo vacío no es una fecha: sin esta guarda, «Desde» vacío consultaría desde el año 2000 sin avisar.
+  const customValid = !!custom.from && !!custom.to && validRange(fromLocalInput(custom.from), fromLocalInput(custom.to));
   const range = useMemo(() => {
-    if (preset === 'custom') return { from: fromLocalInput(custom.from), to: fromLocalInput(custom.to) };
+    // Con fechas inválidas (vacías, año 275760, «desde» posterior a «hasta») se muestran las últimas 24 h y se avisa.
+    if (preset === 'custom' && custom.from && custom.to && validRange(fromLocalInput(custom.from), fromLocalInput(custom.to))) return { from: fromLocalInput(custom.from), to: fromLocalInput(custom.to) };
+    if (preset === 'custom') return { from: new Date(Date.now() - 24 * 3600_000), to: new Date() };
     const to = new Date();
     return { from: new Date(to.getTime() - Number(preset) * 3600_000), to };
   }, [preset, custom, tick]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -110,10 +115,10 @@ export function HistoryPage() {
     const ctrl = new AbortController();
     setError(null);
     const q = { from: range.from.toISOString(), to: range.to.toISOString() };
-    api<{ series: Serie[] }>(`/api/compare${qs({ ...q, series: picks.map((p) => `${p.d}.${p.v}`).join(','), points: 500 })}`, { signal: ctrl.signal })
+    api<{ series: Serie[] }>(`/api/compare${qs({ ...q, series: picks.map((p) => `${p.d}.${p.v}`).join(','), points: 500 })}`, { signal: ctrl.signal, expect: ['series'] })
       .then((r) => setSeries(r.series))
       .catch((e) => !ctrl.signal.aborted && setError((e as Error).message));
-    Promise.all(picks.map((p) => api<Stats>(`/api/stats/${p.d}/${p.v}${qs(q)}`, { signal: ctrl.signal }).then((s) => [`${p.d}.${p.v}`, s] as const)))
+    Promise.all(picks.map((p) => api<Stats>(`/api/stats/${p.d}/${p.v}${qs(q)}`, { signal: ctrl.signal, expect: 'object' }).then((s) => [`${p.d}.${p.v}`, s] as const)))
       .then((xs) => setStats(Object.fromEntries(xs)))
       .catch(() => {});
     return () => ctrl.abort();
@@ -161,12 +166,17 @@ export function HistoryPage() {
             </Field>
             {preset === 'custom' && (
               <div className="grid grid-cols-2 gap-2">
-                <Field label="Desde (hora local)">
+                <Field label="Desde (hora de Colombia)">
                   <input type="datetime-local" className={inputCls} value={custom.from} onChange={(e) => setCustom((c) => ({ ...c, from: e.target.value }))} />
                 </Field>
                 <Field label="Hasta">
                   <input type="datetime-local" className={inputCls} value={custom.to} onChange={(e) => setCustom((c) => ({ ...c, to: e.target.value }))} />
                 </Field>
+                {!customValid && (
+                  <p role="alert" className="col-span-2 text-[13px] text-warn">
+                    Fechas no válidas: «Desde» debe ser anterior a «Hasta» y ambas entre 2000 y 2100. Se muestran las últimas 24 h.
+                  </p>
+                )}
               </div>
             )}
             <div className="flex items-center justify-between gap-3 text-sm">
@@ -291,7 +301,7 @@ export function HistoryPage() {
 function IncidentAnalysis({ from, to }: { from: Date; to: Date }) {
   const [d, setD] = useState<{ byType: { type: string; n: number }[]; bySeverity: { severity: string; n: number }[]; byHour: { hour: number; n: number }[]; duration: { type: string; avg_min: number }[] } | null>(null);
   useEffect(() => {
-    api<typeof d>(`/api/incidents/stats${qs({ from: from.toISOString(), to: to.toISOString() })}`).then(setD).catch(() => {});
+    api<typeof d>(`/api/incidents/stats${qs({ from: from.toISOString(), to: to.toISOString() })}`, { expect: ['byType', 'bySeverity', 'byHour', 'duration'] }).then(setD).catch(() => {});
   }, [from, to]);
   const hours = Array.from({ length: 24 }, (_, h) => ({ hour: h, n: d?.byHour.find((x) => x.hour === h)?.n ?? 0 }));
   const total = d?.byType.reduce((a, b) => a + b.n, 0) ?? 0;
@@ -342,7 +352,7 @@ function IncidentAnalysis({ from, to }: { from: Date; to: Date }) {
 function CaptureEvidence({ from, to }: { from: Date; to: Date }) {
   const [d, setD] = useState<{ readings: Record<string, number>; availability: Record<string, number> } | null>(null);
   useEffect(() => {
-    api<typeof d>(`/api/capture${qs({ from: from.toISOString(), to: to.toISOString() })}`).then(setD).catch(() => {});
+    api<typeof d>(`/api/capture${qs({ from: from.toISOString(), to: to.toISOString() })}`, { expect: ['readings', 'availability'] }).then(setD).catch(() => {});
   }, [from, to]);
   return (
     <Card>

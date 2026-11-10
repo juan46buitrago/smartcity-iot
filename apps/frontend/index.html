@@ -9,7 +9,10 @@
     <title>Smart City Bucaramanga</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Visible mientras descarga la aplicación (redes lentas); React lo reemplaza al arrancar. -->
+      <p style="margin:0;min-height:100vh;display:grid;place-items:center;background:#0f1513;color:#9fb3ab;font:600 15px system-ui,sans-serif">Cargando Smart City Bucaramanga…</p>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

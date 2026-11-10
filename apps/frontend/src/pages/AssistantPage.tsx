@@ -5,7 +5,7 @@ import { AGENT_ICON, AssistantChat } from '../components/AssistantChat';
 import { Nodo } from '../components/Nodo';
 import { Button, Card, CardHeader, Empty, PageHeader, ProvenanceTag, cx, inputCls } from '../components/ui';
 import { api } from '../lib/api';
-import { useAssistant } from '../lib/assistant';
+import { AI_TIMEOUT_MS, useAssistant } from '../lib/assistant';
 import { useAuth } from '../lib/auth';
 import { fmtDateTime, fmtNum } from '../lib/format';
 import { useToast } from '../lib/toast';
@@ -38,14 +38,14 @@ function AnalysisPanel({ enabled }: { enabled: boolean }) {
   const [busy, setBusy] = useState<DeviceId | null>(null);
   const [device, setDevice] = useState<DeviceId>('DEV01');
 
-  const load = useCallback(() => api<AiAnalysis[]>('/api/ai/analysis').then(setItems).catch(() => setItems([])), []);
+  const load = useCallback(() => api<AiAnalysis[]>('/api/ai/analysis', { expect: 'array' }).then(setItems).catch(() => setItems([])), []);
   useEffect(() => void load(), [load]);
 
   async function generate() {
     if (!token) return requestLogin();
     setBusy(device);
     try {
-      await api(`/api/ai/analysis/${device}`, { body: { hours: 144 }, auth: true });
+      await api(`/api/ai/analysis/${device}`, { body: { hours: 144 }, auth: true, timeoutMs: AI_TIMEOUT_MS });
       await load();
       toast({ tone: 'ok', title: `Análisis de ${device} generado` });
     } catch (err) {
@@ -142,7 +142,7 @@ export function AssistantPage() {
         subtitle="Pregunta en lenguaje natural por los datos de la ciudad. Elige un agente experto o deja que el general escoja el tema; los cálculos se hacen sobre InfluxDB, no en el modelo. También lo tienes en el botón «Pregúntale a Nodo» de cualquier página."
         action={<Nodo mood="happy" size={112} />}
       />
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
         <Card className="flex h-[calc(100dvh-14rem)] min-h-[520px] flex-col overflow-hidden">
           <AssistantChat variant="page" />
         </Card>

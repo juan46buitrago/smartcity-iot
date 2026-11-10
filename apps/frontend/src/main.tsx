@@ -9,6 +9,7 @@ import { AssistantProvider } from './lib/assistant';
 import { AuthProvider } from './lib/auth';
 import { LiveProvider } from './lib/live';
 import { ToastProvider } from './lib/toast';
+import { AboutPage } from './pages/AboutPage';
 import { AlertsPage } from './pages/AlertsPage';
 import { Dashboard } from './pages/Dashboard';
 import { DeviceDetail, DevicesPage } from './pages/DevicesPage';
@@ -48,6 +49,10 @@ createRoot(document.getElementById('root')!).render(
                   <Route path="/alertas" element={<AlertsPage />} />
                   <Route path="/asistente" element={<AssistantPage />} />
                   <Route path="/configuracion" element={<SettingsPage />} />
+                  <Route path="/acerca" element={<AboutPage />} />
+                  <Route path="/privacidad" element={<AboutPage />} />
+                  <Route path="/terminos" element={<AboutPage />} />
+                  <Route path="/contacto" element={<AboutPage />} />
                   <Route path="*" element={<div className="flex items-center gap-4"><Nodo mood="thinking" size={72} /><p className="text-sm text-ink-3">Esa calle no está en el mapa. <Link to="/" className="font-semibold text-accent underline">Volver al panel</Link></p></div>} />
                 </Routes>
               </Suspense>

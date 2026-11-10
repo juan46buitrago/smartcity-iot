@@ -31,7 +31,7 @@ export function DevicesPage() {
       <PageHeader
         code="02 · Red IoT"
         title="Dispositivos"
-        subtitle="Doce nodos identificables: simulados, gemelos digitales, APIs, un dataset y un ESP32. Cada uno es un cliente MQTT independiente con credencial propia, último testamento (LWT) y control remoto con confirmación."
+        subtitle="Doce nodos identificables: simulados, gemelos digitales, APIs, un dataset y un ESP32. Cada uno es un cliente MQTT independiente con credencial propia, aviso automático si se desconecta y control remoto con confirmación."
         action={<Segmented ariaLabel="Categoría" value={cat} onChange={setCat} options={[{ value: 'todas', label: 'Todos' }, ...Object.entries(CATEGORY_LABEL).map(([value, label]) => ({ value, label }))]} />}
       />
 
@@ -120,7 +120,7 @@ function MiniHistory({ d }: { d: DeviceView }) {
     if (!variable) return;
     const ctrl = new AbortController();
     const from = new Date(Date.now() - Number(hours) * 3600_000).toISOString();
-    api<{ points: { t: string; v: number }[] }>(`/api/history/${d.id}/${variable}?from=${encodeURIComponent(from)}&points=300`, { signal: ctrl.signal })
+    api<{ points: { t: string; v: number }[] }>(`/api/history/${d.id}/${variable}?from=${encodeURIComponent(from)}&points=300`, { signal: ctrl.signal, expect: ['points'] })
       .then((r) => setData(r.points.map((p) => ({ t: Date.parse(p.t), v: p.v }))))
       .catch(() => {});
     return () => ctrl.abort();
@@ -169,7 +169,7 @@ function CommandLog({ id }: { id: string }) {
   const { lastCommand } = useLive();
   const [rows, setRows] = useState<CommandRecord[]>([]);
   useEffect(() => {
-    api<CommandRecord[]>(`/api/devices/${id}/commands?limit=15`).then(setRows).catch(() => {});
+    api<CommandRecord[]>(`/api/devices/${id}/commands?limit=15`, { expect: 'array' }).then(setRows).catch(() => {});
   }, [id, lastCommand?.command_id, lastCommand?.status]);
   const tone = { confirmed: 'ok', rejected: 'crit', timeout: 'warn', pending: 'info' } as const;
   const label = { confirmed: 'Confirmada', rejected: 'Rechazada', timeout: 'Sin respuesta', pending: 'Pendiente' };
@@ -215,9 +215,11 @@ function CommandLog({ id }: { id: string }) {
 
 export function DeviceDetail() {
   const { id = '' } = useParams();
-  const { devices, loaded } = useLive();
+  const { devices, loaded, loadError } = useLive();
   const d = devices[id.toUpperCase()];
-  if (!d) return loaded ? <Empty title="Dispositivo no encontrado" /> : <p className="text-sm text-ink-3">Cargando…</p>;
+  if (!d && loaded) return <Empty title="Dispositivo no encontrado" />;
+  if (!d && loadError) return <p role="alert" className="text-sm text-warn">No se pudieron cargar los dispositivos. {loadError} La página reintenta sola al recuperar la conexión.</p>;
+  if (!d) return <p className="text-sm text-ink-3">Cargando…</p>;
 
   const st = deviceState(d);
   const t = d.live.telemetry;

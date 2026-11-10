@@ -1,5 +1,11 @@
 /** Formatos en español de Colombia y hora de Bucaramanga (America/Bogota). */
 export const TZ = 'America/Bogota';
+
+/** Saludo según la hora de Bucaramanga, no la del navegador (el reloj del sitio también va en hora de Colombia). */
+export function greetingCO(now = new Date()): string {
+  const h = Number(now.toLocaleString('en-US', { timeZone: TZ, hour: 'numeric', hour12: false })) % 24;
+  return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+}
 const LOCALE = 'es-CO';
 
 export function fmtNum(v: unknown, decimals = 1): string {

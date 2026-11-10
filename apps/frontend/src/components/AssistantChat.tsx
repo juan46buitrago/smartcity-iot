@@ -5,6 +5,7 @@
 import { ArrowUp, Bot, Check, Lock, CloudSun, Droplets, Lamp, LayoutGrid, RotateCcw, ShieldAlert, Trash2, Wind, Car, type LucideIcon } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { greetingCO } from '../lib/format';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useToast } from '../lib/toast';
@@ -83,7 +84,7 @@ function ProposalCard({ proposal }: { proposal: NonNullable<AiChatResponse['prop
     }
     setState('sending');
     try {
-      const rec = await api<CommandRecord>(`/api/devices/${proposal.device_id}/commands`, { body: { action: proposal.action, params: proposal.params }, auth: true });
+      const rec = await api<CommandRecord>(`/api/devices/${proposal.device_id}/commands`, { body: { action: proposal.action, params: proposal.params }, auth: true, expect: ['status'] });
       if (rec.status === 'confirmed') toast({ tone: 'ok', title: `${proposal.device_id}: ${proposal.summary}`, detail: 'Confirmado por el dispositivo' });
       else if (rec.status === 'rejected') toast({ tone: 'error', title: `${proposal.device_id} rechazó la orden`, detail: rec.error ?? undefined });
       else toast({ tone: 'error', title: `${proposal.device_id} no respondió`, detail: 'Sin confirmación en 10 s' });
@@ -171,10 +172,7 @@ function Message({ m, compact, onNavigate, onRetry }: { m: ChatMsg; compact?: bo
   );
 }
 
-function saludo(): string {
-  const h = new Date().getHours();
-  return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
-}
+const saludo = () => greetingCO();
 
 export function AgentPicker({ compact }: { compact?: boolean }) {
   const { agents, agent, setAgent, busy } = useAssistant();
@@ -218,7 +216,7 @@ export function AssistantChat({ variant = 'panel', onNavigate }: { variant?: 'pa
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [msgs, busy]);
   useEffect(() => {
-    if (open || variant === 'page') inputRef.current?.focus();
+    if (open || variant === 'page') inputRef.current?.focus({ preventScroll: true });
   }, [open, variant]);
 
   const send = (text: string) => {
@@ -321,7 +319,13 @@ export function AssistantChat({ variant = 'panel', onNavigate }: { variant?: 'pa
             {!busy && <ArrowUp className="size-4" />}
           </Button>
         </div>
-        <p className="mt-1.5 px-1 text-[11px] text-ink-3">Entiende seguimientos como «¿y ayer?». Los cálculos se hacen sobre los datos, no en el modelo.</p>
+        <p className="mt-1.5 px-1 text-[11px] text-ink-3">
+          Tus preguntas se envían a un proveedor externo de IA: no escribas datos personales.{' '}
+          <Link to="/acerca" className="underline hover:text-ink">
+            Privacidad
+          </Link>
+        </p>
+        <p className="mt-0.5 px-1 text-[11px] text-ink-3">Entiende seguimientos como «¿y ayer?». Los cálculos se hacen sobre los datos, no en el modelo.</p>
       </form>
     </div>
   );

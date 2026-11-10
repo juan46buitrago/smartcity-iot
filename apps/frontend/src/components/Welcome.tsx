@@ -43,7 +43,8 @@ export function Welcome({ onClose }: { onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    ref.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus();
+    // Sin desplazar: en móvil el botón queda al final y el título y el cierre se perderían de vista.
+    ref.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus({ preventScroll: true });
     const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', k);
     return () => document.removeEventListener('keydown', k);

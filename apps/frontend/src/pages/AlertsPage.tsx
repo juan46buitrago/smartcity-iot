@@ -22,9 +22,16 @@ export function AlertsPage() {
   const [device, setDevice] = useState('');
   const [rows, setRows] = useState<AlertRow[] | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    api<AlertRow[]>(`/api/alerts${qs({ status: status === 'todas' ? undefined : status, device, limit: 300 })}`).then(setRows).catch(() => setRows([]));
+    api<AlertRow[]>(`/api/alerts${qs({ status: status === 'todas' ? undefined : status, device, limit: 300 })}`, { expect: 'array' })
+      .then((r) => {
+        setRows(r);
+        setLoadError(null);
+      })
+      // Un fallo no es «no hay alertas»: se avisa y se conserva la última lista conocida.
+      .catch((e) => setLoadError((e as Error).message));
   }, [status, device, liveAlerts]);
 
   const act = async (a: AlertRow, kind: 'ack' | 'resolve') => {
@@ -72,8 +79,13 @@ export function AlertsPage() {
         }
       />
       <Card>
+        {loadError && (
+          <p role="alert" className="border-b border-warn/40 bg-warn-soft px-5 py-3 text-sm text-warn">
+            No se pudo actualizar la lista de alertas. {loadError}
+          </p>
+        )}
         {rows === null ? (
-          <p className="px-5 py-8 text-sm text-ink-3">Cargando…</p>
+          <p className="px-5 py-8 text-sm text-ink-3">{loadError ? 'Sin datos por ahora.' : 'Cargando…'}</p>
         ) : rows.length === 0 ? (
           <Empty icon={<Nodo mood="happy" size={64} />} title="No hay alertas con este filtro">
             Todo tranquilo por aquí. Si algo se sale de rango, te aviso.

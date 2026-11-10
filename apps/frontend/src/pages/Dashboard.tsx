@@ -4,8 +4,8 @@ import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Nodo } from '../components/Nodo';
 import { Sparkline } from '../components/Sparkline';
-import { Card, STATE_LABEL, StatusDot, cx } from '../components/ui';
-import { aqiCategory, fmtNum, fmtTime, timeAgo, windDir } from '../lib/format';
+import { Card, ProvenanceTag, STATE_LABEL, StatusDot, cx } from '../components/ui';
+import { aqiCategory, fmtNum, fmtTime, greetingCO, timeAgo, windDir } from '../lib/format';
 import { useAssistant } from '../lib/assistant';
 import { isOnline, useLive } from '../lib/live';
 import { deviceState } from '../lib/state';
@@ -46,7 +46,7 @@ interface ReadoutProps {
 }
 
 function Readout({ device, variable, label, decimals = 1, children, index }: ReadoutProps) {
-  const { devices, spark } = useLive();
+  const { devices, spark, loaded } = useLive();
   const now = useNow();
   const d = devices[device];
   const t = d?.live.telemetry;
@@ -65,6 +65,7 @@ function Readout({ device, variable, label, decimals = 1, children, index }: Rea
           {label}
         </p>
         <span className="flex items-center gap-2">
+          {t && <ProvenanceTag synthetic={t.provenance.synthetic} compact />}
           <span className="code text-ink-3">{device}</span>
         </span>
       </div>
@@ -89,7 +90,7 @@ function Readout({ device, variable, label, decimals = 1, children, index }: Rea
       </div>
       <div className="mt-1.5 flex items-center justify-between gap-3 text-[13px] text-ink-2">
         <div className="min-w-0 flex-1">{children}</div>
-        <span className="shrink-0 text-xs text-ink-3">{t ? timeAgo(t.timestamp, now) : 'sin datos'}</span>
+        <span className="shrink-0 text-xs text-ink-3">{t ? timeAgo(t.timestamp, now) : loaded ? 'sin datos' : 'cargando…'}</span>
       </div>
     </Link>
   );
@@ -107,6 +108,9 @@ function Group({ code, title, children }: { code: string; title: string; childre
   );
 }
 
+const AQI_HELP =
+  'AQI: índice de calidad del aire (escala de la EPA, 0 a 500; más alto es peor). 0–50 buena · 51–100 moderada: aceptable, las personas muy sensibles deberían limitar el esfuerzo prolongado al aire libre · 101–150 dañina para grupos sensibles · más de 150 dañina para todos.';
+
 /** Escala AQI (EPA) con marcador: da contexto real a la cifra. */
 function AqiScale({ value }: { value: number }) {
   const max = 300;
@@ -114,9 +118,10 @@ function AqiScale({ value }: { value: number }) {
   const c = aqiCategory(value);
   const color = c.tone === 'ok' ? 'var(--accent)' : c.tone === 'warn' ? 'var(--warn)' : 'var(--crit)';
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3" title={AQI_HELP}>
       <span className="font-semibold" style={{ color }}>
         {c.label}
+        <span className="sr-only">. {AQI_HELP}</span>
       </span>
       <span className="relative h-1.5 min-w-24 flex-1 rounded-full bg-surface-3" aria-hidden>
         {stops.map((s) => (
@@ -142,13 +147,12 @@ function Bar({ pct, warnAt = 85, critAt = 95 }: { pct: number; warnAt?: number; 
 /* ------------------------------------------------------------------ */
 
 function greeting() {
-  const h = new Date().getHours();
-  return h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches';
+  return greetingCO();
 }
 
 export function Dashboard() {
   const assistant = useAssistant();
-  const { list, alerts, incidents, feed, devices } = useLive();
+  const { list, alerts, incidents, feed, devices, loaded } = useLive();
   const now = useNow(5000);
   const online = list.filter((d) => isOnline(d)).length;
   const open = alerts.filter((a) => a.status !== 'resuelta');
@@ -160,9 +164,9 @@ export function Dashboard() {
   const d = (id: DeviceId) => devices[id];
 
   const strip = [
-    { k: 'Nodos en línea', v: `${online}/${list.length || DEVICE_IDS.length}`, tone: online === list.length && list.length ? 'text-accent' : 'text-warn' },
-    { k: 'Alertas abiertas', v: String(open.length), tone: critical ? 'text-crit' : open.length ? 'text-warn' : 'text-ink', sub: critical ? `${critical} críticas` : undefined },
-    { k: 'Incidentes simulados', v: String(incidents.length), tone: 'text-ink', sub: 'activos' },
+    { k: 'Nodos en línea', v: loaded ? `${online}/${list.length || DEVICE_IDS.length}` : '…', tone: online === list.length && list.length ? 'text-accent' : 'text-warn' },
+    { k: 'Alertas abiertas', v: loaded ? String(open.length) : '…', tone: critical ? 'text-crit' : open.length ? 'text-warn' : 'text-ink', sub: critical ? `${critical} críticas` : undefined },
+    { k: 'Incidentes simulados', v: loaded ? String(incidents.length) : '…', tone: 'text-ink', sub: 'activos' },
     { k: 'Última lectura', v: lastUpdate ? fmtTime(lastUpdate, true) : '—', tone: 'text-ink', sub: lastUpdate ? timeAgo(lastUpdate, now) : undefined },
   ];
 

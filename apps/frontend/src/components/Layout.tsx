@@ -47,6 +47,41 @@ function Clock() {
   );
 }
 
+/** Se avisa solo si el corte dura unos segundos: una reconexión breve no debe interrumpir. */
+const DISCONNECTED_NOTICE_DELAY_MS = 6000;
+
+function ConnectionNotice({ connected }: { connected: boolean }) {
+  const [show, setShow] = useState(false);
+  // Si el propio navegador sabe que no hay red, se avisa al instante (el WebSocket puede tardar en notarlo).
+  const [offline, setOffline] = useState(() => typeof navigator !== 'undefined' && navigator.onLine === false);
+  useEffect(() => {
+    const on = () => setOffline(false);
+    const off = () => setOffline(true);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => {
+      window.removeEventListener('online', on);
+      window.removeEventListener('offline', off);
+    };
+  }, []);
+  useEffect(() => {
+    if (connected) {
+      setShow(false);
+      return;
+    }
+    const t = setTimeout(() => setShow(true), DISCONNECTED_NOTICE_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [connected]);
+  if (!show && !offline) return null;
+  return (
+    <div role="status" className="border-b border-warn/40 bg-warn-soft">
+      <p className="mx-auto max-w-[1680px] px-4 py-2 text-sm font-medium text-warn sm:px-6">
+        Sin conexión con el servidor. Lo que ves puede estar desactualizado; la página reintenta sola.
+      </p>
+    </div>
+  );
+}
+
 /** Marca: silueta de la meseta de Bucaramanga sobre una retícula de sensores. */
 function Wordmark() {
   return (
@@ -66,7 +101,7 @@ function Wordmark() {
 }
 
 export function Layout({ children }: { children: ReactNode }) {
-  const { ws, alerts, list } = useLive();
+  const { ws, alerts, list, loaded } = useLive();
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const assistant = useAssistant();
   const welcome = useWelcome();
@@ -83,7 +118,7 @@ export function Layout({ children }: { children: ReactNode }) {
     }
   }, [theme]);
 
-  const wsLabel = ws === 'open' ? 'En vivo' : ws === 'connecting' ? 'Conectando' : 'Sin enlace';
+  const wsLabel = ws === 'open' ? 'En vivo' : ws === 'connecting' ? 'Conectando' : 'Sin conexión';
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -117,14 +152,14 @@ export function Layout({ children }: { children: ReactNode }) {
                 <span className="label text-ink-2">{wsLabel}</span>
               </span>
               <span className="label text-ink-2" title="Dispositivos en línea">
-                <span className={cx('display text-[18px] font-bold', online === list.length && list.length ? 'text-accent' : 'text-warn')}>{online}</span>/{list.length || DEVICE_IDS.length} nodos
+                <span className={cx('display text-[18px] font-bold', online === list.length && list.length ? 'text-accent' : 'text-warn')}>{loaded ? online : '…'}</span>/{list.length || DEVICE_IDS.length} nodos
               </span>
             </div>
             <Clock />
             <div className="flex items-center gap-1.5">
               <button
                 onClick={welcome.show}
-                className="grid size-9 place-items-center rounded-[5px] text-ink-3 transition-colors hover:bg-surface-2 hover:text-ink"
+                className="grid size-11 place-items-center rounded-[5px] text-ink-3 transition-colors hover:bg-surface-2 hover:text-ink sm:size-9"
                 aria-label="¿Cómo se usa? Guía del sitio"
                 title="¿Cómo se usa?"
               >
@@ -132,7 +167,7 @@ export function Layout({ children }: { children: ReactNode }) {
               </button>
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="grid size-9 place-items-center rounded-[5px] text-ink-3 transition-colors hover:bg-surface-2 hover:text-ink"
+                className="grid size-11 place-items-center rounded-[5px] text-ink-3 transition-colors hover:bg-surface-2 hover:text-ink sm:size-9"
                 aria-label={theme === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
               >
                 {theme === 'dark' ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
@@ -142,10 +177,18 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
+      <ConnectionNotice connected={ws === 'open'} />
 
       {/* Con el asistente abierto en pantallas anchas, el contenido se corre para dejarlo al lado. */}
       <div className={cx('flex flex-1 flex-col transition-[padding] duration-200', assistant.open && 'xl:pr-[440px]')}>
-        <main className="mx-auto w-full max-w-[1680px] min-w-0 flex-1 px-4 pt-6 pb-28 sm:px-6 lg:pb-12">{children}</main>
+        {/* Altura mínima: mientras carga una vista, el pie no sube y luego salta (CLS). */}
+        <main className="mx-auto min-h-[calc(100dvh-4rem)] w-full max-w-[1680px] min-w-0 flex-1 px-4 pt-6 pb-6 sm:px-6">{children}</main>
+        <footer className="mx-auto w-full max-w-[1680px] px-4 pb-28 text-[12px] text-ink-3 sm:px-6 lg:pb-8">
+          Proyecto académico de la UNAB · no es un servicio oficial de la Alcaldía de Bucaramanga ·{' '}
+          <NavLink to="/acerca" className="underline hover:text-ink">
+            Acerca, privacidad y términos
+          </NavLink>
+        </footer>
       </div>
       <AssistantDrawer />
       {welcome.open && <Welcome onClose={welcome.close} />}
