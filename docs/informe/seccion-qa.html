@@ -63,6 +63,10 @@ fallaba en Linux y macOS) y la imagen de pruebas del backend no incluía las mue
 pantallas en blanco y los usuarios confirmaron en ejecución las correcciones de su lista (por ejemplo, el primer contenido en 3G pasó de
 8,1 s a 2,1 s y el desborde móvil de 418 a 375 px). Quedan pendientes: el resto de la jerga técnica, las zonas táctiles menores de 44 px y la
 carga diferida del módulo de gráficas.</p>
-<p class="warn">Limitación: la inyección de fallos de servidor se hizo en una réplica local idéntica y no en la VM, porque el sistema de
-permisos del agente bloqueó parar contenedores en producción. Las correcciones se verificaron en esa réplica; su despliegue en la VM
-queda pendiente de la aprobación del propietario.</p>
+<p>Las correcciones se dividieron en 9 commits atómicos (cada uno con tipos y pruebas en verde) y se <b>desplegaron en la VM el
+9 de noviembre de 2026 a las 19:24</b> (commit <code>5605faa</code>), tras una copia de seguridad y reiniciando solo backend, web,
+dispositivos y Grafana, sin hueco en la captura. En producción se verificó: 0 de 64 pantallas en blanco ante los fallos simulados,
+latido del WebSocket, ningún error de CSP, Grafana sin versión visible y cierre de sesión que anula el token (la misma petición pasa
+de 200 a 401).</p>
+<p class="warn">Limitación: la inyección de fallos de servidor (parar o congelar contenedores) se hizo en una réplica local idéntica
+y no en la VM, porque el sistema de permisos del agente lo bloqueó en producción. En la VM solo se simularon fallos dentro del navegador.</p>

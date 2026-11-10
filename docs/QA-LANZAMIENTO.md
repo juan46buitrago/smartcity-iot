@@ -1,7 +1,8 @@
 # SmartCityBGA — Simulación previa al lanzamiento (QA y resiliencia)
 
 > Fecha: 2026-11-09 · Sistema bajo prueba: **máquina virtual de Azure** `vm-smartcity-iot` (Standard B2as_v2, Ubuntu 24.04, 2 vCPU,
-> 7,7 GB), **IP pública 158.23.162.76**, publicada como **https://smartcitybga.duckdns.org** · commit base `15d9e4b`.
+> 7,7 GB), **IP pública 158.23.162.76**, publicada como **https://smartcitybga.duckdns.org** · commit base `15d9e4b` ·
+> **correcciones desplegadas en la VM el 2026-11-09 a las 19:24 COT (commit `5605faa`, rama `qa/lanzamiento`) y verificadas en producción** (§7.4).
 > Evidencia completa: [`docs/evidencias/qa-lanzamiento/`](evidencias/qa-lanzamiento/).
 
 ## 1. Objetivo, alcance y reglas
@@ -42,6 +43,10 @@ Reglas que se cumplieron durante toda la prueba:
 | 11:33–12:00 | Correcciones con pruebas primero (TDD) | §6 |
 | 11:51–17:30 | Usuarios simulados (los 4 de producción reanudados y el quinto en la réplica) | §4. Hubo dos cortes ajenos: el límite de uso de la cuenta del agente y una caída de red |
 | 17:30–18:40 | Regresión: los 5 usuarios y los fallos de navegador y de servidor sobre la réplica corregida | §7 |
+| 19:00–19:15 | Términos de uso, contacto y sesión de 12 h revocable; 9 commits atómicos, cada uno con tipos y pruebas en verde | §6 |
+| 19:23 | Copia de seguridad de la VM y **despliegue** (`deploy.sh backend web devices grafana`) | Producción sana con `5605faa` |
+| 19:25 | Controlador de DEV11 actualizado (copia del anterior en `~/dev11/vm/controller.py.bak-20261109`) | Servicio activo |
+| 19:26–19:40 | Verificación en producción | §7.4 |
 
 ## 3. Fase 1 — Arquitectura y resiliencia
 
@@ -105,7 +110,7 @@ Informes completos: `docs/evidencias/qa-lanzamiento/personas/*-informe.md`.
 | B-08 | Jerga sin explicar (AQI, LWT, MQTT, z-score, «twin», «bucket») | 2 (no nativo, impaciente) | 🟡 AQI y LWT corregidos; el resto pendiente |
 | B-09 | Sesión de operador: dura 30 días y no se revoca en el servidor; otra pestaña seguía operando tras cerrar sesión | 2 (escéptico, rompe) | ✅ Sesión de 12 h, token anulado en el servidor al cerrar sesión y pestañas sincronizadas |
 | B-10 | Zonas táctiles menores de 44 px y botón flotante de Nodo que tapa contenido | 2 (móvil, impaciente) | 🟡 Cabecera corregida; resto pendiente |
-| B-11 | Error de DEV11 que pide «mirar el log del controlador» | 2 (escéptico, no nativo) | ✅ Corregido (requiere redesplegar el controlador en la VM) |
+| B-11 | Error de DEV11 que pide «mirar el log del controlador» | 2 (escéptico, no nativo) | ✅ Corregido y desplegado en el controlador de la VM |
 | B-12 | Sin aviso cuando se pierde la conexión; un backend colgado congela la pantalla en silencio | 1 + F3/F4 | ✅ Corregido: latido cada 20 s, vigilante a 45 s y aviso inmediato si el navegador detecta que no hay red |
 | B-13 | Espera de 59 s ante un backend colgado y de 20 s ante InfluxDB colgado | F1/F4 | ✅ Límites por ruta en Nginx y en el cliente, y cortacircuitos de InfluxDB |
 | B-14 | Con el broker caído, la orden respondía «Error interno» y ocultaba el motivo | F5 | ✅ Corregido |
@@ -183,14 +188,30 @@ construyen con su etapa de pruebas en verde.
 | No nativo | NN-03, NN-05, NN-21 (NN-01, NN-09 y NN-10 en parte) | Jerga restante, horas sin zona, CSV en UTC, textos en inglés de Leaflet y de los modos |
 | Rompe cosas | R1, R2, R3, R4, R6, R7, R8, R10, R15 (R11 en parte); R5 (revocación del JWT) y R13 corregidos después | R9, R12, R14 |
 
-El usuario móvil vio una vez la pantalla de error al volver la red tras un corte de 60 s (N2). Se repitió 3 veces con el mismo
-guion y **no se reprodujo** (0 pantallas de error, 0 errores de JavaScript). Queda abierto como no confirmado.
+El usuario móvil vio una vez la pantalla de error al volver la red tras un corte de 60 s (N2). Se repitió 6 veces con el mismo
+guion (3 antes y 3 después de las últimas correcciones) y **no se reprodujo** (0 pantallas de error, 0 errores de JavaScript). Queda
+abierto como no confirmado.
+
+### 7.4 Verificación en producción tras el despliegue (2026-11-09, 19:26–19:40 COT)
+
+| Comprobación | Resultado |
+|---|---|
+| `/api/health` y dispositivos | `ok` (MQTT, InfluxDB, SQLite); 11/12 en línea (DEV11 se enciende bajo demanda) |
+| Fallos simulados en el navegador contra producción (64 combinaciones) | **0 pantallas en blanco** (antes 20), 0 errores de JavaScript |
+| Latido del WebSocket | Recibido en los primeros 26 s |
+| Error de CSP de la fuente | 0 (antes en cada página) |
+| Panel | 9 etiquetas SIM/REAL; pie «Proyecto académico de la UNAB» |
+| /terminos y /contacto | Página con términos de uso y contacto del equipo |
+| Grafana sin sesión | `hideVersion: true`, versión vacía |
+| Sesión de operador | Inicio con la clave del propietario → expira en 12 h; `/api/auth/me` 200 → `logout` 204 → mismo token **401** |
+
+Nota: con el despliegue, las sesiones de operador abiertas antes (tokens sin identificador) dejaron de valer; basta con volver a
+iniciar sesión.
 
 ## 8. Pendientes y riesgos
 
 | # | Pendiente | Quién |
 |---|---|---|
-| 1 | **Desplegar estas correcciones en la VM** (`bash infra/scripts/deploy.sh backend web devices grafana`) y reiniciar el controlador de DEV11 (`systemctl restart dev11-controller`) tras copiar `controller.py` | Propietario (requiere su aprobación) |
-| 2 | Restringir de nuevo la regla `SSH_ANY` del NSG a la IP del propietario (ya figuraba en `DESPLIEGUE.md`) | Propietario |
-| 3 | Backlog 🟡 de §5 (jerga, zonas táctiles, fragmento de gráficas, bienvenida en enlaces directos, mensajes en inglés de Fastify y zod) | Equipo |
-| 4 | Volver a ejecutar en producción los fallos de navegador (`route_faults.mjs`) tras el despliegue | Equipo |
+| 1 | Restringir la regla `SSH_ANY` del NSG a la IP del propietario. No se hizo porque esta máquina no tiene Azure CLI. Comando: `az network nsg rule update -g rg-smartcity-iot --nsg-name vm-smartcity-iot-nsg -n SSH_ANY --source-address-prefixes <su IP>/32` | Propietario |
+| 2 | Backlog 🟡 de §5 (jerga, zonas táctiles, fragmento de gráficas, bienvenida en enlaces directos, mensajes en inglés de Fastify y zod) | Equipo |
+| 3 | Integrar la rama `qa/lanzamiento` en `main` (`git switch main && git merge --ff-only qa/lanzamiento`) para que el próximo despliegue desde `main` no revierta estas correcciones | Equipo |

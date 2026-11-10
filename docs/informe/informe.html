@@ -365,7 +365,81 @@ en <code>docs/BITACORA.md</code> (p. ej. ≈ 24 s el 08/11). No se generan datos
 Internet: anónimo y clave incorrecta rechazados, conexión TLS aceptada, orden desde la API confirmada en 466 ms. Copias de seguridad diarias de InfluxDB
 y SQLite con rotación de 7 días. Documentación completa en el repositorio (<code>README.md</code>, <code>docs/</code>).</p>
 
-<h2>9. Referencias</h2>
+<h2 class="pb">9. Simulación previa al lanzamiento: resiliencia y experiencia de usuario</h2>
+<p>Antes de abrir el sitio al público se simuló su lanzamiento sobre el sistema desplegado en la <b>máquina virtual de Azure
+<code>vm-smartcity-iot</code></b> (Standard B2as_v2, Ubuntu 24.04, <b>IP pública 158.23.162.76</b>, publicada como
+<code>smartcitybga.duckdns.org</code>). Se hizo en tres fases: (1) clasificación de la arquitectura e inyección de fallos,
+(2) cinco usuarios simulados por agentes de IA, cada uno con su propio navegador, y (3) backlog priorizado, correcciones y regresión.
+Producción no se interrumpió: en la VM solo se leyó, se navegó y se hizo una copia de seguridad previa. Los fallos de servidor y las
+entradas hostiles se lanzaron en una réplica local del mismo commit. El detalle y la evidencia están en
+<code>docs/QA-LANZAMIENTO.md</code> y <code>docs/evidencias/qa-lanzamiento/</code>.</p>
+
+<div class="kpi">
+  <div><b>20 → 0</b><span>pantallas en blanco ante 64 respuestas anómalas de la API</span></div>
+  <div><b>9 + 8</b><span>fallos inyectados (servidor y red)</span></div>
+  <div><b>94</b><span>hallazgos de 5 usuarios simulados</span></div>
+  <div><b>193</b><span>pruebas unitarias en verde (73 nuevas)</span></div>
+</div>
+
+<h3>9.1 Arquitectura y comportamiento ante fallos</h3>
+<p>La arquitectura es <b>distribuida en los bordes y monolítica en el núcleo</b>. La ingesta (dispositivos → MQTT → Node-RED → InfluxDB)
+está desacoplada por el broker: QoS 1, sesiones persistentes, cola persistente en Node-RED y almacenamiento y reenvío en los
+dispositivos. Por eso las caídas del broker y de Node-RED no perdieron datos. Grafana, Node-RED, la IA y las APIs externas fallaron de
+forma aislada. El backend (REST, WebSocket, puente MQTT, alertas, IA y SQLite en un proceso) es el único punto de fallo de la interfaz,
+aunque no de la captura.</p>
+<table>
+<tr><th>Fallo inyectado</th><th>Antes</th><th>Después</th></tr>
+<tr><td>InfluxDB colgado o caído</td><td>Histórico: 500 «Error interno» tras 19,8 s en cada petición</td><td>503 «El histórico no está disponible…»; tras el primer fallo responde en 2–5 ms (cortacircuitos); lo en vivo y las órdenes siguen</td></tr>
+<tr><td>Backend caído</td><td>504 a los 4,9 s; ceros en el panel y «Error 502»</td><td>Mensaje en español a los 2 s, «Sin conexión» en la cabecera y aviso de reintento</td></tr>
+<tr><td>Backend colgado</td><td>59 s por petición; pantalla congelada sin aviso</td><td>29,5 s con mensaje claro y aviso «Sin conexión con el servidor»</td></tr>
+<tr><td>Broker MQTT caído 30 s</td><td>Sin pérdida de datos; la orden decía «Error interno»</td><td>Sin pérdida de datos (hueco ≤ 10 s); la orden explica que el broker no está conectado</td></tr>
+<tr><td>Node-RED o Grafana caídos</td><td>Página técnica 502 de Nginx; resto intacto</td><td>Página propia en español; resto intacto</td></tr>
+<tr><td>IA o APIs externas caídas</td><td>Aislado, con mensaje claro</td><td>Sin cambios (ya era correcto)</td></tr>
+<tr><td>Corte de red de 60 s en móvil</td><td>Aviso a los 51–59 s</td><td>Aviso a los 4 s; recuperación sin errores</td></tr>
+</table>
+
+<h3>9.2 Usuarios simulados</h3>
+<table>
+<tr><th>Persona</th><th>Resultado del primer recorrido</th><th>Hallazgos</th></tr>
+<tr><td>Impaciente</td><td>Primer dato en vivo a los 3,4 s; abandonó en Histórico por un «Rate limit exceeded» en inglés</td><td>12</td></tr>
+<tr><td>Escéptico</td><td>Confianza condicionada: TLS, HSTS, CSP y sin rastreadores, pero sin operador identificado ni privacidad, y datos sintéticos sin etiqueta en el panel</td><td>16</td></tr>
+<tr><td>Móvil 375 px con 3G</td><td>8,1 s de pantalla en blanco; el asistente desbordaba y la bienvenida se abría desplazada</td><td>16</td></tr>
+<tr><td>Hablante no nativo</td><td>Encuentra «53 AQI · Moderada» pero nada explica qué significa; jerga y horas sin zona</td><td>35</td></tr>
+<tr><td>Rompe cosas (réplica)</td><td>Ningún XSS ejecutado; doble clic enviaba 2 órdenes; fecha extrema o sesión corrupta dejaban la app en negro; 3 errores 500 por parámetros</td><td>15</td></tr>
+</table>
+
+<h3>9.3 Correcciones principales</h3>
+<ul>
+<li><b>Degradación controlada:</b> barrera de error global y por ruta; validación de la forma de cada respuesta; mensajes en español
+según el tipo de fallo; un reintento automático de las lecturas (nunca de las escrituras); y tiempos límite en el cliente (25 s) y en Nginx (30 s, frente a 60 s antes).</li>
+<li><b>Cortacircuitos de InfluxDB:</b> tras 3 fallos seguidos el histórico responde al instante «no disponible» durante 15 s, en vez
+de esperar 20 s por petición. Los datos en vivo y las órdenes no se ven afectados.</li>
+<li><b>Detección de enlace congelado:</b> el backend envía un latido cada 20 s por el WebSocket y el navegador reconecta si pasan 45 s sin
+mensajes; el aviso «Sin conexión con el servidor» aparece a los 6 s de corte, o al instante si el navegador sabe que no hay red.</li>
+<li><b>Entradas:</b> guarda contra el doble envío, <code>limit</code> y <code>series</code> validados (sin errores 500) y fechas o
+sesiones corruptas descartadas.</li>
+<li><b>Confianza y claridad:</b> etiqueta SIM/REAL en el panel, explicación del AQI, página «Acerca, privacidad y términos» con contacto del
+equipo, aviso de que las preguntas van a un proveedor externo de IA, Grafana sin versión visible y saludo en hora de Colombia.</li>
+<li><b>Sesión de operador:</b> dura 12 h (antes 30 días) y al cerrar sesión el token queda anulado también en el servidor.</li>
+<li><b>Instalación y pruebas:</b> el script que crea el bucket <code>agg_5m</code> no era ejecutable en Git (la instalación limpia
+fallaba en Linux y macOS) y la imagen de pruebas del backend no incluía las muestras del firmware.</li>
+</ul>
+
+<h3>9.4 Regresión y pendientes</h3>
+<p>Sobre la versión corregida se repitieron los fallos y los cinco recorridos. Los fallos de navegador pasaron de 20 a <b>0</b>
+pantallas en blanco y los usuarios confirmaron en ejecución las correcciones de su lista (por ejemplo, el primer contenido en 3G pasó de
+8,1 s a 2,1 s y el desborde móvil de 418 a 375 px). Quedan pendientes: el resto de la jerga técnica, las zonas táctiles menores de 44 px y la
+carga diferida del módulo de gráficas.</p>
+<p>Las correcciones se dividieron en 9 commits atómicos (cada uno con tipos y pruebas en verde) y se <b>desplegaron en la VM el
+9 de noviembre de 2026 a las 19:24</b> (commit <code>5605faa</code>), tras una copia de seguridad y reiniciando solo backend, web,
+dispositivos y Grafana, sin hueco en la captura. En producción se verificó: 0 de 64 pantallas en blanco ante los fallos simulados,
+latido del WebSocket, ningún error de CSP, Grafana sin versión visible y cierre de sesión que anula el token (la misma petición pasa
+de 200 a 401).</p>
+<p class="warn">Limitación: la inyección de fallos de servidor (parar o congelar contenedores) se hizo en una réplica local idéntica
+y no en la VM, porque el sistema de permisos del agente lo bloqueó en producción. En la VM solo se simularon fallos dentro del navegador.</p>
+
+
+<h2>10. Referencias</h2>
 <ol class="refs">
 <li>OASIS. <i>MQTT Version 3.1.1</i> (2014) y <i>MQTT Version 5.0</i> (2019). https://mqtt.org/mqtt-specification/</li>
 <li>Eclipse Foundation. <i>Eclipse Mosquitto — documentación</i>. https://mosquitto.org/documentation/</li>

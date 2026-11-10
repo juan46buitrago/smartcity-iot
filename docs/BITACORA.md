@@ -244,4 +244,8 @@ backend (la captura sigue por Node-RED → InfluxDB) y la web: **sin hueco de ca
   página; faltaba identificar al operador, la privacidad y los términos; la sesión de operador duraba 30 días sin revocación; la instalación limpia fallaba en Linux/macOS (script de InfluxDB sin permiso
   de ejecución) y la imagen de pruebas del backend fallaba (faltaban las muestras del firmware).
 - **Verificación:** 193 pruebas unitarias en verde (73 nuevas), regresión de los 5 usuarios y de los fallos sobre la réplica corregida:
-  0 de 64 pantallas en blanco. **No desplegado todavía en la VM** (pendiente de aprobación del propietario).
+  0 de 64 pantallas en blanco. Además: términos de uso y contacto en /acerca y sesión de operador de 12 h revocable al cerrar sesión.
+- **Commits:** 9 atómicos en la rama `qa/lanzamiento` (`58af4d2`…`5605faa`), cada uno con tipos y pruebas en verde.
+- **Despliegue:** 2026-11-09 19:24 COT, `deploy.sh backend web devices grafana` tras una copia de seguridad; controlador de DEV11
+  actualizado. Verificado en producción: 0 de 64 pantallas en blanco, latido del WebSocket, 0 errores de CSP, Grafana sin versión y
+  logout que anula el token (401). Solo se reiniciaron backend, web, devices y grafana: la ingesta siguió por Node-RED.

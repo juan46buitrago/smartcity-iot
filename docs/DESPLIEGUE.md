@@ -112,3 +112,12 @@ El ESP32 DEV11 (Wokwi CLI) no corre todo el tiempo: se enciende desde `/disposit
 | 3 | Guardar las credenciales de producción en un gestor y retirar `.local-credentials.txt` de la VM | Propietario |
 | 4 | ~~Copias de seguridad~~ → **hecho 2026-11-08**: `backup.sh` diario por cron (03:15 COT), 7 días | — |
 | 5 | Observaciones O1–O6 de `PRUEBAS.md` (healthcheck de `devices`, cifrado de credenciales de Node-RED…) | Etapa 5 |
+| 6 | Regla `SSH_ANY` del NSG abierta a cualquier origen: restringir a /32 (`az network nsg rule update -g rg-smartcity-iot --nsg-name vm-smartcity-iot-nsg -n SSH_ANY --source-address-prefixes <IP>/32`) | Propietario |
+
+## 7. Despliegue de la simulación previa al lanzamiento (2026-11-09)
+
+19:24 COT, commit `5605faa` (rama `qa/lanzamiento`): `bash infra/scripts/deploy.sh backend web devices grafana`, tras `backup.sh`.
+El controlador de DEV11 se actualizó a mano (`~/dev11/vm/controller.py`, copia del anterior en `controller.py.bak-20261109`) y se
+reinició `dev11-controller`. Cambios visibles en operación: la sesión de operador dura 12 h y `POST /api/auth/logout` la anula
+(las sesiones abiertas antes del despliegue hay que reabrirlas); Nginx corta las peticiones a la API a los 30 s (IA 65 s).
+Detalle y verificación: [`QA-LANZAMIENTO.md`](QA-LANZAMIENTO.md) §7.4.
