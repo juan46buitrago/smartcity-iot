@@ -199,6 +199,8 @@ services:
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
+      # No revela la versión exacta de Grafana a quien no ha iniciado sesión.
+      GF_AUTH_ANONYMOUS_HIDE_VERSION: "true"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
       GF_SECURITY_COOKIE_SAMESITE: strict
