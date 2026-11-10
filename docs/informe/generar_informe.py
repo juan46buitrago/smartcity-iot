@@ -101,7 +101,8 @@ def collect(frm: datetime, to: datetime) -> dict:
     hourly = {}
     for key in ["DEV03.noise_db", "DEV05.vehicles_per_min", "DEV01.temperature", "DEV08.occupancy_pct"]:
         dev, var = key.split(".")
-        hourly[key] = get(f"/api/history/{dev}/{var}", **{"from": iso(frm), "to": iso(to), "points": max(24, int((to - frm).total_seconds() // 3600))})
+        # Una hora de margen: con floor(horas) cada intervalo pasaba de 3600 s y el backend agrupaba de a 2 h (barras vacías).
+        hourly[key] = get(f"/api/history/{dev}/{var}", **{"from": iso(frm), "to": iso(to), "points": max(24, int((to - frm).total_seconds() // 3600) + 2)})
     smoke_file = ROOT / "docs/evidencias/ia/enrutador-2026-11-08.json"
     return {
         "frm": frm, "to": to, "catalog": catalog, "capture": capture, "stats": stats, "history": history, "hourly": hourly,
@@ -124,8 +125,10 @@ def _times(points):
 def _fmt_time_axis(ax, t: list[datetime]):
     """Marcas explícitas según el lapso REAL de los datos (las automáticas se encimaban en gráficas angostas)."""
     span_h = (t[-1] - t[0]).total_seconds() / 3600 if len(t) > 1 else 1
-    if span_h >= 72:
+    if span_h >= 40:
+        # Desde ~2 días, una etiqueta por día (con marca menor a las 12 h): «dd/mm 12h» se encimaba en gráficas angostas.
         loc, fmt = mdates.DayLocator(tz=BOGOTA), "%d/%m"
+        ax.xaxis.set_minor_locator(mdates.HourLocator(byhour=[12], tz=BOGOTA))
     elif span_h >= 20:
         loc, fmt = mdates.HourLocator(byhour=[0, 12], tz=BOGOTA), "%d/%m %Hh"
     elif span_h >= 3:
@@ -209,13 +212,23 @@ def comparison_figure(data: dict) -> str | None:
     keys = [(k, lab) for k, lab in keys if data["history"].get(k, {}).get("points")]
     if len(keys) < 2:
         return None
-    fig, ax = plt.subplots(figsize=(7.2, 2.8))
+    fig, ax = plt.subplots(figsize=(7.2, 3.0))
+    ends = []
     for i, (k, lab) in enumerate(keys):
         t, v = _times(data["history"][k]["points"])
         ax.plot(t, v, color=SERIES[i], linewidth=1.5, label=lab)
-        ax.annotate(lab.split(" ")[0], xy=(t[-1], v[-1]), xytext=(4, 0), textcoords="offset points", fontsize=7, color=INK2, va="center")
+        ends.append([v[-1], t[-1], lab.split(" ")[0], SERIES[i]])
+    # Etiquetas al final de cada línea, separadas si sus valores finales están cerca (antes se encimaban).
+    lo, hi = ax.get_ylim()
+    gap = (hi - lo) * 0.07
+    ends.sort(key=lambda e: e[0])
+    for j in range(1, len(ends)):
+        ends[j][0] = max(ends[j][0], ends[j - 1][0] + gap)
+    for y, t_end, name, color in ends:
+        ax.annotate(name, xy=(t_end, y), xytext=(4, 0), textcoords="offset points", fontsize=7, color=color, va="center", fontweight="bold")
     ax.set_title("Temperatura (°C): fuentes comparadas", loc="left")
-    ax.legend(loc="upper left", fontsize=7, ncol=3)
+    # Leyenda bajo el gráfico: dentro tapaba los picos de la tarde.
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.14), fontsize=7, ncol=3, frameon=False)
     _fmt_time_axis(ax, _times(data["history"][keys[0][0]]["points"])[0])
     fig.tight_layout()
     out = FIG / "comparacion-temperatura.png"
@@ -229,7 +242,8 @@ def incidents_figure(data: dict) -> str | None:
     if not rows:
         return None
     fig, ax = plt.subplots(figsize=(7.2, 1.9))
-    ax.barh([r["type"].replace("_", " ") for r in rows][::-1], [r["n"] for r in rows][::-1], color=SERIES[0], height=0.6)
+    names = {"accidente": "Accidente", "vehiculo_averiado": "Vehículo averiado", "cierre_parcial": "Cierre parcial", "congestion": "Congestión"}
+    ax.barh([names.get(r["type"], r["type"].replace("_", " ")) for r in rows][::-1], [r["n"] for r in rows][::-1], color=SERIES[0], height=0.6)
     for i, r in enumerate(rows[::-1]):
         ax.annotate(str(r["n"]), xy=(r["n"], i), xytext=(3, 0), textcoords="offset points", va="center", fontsize=8, color=INK2)
     ax.set_title("Incidentes viales simulados por tipo (DEV04, sintético)", loc="left")
@@ -426,7 +440,7 @@ def build_html(data: dict, figs: dict, shots: dict, preliminary: bool) -> str:
     return f"""<!doctype html><html lang="es"><head><meta charset="utf-8"><title>SmartCityBGA — Informe del proyecto IoT</title>
 <style>
 @page {{ size: A4; margin: 16mm 15mm 18mm; }}
-body {{ font-family: "Segoe UI", "DejaVu Sans", Arial, sans-serif; color: {INK}; font-size: 10.2pt; line-height: 1.45; background: #fff; }}
+body {{ font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "DejaVu Sans", Arial, sans-serif; color: {INK}; font-size: 10.2pt; line-height: 1.45; background: #fff; }}
 h1 {{ font-size: 26pt; margin: 0 0 4px; letter-spacing: .01em; }} h2 {{ font-size: 15pt; border-bottom: 3px solid {UNAB}; padding-bottom: 3px; margin: 22px 0 10px; break-after: avoid; }}
 h3 {{ font-size: 11.5pt; margin: 14px 0 4px; break-after: avoid; }} p {{ margin: 6px 0; }}
 table {{ border-collapse: collapse; width: 100%; font-size: 8.4pt; margin: 8px 0; }} th, td {{ border-bottom: 1px solid {GRID}; padding: 3px 5px; text-align: left; vertical-align: top; }}
@@ -445,7 +459,7 @@ tr {{ break-inside: avoid; }} img {{ width: 100%; }} figure {{ margin: 8px 0; br
 .ia {{ background: #f2f6fc; border-left: 3px solid #2a78d6; padding: 6px 9px; font-size: 9pt; margin-top: 4px; }}
 .kpi {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0; }} .kpi div {{ border: 1px solid {GRID}; padding: 6px 8px; }}
 .kpi b {{ display: block; font-size: 15pt; }} .kpi span {{ font-size: 8pt; color: {INK2}; }}
-code {{ font-family: Consolas, monospace; font-size: 8.8pt; background: #f2f4f1; padding: 0 3px; }} pre {{ font-size: 8pt; background: #f2f4f1; padding: 6px; white-space: pre-wrap; }}
+code {{ font-family: Consolas, "SF Mono", Menlo, "DejaVu Sans Mono", monospace; font-size: 8.8pt; background: #f2f4f1; padding: 0 3px; }} pre {{ font-size: 8pt; background: #f2f4f1; padding: 6px; white-space: pre-wrap; }}
 .shots figure {{ display: inline-block; width: 49%; vertical-align: top; margin: 0 0 6px; }} .shots img {{ border: 1px solid {GRID}; }}
 .pb {{ break-before: page; }} ol.refs li {{ margin-bottom: 3px; font-size: 9pt; }}
 </style></head><body>
@@ -616,7 +630,7 @@ Mientras tanto DEV11 se ejecuta con la extensión de VS Code o un ESP32 físico.
 en <code>docs/BITACORA.md</code> (p. ej. ≈ 24 s el 08/11). No se generan datos retroactivos: el histórico es solo lo capturado en vivo.</p>
 
 <h2>8. Pruebas y operación</h2>
-<p>100 pruebas automatizadas (contrato, dispositivos, backend con asistente IA y control de DEV11, funciones de Node-RED) más 31 de integración contra el stack real
+<p>193 pruebas automatizadas (contrato, dispositivos, backend con asistente IA, control de DEV11, sesión y resiliencia, interfaz web y funciones de Node-RED) más 31 de integración contra el stack real
 (seguridad, ACL, control bidireccional, LWT, persistencia y recuperación); 8 defectos encontrados y corregidos. Prueba de punta a punta del ESP32 por
 Internet: anónimo y clave incorrecta rechazados, conexión TLS aceptada, orden desde la API confirmada en 466 ms. Copias de seguridad diarias de InfluxDB
 y SQLite con rotación de 7 días. Documentación completa en el repositorio (<code>README.md</code>, <code>docs/</code>).</p>
