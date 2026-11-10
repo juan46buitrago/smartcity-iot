@@ -68,6 +68,11 @@ CREATE TABLE IF NOT EXISTS incidents (
   updated_at   TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_incidents_state ON incidents(state, started_at DESC);
+-- Sesiones de operador cerradas: el token deja de valer aunque no haya vencido (exp en segundos Unix).
+CREATE TABLE IF NOT EXISTS revoked_tokens (
+  jti TEXT PRIMARY KEY,
+  exp INTEGER NOT NULL
+);
 `;
 
 export function openDb(file: string): Db {

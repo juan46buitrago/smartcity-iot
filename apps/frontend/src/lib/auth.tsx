@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api, configureApi } from './api';
 
 interface AuthState {
@@ -31,7 +31,7 @@ function expOf(token: string): number | null {
   }
 }
 
-/** La sesión se recuerda en este navegador hasta que vence el token (30 días). */
+/** La sesión se recuerda en este navegador hasta que vence el token (12 h) o se cierra. */
 function readSession(): Session | null {
   try {
     const raw = localStorage.getItem(KEY);
@@ -52,7 +52,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState(readSession);
   const [loginOpen, setLoginOpen] = useState(false);
 
-  const logout = useCallback(() => {
+  /** Olvida la sesión en este navegador (también tras un 401: el token ya no vale). */
+  const clearSession = useCallback(() => {
     setSession(null);
     try {
       localStorage.removeItem(KEY);
@@ -60,6 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       /* almacenamiento no disponible */
     }
   }, []);
+
+  /** Cierre de sesión del usuario: además anula el token en el servidor. Fetch directo para no disparar el manejo de 401. */
+  const tokenRef = useRef(session?.token ?? null);
+  tokenRef.current = session?.token ?? null;
+  const logout = useCallback(() => {
+    const token = tokenRef.current;
+    if (token) void fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+    clearSession();
+  }, [clearSession]);
 
   // Cerrar o abrir sesión en otra pestaña se refleja aquí: no queda una pestaña operando con una sesión cerrada.
   useEffect(() => {
@@ -74,11 +84,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     configureApi(
       () => session?.token ?? null,
       () => {
-        logout();
+        clearSession();
         setLoginOpen(true);
       },
     );
-  }, [session, logout]);
+  }, [session, clearSession]);
 
   const login = useCallback(async (password: string) => {
     const r = await api<{ token: string; user: string }>('/api/auth/login', { body: { password }, expect: ['token'] });

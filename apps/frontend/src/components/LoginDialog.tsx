@@ -4,7 +4,7 @@ import { Button, Field, inputCls } from './ui';
 
 /**
  * Panel de contraseña (no modal). Aparece solo cuando se intenta controlar algo sin sesión;
- * se cierra con Escape o clic fuera. La sesión se recuerda 30 días en este navegador.
+ * se cierra con Escape o clic fuera. La sesión se recuerda 12 horas en este navegador.
  */
 export function LoginPopover() {
   const { loginOpen, setLoginOpen, login } = useAuth();
@@ -52,7 +52,7 @@ export function LoginPopover() {
     <div ref={ref} role="dialog" aria-label="Desbloquear controles" className="panel rise fixed top-[76px] right-4 z-[1200] w-[min(calc(100vw-32px),340px)] p-5 shadow-[0_24px_60px_-24px_oklch(0_0_0/0.8)] sm:right-6">
       <p className="label">Controles protegidos</p>
       <p className="mt-1 text-[17px] font-semibold">Desbloquear controles</p>
-      <p className="mt-1 text-[13px] text-ink-3">Solo se pide una vez: este navegador recordará la sesión durante 30 días.</p>
+      <p className="mt-1 text-[13px] text-ink-3">Este navegador recordará la sesión durante 12 horas o hasta que la cierres.</p>
       <form onSubmit={submit} className="mt-4 space-y-3">
         {/* Ayuda a los gestores de contraseñas a asociar la clave a este sitio. */}
         <input type="text" autoComplete="username" value="smartcitybga" readOnly hidden />

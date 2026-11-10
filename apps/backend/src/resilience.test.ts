@@ -2,6 +2,7 @@ import { randomBytes, scryptSync } from 'node:crypto';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { buildApp, type AppDeps } from './app.js';
 import { CircuitBreaker, CircuitOpenError } from './circuitBreaker.js';
+import { openDb } from './db.js';
 import { loadEnv } from './env.js';
 import { HistoryUnavailableError, InfluxService } from './influx.js';
 import { CommandError } from './mqttBridge.js';
@@ -120,7 +121,7 @@ describe('errores de la API', { timeout: 30_000 }, () => {
     await app?.close();
     app = undefined;
   });
-  const build = async (deps: Partial<AppDeps>) => (app = await buildApp({ env, db: stub, live: stub, alerts: stub, bridge: stub, influx: stub, hub: stub, ...deps } as AppDeps));
+  const build = async (deps: Partial<AppDeps>) => (app = await buildApp({ env, db: openDb(':memory:'), live: stub, alerts: stub, bridge: stub, influx: stub, hub: stub, ...deps } as AppDeps));
 
   it('el histórico caído responde 503 con un mensaje útil', async () => {
     const a = await build({ influx: { series: () => Promise.reject(new HistoryUnavailableError()) } as never });
@@ -136,7 +137,7 @@ describe('errores de la API', { timeout: 30_000 }, () => {
     const res = await a.inject({
       method: 'POST',
       url: '/api/devices/DEV03/commands',
-      headers: { authorization: `Bearer ${a.jwt.sign({ sub: 'operador', role: 'operator' })}` },
+      headers: { authorization: `Bearer ${a.jwt.sign({ sub: 'operador', role: 'operator', jti: 'prueba' })}` },
       payload: { action: 'set_interval', params: { interval_s: 10 } },
     });
     expect(res.statusCode).toBe(503);

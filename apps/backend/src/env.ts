@@ -16,7 +16,8 @@ const EnvSchema = z.object({
   INFLUX_READ_TOKEN: z.string().min(10, 'INFLUX_READ_TOKEN es obligatorio'),
 
   JWT_SECRET: z.string().min(32, 'JWT_SECRET debe tener al menos 32 caracteres'),
-  JWT_TTL: z.string().default('30d'),
+  // Sesión de operador corta: si un token se filtra, deja de servir en horas (además se revoca al cerrar sesión).
+  JWT_TTL: z.string().default('12h'),
   ADMIN_USER: z.string().min(3).default('operador'),
   ADMIN_PASSWORD_HASH: z.string().regex(/^scrypt:\d+:\d+:\d+:[\w-]+:[\w-]+$/, 'ADMIN_PASSWORD_HASH con formato inválido'),
   CORS_ORIGIN: z.string().optional(),

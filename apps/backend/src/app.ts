@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 /**
  * Construcción de la aplicación Fastify: rutas REST, WebSocket, autenticación y límites.
  * Lectura pública (dashboard de solo lectura); órdenes y gestión de alertas exigen JWT.
@@ -23,8 +24,8 @@ import type { LiveState } from './state.js';
 
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    payload: { sub: string; role: 'operator' };
-    user: { sub: string; role: 'operator' };
+    payload: { sub: string; role: 'operator'; jti?: string };
+    user: { sub: string; role: 'operator'; jti?: string; exp?: number };
   }
 }
 
@@ -117,12 +118,15 @@ export async function buildApp(deps: AppDeps) {
     reply.status(status).send({ error: deliberate || status < 500 ? err.message : 'Error interno del servidor' });
   });
 
+  const isRevoked = db.prepare('SELECT 1 FROM revoked_tokens WHERE jti = ?');
   const requireOperator = async (req: FastifyRequest, reply: FastifyReply) => {
     try {
       await req.jwtVerify();
     } catch {
       return reply.status(401).send({ error: 'Se requiere iniciar sesión como operador' });
     }
+    // Sin identificador (tokens anteriores a la revocación) o con la sesión cerrada, el token ya no vale.
+    if (!req.user.jti || isRevoked.get(req.user.jti)) return reply.status(401).send({ error: 'La sesión se cerró; vuelve a iniciar sesión' });
   };
 
   /* ------------------------------ salud y autenticación ------------------------------ */
@@ -157,8 +161,17 @@ export async function buildApp(deps: AppDeps) {
       req.log.warn({ user: body.data.username }, 'Inicio de sesión fallido');
       return reply.status(401).send({ error: 'Credenciales inválidas' });
     }
-    const token = app.jwt.sign({ sub: env.ADMIN_USER, role: 'operator' });
+    const token = app.jwt.sign({ sub: env.ADMIN_USER, role: 'operator', jti: randomUUID() });
     return { token, user: env.ADMIN_USER, expires_in: env.JWT_TTL };
+  });
+
+  const revoke = db.prepare('INSERT OR IGNORE INTO revoked_tokens (jti, exp) VALUES (?, ?)');
+  const purgeRevoked = db.prepare('DELETE FROM revoked_tokens WHERE exp < ?');
+  app.post('/api/auth/logout', { preHandler: requireOperator }, async (req, reply) => {
+    const now = Math.floor(Date.now() / 1000);
+    purgeRevoked.run(now);
+    revoke.run(req.user.jti, req.user.exp ?? now + 86_400);
+    return reply.status(204).send();
   });
 
   app.get('/api/auth/me', { preHandler: requireOperator }, async (req) => ({ user: req.user.sub, role: req.user.role }));
