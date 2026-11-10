@@ -1,0 +1,614 @@
+[
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2560,
+    "errores_js": 0,
+    "mensajes": [
+      "sin datos Calidad del aire · AQI DEV02 — sin dato",
+      "sin datos 02 MOVILIDAD Congestión de la red DEV04",
+      "sin datos Flujo · Carrera 27 DEV05 — sin datos Pa",
+      "sin datos 03 ENERGÍA, AGUA Y CLIMA Alumbrado · po"
+    ]
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1856,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1732,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1399,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3171,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo consultar el histórico Error 502 Estaci"
+    ]
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2103,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2826,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2186,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2588,
+    "errores_js": 0,
+    "mensajes": [
+      "sin datos Calidad del aire · AQI DEV02 — sin dato",
+      "sin datos 02 MOVILIDAD Congestión de la red DEV04",
+      "sin datos Flujo · Carrera 27 DEV05 — sin datos Pa",
+      "sin datos 03 ENERGÍA, AGUA Y CLIMA Alumbrado · po"
+    ]
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1856,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1732,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1399,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3171,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo consultar el histórico Error 504 Estaci"
+    ]
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2103,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2826,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2186,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2780,
+    "errores_js": 0,
+    "mensajes": [
+      "sin datos Calidad del aire · AQI DEV02 — sin dato",
+      "sin datos 02 MOVILIDAD Congestión de la red DEV04",
+      "sin datos Flujo · Carrera 27 DEV05 — sin datos Pa",
+      "sin datos 03 ENERGÍA, AGUA Y CLIMA Alumbrado · po"
+    ]
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1856,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1732,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1399,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3177,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo consultar el histórico Failed to fetch "
+    ]
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2103,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2826,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2186,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "i.find is not a function",
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "i.find is not a function",
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "i.find is not a function",
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "i.find is not a function",
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "i.find is not a function",
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "c.map is not a function",
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "i.find is not a function",
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "Cannot read properties of undefined (reading 'received')",
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2780,
+    "errores_js": 0,
+    "mensajes": [
+      "sin datos Calidad del aire · AQI DEV02 — sin dato",
+      "sin datos 02 MOVILIDAD Congestión de la red DEV04",
+      "sin datos Flujo · Carrera 27 DEV05 — sin datos Pa",
+      "sin datos 03 ENERGÍA, AGUA Y CLIMA Alumbrado · po"
+    ]
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1856,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1732,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1399,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "Cannot read properties of undefined (reading 'find')",
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "c.map is not a function",
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "Cannot read properties of undefined (reading 'find')",
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "Cannot read properties of undefined (reading 'received')",
+    "mensajes": []
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2588,
+    "errores_js": 0,
+    "mensajes": [
+      "sin datos Calidad del aire · AQI DEV02 — sin dato",
+      "sin datos 02 MOVILIDAD Congestión de la red DEV04",
+      "sin datos Flujo · Carrera 27 DEV05 — sin datos Pa",
+      "sin datos 03 ENERGÍA, AGUA Y CLIMA Alumbrado · po"
+    ]
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1856,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1732,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1399,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3211,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo consultar el histórico Cannot read prop"
+    ]
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2021,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2806,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2186,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 4387,
+    "errores_js": 0,
+    "mensajes": [
+      "sin conexión (conexión perdida (LWT)) DEV11 · 20:5"
+    ]
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2922,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 4060,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3140,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3872,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2356,
+    "errores_js": 0,
+    "mensajes": [
+      "sin conexión (conexión perdida (LWT)) DEV11 Nodo E"
+    ]
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 13332,
+    "errores_js": 0,
+    "mensajes": [
+      "nantes alcanzaron sus máximos a las 03:00 y",
+      "nancia natural día/noche y la operación pro"
+    ]
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3210,
+    "errores_js": 0,
+    "mensajes": []
+  }
+]

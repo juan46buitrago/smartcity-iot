@@ -1,0 +1,90 @@
+[
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "Cannot read properties of undefined (reading 'status')",
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "Cannot read properties of undefined (reading 'status')",
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "Cannot read properties of undefined (reading 'status')",
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "Cannot read properties of undefined (reading 'status')",
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "Cannot read properties of undefined (reading 'status')",
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "Cannot read properties of undefined (reading 'status')",
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "Cannot read properties of undefined (reading 'status')",
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": true,
+    "largo_texto": 0,
+    "errores_js": 1,
+    "primer_error": "Cannot read properties of undefined (reading 'status')",
+    "mensajes": []
+  }
+]

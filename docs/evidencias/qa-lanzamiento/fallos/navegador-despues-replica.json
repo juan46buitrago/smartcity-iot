@@ -1,0 +1,687 @@
+[
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2795,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2064,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1950,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1607,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3454,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo consultar el histórico El servicio no e"
+    ]
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2369,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo actualizar la lista de alertas",
+      "Sin datos por ahora"
+    ]
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3133,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R1",
+    "nombre": "502 HTML en toda la API",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2394,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2767,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2064,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1953,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1607,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3454,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo consultar el histórico El servicio no e"
+    ]
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2369,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo actualizar la lista de alertas",
+      "Sin datos por ahora"
+    ]
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3133,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R2",
+    "nombre": "504 HTML en toda la API",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2394,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2767,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2064,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1950,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1607,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3438,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo consultar el histórico No hay conexión "
+    ]
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2353,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo actualizar la lista de alertas",
+      "Sin datos por ahora"
+    ]
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3133,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R3",
+    "nombre": "Conexión abortada (payload perdido)",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2394,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3050,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2064,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1950,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1612,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3459,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo consultar el histórico El servidor envi",
+      "no se pudo leer"
+    ]
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2381,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo actualizar la lista de alertas",
+      "no se pudo leer",
+      "Sin datos por ahora"
+    ]
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3133,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R4",
+    "nombre": "JSON truncado",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2394,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2916,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2064,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1950,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1607,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3459,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo consultar el histórico El servidor envi",
+      "no se pudo leer"
+    ]
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2374,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo actualizar la lista de alertas",
+      "no se pudo leer",
+      "Sin datos por ahora"
+    ]
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3133,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R5",
+    "nombre": "Cuerpo {} inesperado",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2394,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2989,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2069,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1950,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1607,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3459,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo consultar el histórico El servidor envi",
+      "no se pudo leer"
+    ]
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2374,
+    "errores_js": 0,
+    "mensajes": [
+      "No se pudo actualizar la lista de alertas",
+      "no se pudo leer",
+      "Sin datos por ahora"
+    ]
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3133,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R6",
+    "nombre": "null como respuesta",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2394,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 4785,
+    "errores_js": 0,
+    "mensajes": [
+      "Sin datos — 12 Estación histórica (dataset) En lí"
+    ]
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3126,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 4246,
+    "errores_js": 0,
+    "mensajes": [
+      "Sin datos SIM Dispositivo físico (ESP32) Temperat"
+    ]
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3361,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3937,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2577,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 4005,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R7",
+    "nombre": "Respuesta lenta (12 s)",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3415,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3012,
+    "errores_js": 0,
+    "mensajes": [
+      "sin datos Calidad del aire · AQI DEV02 — sin dato",
+      "sin datos 02 MOVILIDAD Congestión de la red DEV04",
+      "sin datos Flujo · Carrera 27 DEV05 — 36–90 6 h si",
+      "sin datos 03 ENERGÍA, AGUA Y CLIMA Alumbrado · po"
+    ]
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/mapa",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2170,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/dispositivos",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2115,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/dispositivos/DEV03",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 1788,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/historico",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 3976,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/alertas",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2576,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/asistente",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 4004,
+    "errores_js": 0,
+    "mensajes": []
+  },
+  {
+    "fallo": "R8",
+    "nombre": "Lista de dispositivos con objetos incompletos",
+    "ruta": "/configuracion",
+    "nav": "ok",
+    "pantalla_blanca": false,
+    "largo_texto": 2634,
+    "errores_js": 0,
+    "mensajes": []
+  }
+]

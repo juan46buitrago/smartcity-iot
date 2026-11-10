@@ -1,0 +1,857 @@
+{
+  "etiqueta": "despues",
+  "inicio": "2026-11-09T22:59:20.065Z",
+  "linea_base": {
+    "healthz": {
+      "code": 200,
+      "s": 0.01,
+      "body": "ok "
+    },
+    "spa": {
+      "code": 200,
+      "s": 0.02,
+      "body": "<!doctype html> <html lang=\"es\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewpor"
+    },
+    "grafana": {
+      "code": 200,
+      "s": 0.03,
+      "body": "{   \"database\": \"ok\" }"
+    },
+    "nodered": {
+      "code": 200,
+      "s": 0.04,
+      "body": "<!DOCTYPE html> <html> <head> <meta charset=\"utf-8\"> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"> <meta name=\"viewport\" content=\"width=device"
+    },
+    "alerts": {
+      "code": 200,
+      "s": 0.05,
+      "body": "[{\"severity\":\"warning\",\"n\":1}]"
+    },
+    "devices": {
+      "code": 200,
+      "s": 0.05,
+      "body": "[{\"id\":\"DEV01\",\"name\":\"Estación ambiental\",\"category\":\"ambiente\",\"source_type\":\"digital_twin\",\"description\":\"Gemelo digital de una estación de tempera"
+    },
+    "health": {
+      "code": 200,
+      "s": 0.06,
+      "body": "{\"status\":\"ok\",\"mqtt\":true,\"influxdb\":true,\"sqlite\":true,\"uptime_s\":38,\"mqtt_messages\":{\"received\":43,\"rejected\":0}}"
+    },
+    "history": {
+      "code": 200,
+      "s": 0.29,
+      "body": "{\"device_id\":\"DEV03\",\"variable\":\"noise_db\",\"unit\":\"dB(A)\",\"from\":\"2026-11-08T22:59:20.280Z\",\"to\":\"2026-11-09T22:59:20.280Z\",\"every\":\"300s\",\"bucket\":\"r"
+    }
+  },
+  "online_base": "11/12",
+  "fallos": [
+    {
+      "id": "F1",
+      "nombre": "InfluxDB colgado (timeout de base de datos, docker pause)",
+      "inyectado": "2026-11-09T22:59:20.861Z",
+      "inyeccion": "smartcitybga-influxdb-1",
+      "durante": {
+        "healthz": {
+          "code": 200,
+          "s": 0.01,
+          "body": "ok "
+        },
+        "spa": {
+          "code": 200,
+          "s": 0.01,
+          "body": "<!doctype html> <html lang=\"es\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewpor"
+        },
+        "grafana": {
+          "code": 200,
+          "s": 0.01,
+          "body": "{   \"database\": \"ok\" }"
+        },
+        "nodered": {
+          "code": 200,
+          "s": 0.02,
+          "body": "<!DOCTYPE html> <html> <head> <meta charset=\"utf-8\"> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"> <meta name=\"viewport\" content=\"width=device"
+        },
+        "devices": {
+          "code": 200,
+          "s": 0.03,
+          "body": "[{\"id\":\"DEV01\",\"name\":\"Estación ambiental\",\"category\":\"ambiente\",\"source_type\":\"digital_twin\",\"description\":\"Gemelo digital de una estación de tempera"
+        },
+        "alerts": {
+          "code": 200,
+          "s": 0.03,
+          "body": "[{\"severity\":\"warning\",\"n\":1}]"
+        },
+        "health": {
+          "code": 200,
+          "s": 3.01,
+          "body": "{\"status\":\"degraded\",\"mqtt\":true,\"influxdb\":false,\"sqlite\":true,\"uptime_s\":73,\"mqtt_messages\":{\"received\":62,\"rejected\":0}}"
+        },
+        "history": {
+          "code": 503,
+          "s": 19.75,
+          "body": "{\"error\":\"El histórico no está disponible en este momento. Las lecturas en vivo siguen funcionando; inténtalo de nuevo en unos segundos.\"}"
+        }
+      },
+      "online_durante": "11/12",
+      "orden": {
+        "code": 200,
+        "s": 0.14,
+        "body": "{\"command_id\":\"c1f0a410-aafd-4c83-b882-d070c26142ca\",\"device_id\":\"DEV03\",\"action\":\"set_interval\",\"params\":{\"interval_s\":10},\"issued_at\":\"2026-11-09T23:00:10.977Z\",\"issued_by\":\"operador\",\"origin\":\"api\",\"status\":\"confirmed"
+      },
+      "navegador": [
+        {
+          "path": "/",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 2424,
+          "tail": [
+            "Degradado Desconectado Incidente simulado + − Leaflet | © colaboradores de O"
+          ],
+          "pageerrors": 0
+        },
+        {
+          "path": "/dispositivos/DEV03",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 982,
+          "tail": [],
+          "pageerrors": 0
+        },
+        {
+          "path": "/historico",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 2982,
+          "tail": [
+            "No se generan datos retroactivos",
+            "No se pudo consultar el histórico El histórico no está disponible en este m"
+          ],
+          "pageerrors": 0
+        }
+      ],
+      "restauracion": "smartcitybga-influxdb-1",
+      "recuperacion_s": "29.8",
+      "online_tras": "11/12"
+    },
+    {
+      "id": "F2",
+      "nombre": "InfluxDB caído (conexión rechazada, docker stop)",
+      "inyectado": "2026-11-09T23:01:21.617Z",
+      "inyeccion": "smartcitybga-influxdb-1",
+      "durante": {
+        "healthz": {
+          "code": 200,
+          "s": 0.01,
+          "body": "ok "
+        },
+        "spa": {
+          "code": 200,
+          "s": 0.01,
+          "body": "<!doctype html> <html lang=\"es\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewpor"
+        },
+        "nodered": {
+          "code": 200,
+          "s": 0.02,
+          "body": "<!DOCTYPE html> <html> <head> <meta charset=\"utf-8\"> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"> <meta name=\"viewport\" content=\"width=device"
+        },
+        "grafana": {
+          "code": 200,
+          "s": 0.02,
+          "body": "{   \"database\": \"ok\" }"
+        },
+        "history": {
+          "code": 503,
+          "s": 0.03,
+          "body": "{\"error\":\"El histórico no está disponible en este momento. Las lecturas en vivo siguen funcionando; inténtalo de nuevo en unos segundos.\"}"
+        },
+        "devices": {
+          "code": 200,
+          "s": 0.03,
+          "body": "[{\"id\":\"DEV01\",\"name\":\"Estación ambiental\",\"category\":\"ambiente\",\"source_type\":\"digital_twin\",\"description\":\"Gemelo digital de una estación de tempera"
+        },
+        "health": {
+          "code": 200,
+          "s": 0.04,
+          "body": "{\"status\":\"degraded\",\"mqtt\":true,\"influxdb\":false,\"sqlite\":true,\"uptime_s\":183,\"mqtt_messages\":{\"received\":127,\"rejected\":0}}"
+        },
+        "alerts": {
+          "code": 200,
+          "s": 0.04,
+          "body": "[]"
+        }
+      },
+      "online_durante": "11/12",
+      "orden": {
+        "code": 200,
+        "s": 0.07,
+        "body": "{\"command_id\":\"292a11a0-1e3b-47f6-9725-28c771d37773\",\"device_id\":\"DEV03\",\"action\":\"set_interval\",\"params\":{\"interval_s\":10},\"issued_at\":\"2026-11-09T23:01:42.662Z\",\"issued_by\":\"operador\",\"origin\":\"api\",\"status\":\"confirmed"
+      },
+      "navegador": [
+        {
+          "path": "/",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 3568,
+          "tail": [
+            "Degradado Desconectado Incidente simulado 01 02 03 04 05 06 07 08 09 10 11 1"
+          ],
+          "pageerrors": 0
+        },
+        {
+          "path": "/dispositivos/DEV03",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 2819,
+          "tail": [],
+          "pageerrors": 0
+        },
+        {
+          "path": "/historico",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 2982,
+          "tail": [
+            "No se generan datos retroactivos",
+            "No se pudo consultar el histórico El histórico no está disponible en este m"
+          ],
+          "pageerrors": 0
+        }
+      ],
+      "restauracion": "smartcitybga-influxdb-1",
+      "recuperacion_s": "6.4",
+      "online_tras": "11/12"
+    },
+    {
+      "id": "F3",
+      "nombre": "Backend caído (502 del gateway)",
+      "inyectado": "2026-11-09T23:02:27.144Z",
+      "inyeccion": "smartcitybga-backend-1",
+      "durante": {
+        "spa": {
+          "code": 200,
+          "s": 0.01,
+          "body": "<!doctype html> <html lang=\"es\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewpor"
+        },
+        "healthz": {
+          "code": 200,
+          "s": 0.01,
+          "body": "ok "
+        },
+        "nodered": {
+          "code": 200,
+          "s": 0.01,
+          "body": "<!DOCTYPE html> <html> <head> <meta charset=\"utf-8\"> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"> <meta name=\"viewport\" content=\"width=device"
+        },
+        "grafana": {
+          "code": 200,
+          "s": 0.01,
+          "body": "{   \"database\": \"ok\" }"
+        },
+        "devices": {
+          "code": 504,
+          "s": 1.99,
+          "body": "{\"error\":\"El servidor tardó demasiado en responder. Inténtalo de nuevo en unos segundos.\"}"
+        },
+        "alerts": {
+          "code": 504,
+          "s": 1.99,
+          "body": "{\"error\":\"El servidor tardó demasiado en responder. Inténtalo de nuevo en unos segundos.\"}"
+        },
+        "history": {
+          "code": 504,
+          "s": 1.99,
+          "body": "{\"error\":\"El servidor tardó demasiado en responder. Inténtalo de nuevo en unos segundos.\"}"
+        },
+        "health": {
+          "code": 504,
+          "s": 1.99,
+          "body": "{\"error\":\"El servidor tardó demasiado en responder. Inténtalo de nuevo en unos segundos.\"}"
+        }
+      },
+      "online_durante": "n/d",
+      "orden": {
+        "code": 502,
+        "s": 0.02,
+        "body": "{\"error\":\"El servicio no está disponible en este momento. Inténtalo de nuevo en unos segundos.\"}"
+      },
+      "navegador": [
+        {
+          "path": "/",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 2111,
+          "tail": [
+            "SIN CONEXIÓN …/12 NODOS 18:02:55 LUN, 09 DE NOV · COT Sin conexión con el servid",
+            "intenta sola",
+            "Degradado Desconectado Incidente simulado + − Leaflet | © colaboradores de O"
+          ],
+          "pageerrors": 0
+        },
+        {
+          "path": "/dispositivos/DEV03",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 1089,
+          "tail": [
+            "SIN CONEXIÓN …/12 NODOS 18:03:04 LUN, 09 DE NOV · COT Sin conexión con el servid",
+            "intenta sola",
+            "No se pudieron cargar los dispositivos",
+            "intenta sola al recuperar la conexión"
+          ],
+          "pageerrors": 0
+        },
+        {
+          "path": "/historico",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 2770,
+          "tail": [
+            "SIN CONEXIÓN …/12 NODOS 18:03:14 LUN, 09 DE NOV · COT Sin conexión con el servid",
+            "intenta sola",
+            "No se generan datos retroactivos",
+            "No se pudo consultar el histórico El servicio no está disponible en este mo"
+          ],
+          "pageerrors": 0
+        }
+      ],
+      "restauracion": "smartcitybga-backend-1",
+      "recuperacion_s": "7.1",
+      "online_tras": "11/12"
+    },
+    {
+      "id": "F4",
+      "nombre": "Backend colgado (504 del gateway, docker pause)",
+      "inyectado": "2026-11-09T23:03:30.904Z",
+      "inyeccion": "smartcitybga-backend-1",
+      "durante": {
+        "healthz": {
+          "code": 200,
+          "s": 0.01,
+          "body": "ok "
+        },
+        "spa": {
+          "code": 200,
+          "s": 0.01,
+          "body": "<!doctype html> <html lang=\"es\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewpor"
+        },
+        "grafana": {
+          "code": 200,
+          "s": 0.02,
+          "body": "{   \"database\": \"ok\" }"
+        },
+        "nodered": {
+          "code": 200,
+          "s": 0.02,
+          "body": "<!DOCTYPE html> <html> <head> <meta charset=\"utf-8\"> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"> <meta name=\"viewport\" content=\"width=device"
+        },
+        "history": {
+          "code": 504,
+          "s": 29.51,
+          "body": "{\"error\":\"El servidor tardó demasiado en responder. Inténtalo de nuevo en unos segundos.\"}"
+        },
+        "alerts": {
+          "code": 504,
+          "s": 29.51,
+          "body": "{\"error\":\"El servidor tardó demasiado en responder. Inténtalo de nuevo en unos segundos.\"}"
+        },
+        "health": {
+          "code": 504,
+          "s": 29.51,
+          "body": "{\"error\":\"El servidor tardó demasiado en responder. Inténtalo de nuevo en unos segundos.\"}"
+        },
+        "devices": {
+          "code": 504,
+          "s": 29.51,
+          "body": "{\"error\":\"El servidor tardó demasiado en responder. Inténtalo de nuevo en unos segundos.\"}"
+        }
+      },
+      "online_durante": "n/d",
+      "orden": {
+        "code": 504,
+        "s": 29.53,
+        "body": "{\"error\":\"El servidor tardó demasiado en responder. Inténtalo de nuevo en unos segundos.\"}"
+      },
+      "navegador": [
+        {
+          "path": "/",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 2109,
+          "tail": [
+            "Sin conexión con el servidor",
+            "intenta sola",
+            "Degradado Desconectado Incidente simulado + − Leaflet | © colaboradores de O"
+          ],
+          "pageerrors": 0
+        },
+        {
+          "path": "/dispositivos/DEV03",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 1081,
+          "tail": [
+            "Sin conexión con el servidor",
+            "intenta sola",
+            "No se pudieron cargar los dispositivos",
+            "tardó demasiado en responder",
+            "intenta sola al recuperar la conexión"
+          ],
+          "pageerrors": 0
+        },
+        {
+          "path": "/historico",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 2762,
+          "tail": [
+            "Sin conexión con el servidor",
+            "intenta sola",
+            "No se generan datos retroactivos",
+            "No se pudo consultar el histórico El servidor tardó demasiado en responder"
+          ],
+          "pageerrors": 0
+        }
+      ],
+      "restauracion": "smartcitybga-backend-1",
+      "recuperacion_s": "31.0",
+      "online_tras": "11/12"
+    },
+    {
+      "id": "F5",
+      "nombre": "Broker MQTT caído",
+      "inyectado": "2026-11-09T23:08:27.632Z",
+      "inyeccion": "smartcitybga-mosquitto-1",
+      "durante": {
+        "spa": {
+          "code": 200,
+          "s": 0.01,
+          "body": "<!doctype html> <html lang=\"es\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewpor"
+        },
+        "healthz": {
+          "code": 200,
+          "s": 0.01,
+          "body": "ok "
+        },
+        "grafana": {
+          "code": 200,
+          "s": 0.03,
+          "body": "{   \"database\": \"ok\" }"
+        },
+        "nodered": {
+          "code": 200,
+          "s": 0.04,
+          "body": "<!DOCTYPE html> <html> <head> <meta charset=\"utf-8\"> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"> <meta name=\"viewport\" content=\"width=device"
+        },
+        "devices": {
+          "code": 200,
+          "s": 0.04,
+          "body": "[{\"id\":\"DEV01\",\"name\":\"Estación ambiental\",\"category\":\"ambiente\",\"source_type\":\"digital_twin\",\"description\":\"Gemelo digital de una estación de tempera"
+        },
+        "alerts": {
+          "code": 200,
+          "s": 0.04,
+          "body": "[]"
+        },
+        "health": {
+          "code": 200,
+          "s": 0.05,
+          "body": "{\"status\":\"degraded\",\"mqtt\":false,\"influxdb\":true,\"sqlite\":true,\"uptime_s\":349,\"mqtt_messages\":{\"received\":266,\"rejected\":0}}"
+        },
+        "history": {
+          "code": 200,
+          "s": 0.08,
+          "body": "{\"device_id\":\"DEV03\",\"variable\":\"noise_db\",\"unit\":\"dB(A)\",\"from\":\"2026-11-08T23:08:58.216Z\",\"to\":\"2026-11-09T23:08:58.216Z\",\"every\":\"300s\",\"bucket\":\"r"
+        }
+      },
+      "online_durante": "0/12",
+      "orden": {
+        "code": 503,
+        "s": 0,
+        "body": "{\"error\":\"El backend no está conectado al broker MQTT\"}"
+      },
+      "navegador": [
+        {
+          "path": "/",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 3492,
+          "tail": [
+            "Degradado Desconectado Incidente simulado 01 02 03 04 05 06 07 08 09 10 11 1",
+            "Desconectado hace 39 s 02 Monitor de calidad del aire Desconectado hace 1 h 03 ",
+            "Desconectado hace 46 s 04 Monitor de incidentes viales Desconectado hace 39 s 0",
+            "Desconectado hace 46 s 06 Rastreador GPS Desconectado hace 40 s 07 Alumbrado pú",
+            "Desconectado hace 46 s 08 Parqueadero inteligente Desconectado hace 46 s 09 Sen",
+            "Desconectado hace 19 h 10 Estación meteorológica Desconectado hace 24 min 11 No"
+          ],
+          "pageerrors": 0
+        },
+        {
+          "path": "/dispositivos/DEV03",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 2908,
+          "tail": [
+            "Desconectado PROCEDENCIA SIM UBICACIÓN Av"
+          ],
+          "pageerrors": 0
+        },
+        {
+          "path": "/historico",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 3189,
+          "tail": [
+            "No se generan datos retroactivos"
+          ],
+          "pageerrors": 0
+        }
+      ],
+      "restauracion": "smartcitybga-mosquitto-1",
+      "recuperacion_s": "6.9",
+      "online_tras": "11/12",
+      "hueco_telemetria": {
+        "puntos": 37,
+        "hueco_max_s": 9.9
+      }
+    },
+    {
+      "id": "F6",
+      "nombre": "Node-RED caído (ingesta)",
+      "inyectado": "2026-11-09T23:10:05.414Z",
+      "inyeccion": "smartcitybga-nodered-1",
+      "durante": {
+        "spa": {
+          "code": 200,
+          "s": 0.01,
+          "body": "<!doctype html> <html lang=\"es\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewpor"
+        },
+        "healthz": {
+          "code": 200,
+          "s": 0,
+          "body": "ok "
+        },
+        "nodered": {
+          "code": 503,
+          "s": 0.03,
+          "body": "<!doctype html><html lang=\"es\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Servicio no disponible<"
+        },
+        "grafana": {
+          "code": 200,
+          "s": 0.03,
+          "body": "{   \"database\": \"ok\" }"
+        },
+        "devices": {
+          "code": 200,
+          "s": 0.03,
+          "body": "[{\"id\":\"DEV01\",\"name\":\"Estación ambiental\",\"category\":\"ambiente\",\"source_type\":\"digital_twin\",\"description\":\"Gemelo digital de una estación de tempera"
+        },
+        "alerts": {
+          "code": 200,
+          "s": 0.04,
+          "body": "[]"
+        },
+        "health": {
+          "code": 200,
+          "s": 0.05,
+          "body": "{\"status\":\"ok\",\"mqtt\":true,\"influxdb\":true,\"sqlite\":true,\"uptime_s\":448,\"mqtt_messages\":{\"received\":387,\"rejected\":0}}"
+        },
+        "history": {
+          "code": 200,
+          "s": 0.06,
+          "body": "{\"device_id\":\"DEV03\",\"variable\":\"noise_db\",\"unit\":\"dB(A)\",\"from\":\"2026-11-08T23:10:36.168Z\",\"to\":\"2026-11-09T23:10:36.168Z\",\"every\":\"300s\",\"bucket\":\"r"
+        }
+      },
+      "online_durante": "11/12",
+      "navegador": [
+        {
+          "path": "/",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 3670,
+          "tail": [
+            "Degradado Desconectado Incidente simulado 01 02 03 04 05 06 07 08 09 10 11 1"
+          ],
+          "pageerrors": 0
+        },
+        {
+          "path": "/dispositivos/DEV03",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 2864,
+          "tail": [],
+          "pageerrors": 0
+        },
+        {
+          "path": "/historico",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 3190,
+          "tail": [
+            "No se generan datos retroactivos"
+          ],
+          "pageerrors": 0
+        }
+      ],
+      "restauracion": "smartcitybga-nodered-1",
+      "recuperacion_s": "6.6",
+      "online_tras": "11/12",
+      "hueco_telemetria": {
+        "puntos": 37,
+        "hueco_max_s": 9.9
+      }
+    },
+    {
+      "id": "F7",
+      "nombre": "Grafana caído",
+      "inyectado": "2026-11-09T23:11:42.785Z",
+      "inyeccion": "smartcitybga-grafana-1",
+      "durante": {
+        "healthz": {
+          "code": 200,
+          "s": 0.01,
+          "body": "ok "
+        },
+        "spa": {
+          "code": 200,
+          "s": 0.01,
+          "body": "<!doctype html> <html lang=\"es\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewpor"
+        },
+        "grafana": {
+          "code": 503,
+          "s": 0.02,
+          "body": "<!doctype html><html lang=\"es\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Servicio no disponible<"
+        },
+        "nodered": {
+          "code": 200,
+          "s": 0.02,
+          "body": "<!DOCTYPE html> <html> <head> <meta charset=\"utf-8\"> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"> <meta name=\"viewport\" content=\"width=device"
+        },
+        "devices": {
+          "code": 200,
+          "s": 0.03,
+          "body": "[{\"id\":\"DEV01\",\"name\":\"Estación ambiental\",\"category\":\"ambiente\",\"source_type\":\"digital_twin\",\"description\":\"Gemelo digital de una estación de tempera"
+        },
+        "alerts": {
+          "code": 200,
+          "s": 0.03,
+          "body": "[]"
+        },
+        "health": {
+          "code": 200,
+          "s": 0.04,
+          "body": "{\"status\":\"ok\",\"mqtt\":true,\"influxdb\":true,\"sqlite\":true,\"uptime_s\":526,\"mqtt_messages\":{\"received\":431,\"rejected\":0}}"
+        },
+        "history": {
+          "code": 200,
+          "s": 0.07,
+          "body": "{\"device_id\":\"DEV03\",\"variable\":\"noise_db\",\"unit\":\"dB(A)\",\"from\":\"2026-11-08T23:11:53.315Z\",\"to\":\"2026-11-09T23:11:53.315Z\",\"every\":\"300s\",\"bucket\":\"r"
+        }
+      },
+      "online_durante": "11/12",
+      "navegador": [
+        {
+          "path": "/",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 3765,
+          "tail": [
+            "Degradado Desconectado Incidente simulado 01 02 03 04 05 06 07 08 09 10 11 1"
+          ],
+          "pageerrors": 0
+        },
+        {
+          "path": "/dispositivos/DEV03",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 2867,
+          "tail": [],
+          "pageerrors": 0
+        },
+        {
+          "path": "/historico",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 3190,
+          "tail": [
+            "No se generan datos retroactivos"
+          ],
+          "pageerrors": 0
+        }
+      ],
+      "restauracion": "smartcitybga-grafana-1",
+      "recuperacion_s": "31.1",
+      "online_tras": "11/12"
+    },
+    {
+      "id": "F8",
+      "nombre": "Proveedor de IA no disponible (tercero)",
+      "inyectado": "2026-11-09T23:13:03.503Z",
+      "inyeccion": "",
+      "durante": {
+        "spa": {
+          "code": 200,
+          "s": 0.01,
+          "body": "<!doctype html> <html lang=\"es\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewpor"
+        },
+        "healthz": {
+          "code": 200,
+          "s": 0.01,
+          "body": "ok "
+        },
+        "grafana": {
+          "code": 200,
+          "s": 0.01,
+          "body": "{   \"database\": \"ok\" }"
+        },
+        "nodered": {
+          "code": 200,
+          "s": 0.04,
+          "body": "<!DOCTYPE html> <html> <head> <meta charset=\"utf-8\"> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"> <meta name=\"viewport\" content=\"width=device"
+        },
+        "alerts": {
+          "code": 200,
+          "s": 0.06,
+          "body": "[]"
+        },
+        "health": {
+          "code": 200,
+          "s": 0.07,
+          "body": "{\"status\":\"ok\",\"mqtt\":true,\"influxdb\":true,\"sqlite\":true,\"uptime_s\":600,\"mqtt_messages\":{\"received\":471,\"rejected\":0}}"
+        },
+        "devices": {
+          "code": 200,
+          "s": 0.07,
+          "body": "[{\"id\":\"DEV01\",\"name\":\"Estación ambiental\",\"category\":\"ambiente\",\"source_type\":\"digital_twin\",\"description\":\"Gemelo digital de una estación de tempera"
+        },
+        "history": {
+          "code": 200,
+          "s": 0.1,
+          "body": "{\"device_id\":\"DEV03\",\"variable\":\"noise_db\",\"unit\":\"dB(A)\",\"from\":\"2026-11-08T23:13:05.645Z\",\"to\":\"2026-11-09T23:13:05.645Z\",\"every\":\"300s\",\"bucket\":\"r"
+        }
+      },
+      "online_durante": "11/12",
+      "ia_chat": {
+        "code": 502,
+        "s": 0.03,
+        "body": "{\"error\":\"El proveedor de IA no respondió; intenta de nuevo en unos segundos.\"}"
+      },
+      "ia_estado": "{\"enabled\":true,\"model\":\"qwen3.8-flash\",\"daily_limit\":2000,\"last_24h\":[{\"kind\":\"chat\",\"calls\":13,\"cached\":0,\"failed\":13,\"prompt_tokens\":0,\"completion_tokens\":0,\"avg_tokens\":0,\"avg_llm_ms\":0,\"avg_total",
+      "navegador": [
+        {
+          "path": "/asistente",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 3218,
+          "tail": [],
+          "pageerrors": 0
+        }
+      ],
+      "restauracion": "",
+      "recuperacion_s": "0.1",
+      "online_tras": "11/12"
+    },
+    {
+      "id": "F9",
+      "nombre": "APIs externas no disponibles (Open-Meteo, datos.gov.co)",
+      "inyectado": "2026-11-09T23:13:24.120Z",
+      "inyeccion": "",
+      "durante": {
+        "spa": {
+          "code": 200,
+          "s": 0.02,
+          "body": "<!doctype html> <html lang=\"es\">   <head>     <meta charset=\"UTF-8\" />     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewpor"
+        },
+        "healthz": {
+          "code": 200,
+          "s": 0.02,
+          "body": "ok "
+        },
+        "grafana": {
+          "code": 200,
+          "s": 0.03,
+          "body": "{   \"database\": \"ok\" }"
+        },
+        "nodered": {
+          "code": 200,
+          "s": 0.05,
+          "body": "<!DOCTYPE html> <html> <head> <meta charset=\"utf-8\"> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"> <meta name=\"viewport\" content=\"width=device"
+        },
+        "devices": {
+          "code": 200,
+          "s": 0.07,
+          "body": "[{\"id\":\"DEV01\",\"name\":\"Estación ambiental\",\"category\":\"ambiente\",\"source_type\":\"digital_twin\",\"description\":\"Gemelo digital de una estación de tempera"
+        },
+        "alerts": {
+          "code": 200,
+          "s": 0.08,
+          "body": "[]"
+        },
+        "health": {
+          "code": 200,
+          "s": 0.08,
+          "body": "{\"status\":\"ok\",\"mqtt\":true,\"influxdb\":true,\"sqlite\":true,\"uptime_s\":624,\"mqtt_messages\":{\"received\":481,\"rejected\":0}}"
+        },
+        "history": {
+          "code": 200,
+          "s": 0.1,
+          "body": "{\"device_id\":\"DEV03\",\"variable\":\"noise_db\",\"unit\":\"dB(A)\",\"from\":\"2026-11-08T23:13:29.419Z\",\"to\":\"2026-11-09T23:13:29.419Z\",\"every\":\"300s\",\"bucket\":\"r"
+        }
+      },
+      "online_durante": "11/12",
+      "reinicio": [
+        {
+          "code": 200,
+          "s": 0.1,
+          "body": "{\"command_id\":\"3d2658a0-d601-47ef-8675-93938bb8a303\",\"device_id\":\"DEV02\",\"action\":\"restart\",\"params\":{},\"issued_at\":\"2026-11-09T23:13:29.530Z\",\"issued_by\":\"operador\",\"origin\":\"api\",\"status\":\"confirmed\",\"error\":null,\"ack_"
+        },
+        {
+          "code": 200,
+          "s": 0.06,
+          "body": "{\"command_id\":\"4f5a6d54-4521-4dec-9af4-d1d3843213d6\",\"device_id\":\"DEV10\",\"action\":\"restart\",\"params\":{},\"issued_at\":\"2026-11-09T23:13:29.643Z\",\"issued_by\":\"operador\",\"origin\":\"api\",\"status\":\"confirmed\",\"error\":null,\"ack_"
+        }
+      ],
+      "logs": [
+        "{\"level\":30,\"time\":1794266009605,\"svc\":\"devices\",\"device\":\"DEV02\",\"action\":\"restart\",\"ok\":true,\"msg\":\"Orden procesada\"}",
+        "{\"level\":30,\"time\":1794266009695,\"svc\":\"devices\",\"device\":\"DEV10\",\"action\":\"restart\",\"ok\":true,\"msg\":\"Orden procesada\"}",
+        "{\"level\":30,\"time\":1794266012646,\"svc\":\"devices\",\"device\":\"DEV02\",\"msg\":\"Conectado al broker\"}",
+        "{\"level\":30,\"time\":1794266012702,\"svc\":\"devices\",\"device\":\"DEV10\",\"msg\":\"Conectado al broker\"}"
+      ],
+      "vistas": "{\"id\":\"DEV10\",\"name\":\"Estación meteorológica\",\"category\":\"clima\",\"source_type\":\"api\",\"description\":\"Condiciones meteorológicas actuales de la API Open-Meteo para la zona de la UIS.\",\"location\":{\"lat\":7.14,\"lon\":-73.1205,\"name\":\"Universidad Industrial de Santander (aprox.)\"},\"variables\":[{\"key\":\"wind_speed\",\"label\":\"Velocidad del viento\",\"unit\":\"km/h\",\"kind\":\"number\",\"decimals\":1,\"thresholdable\":true},{\"key\":\"wind_direction\",\"label\":\"Dirección del viento\",\"unit\":\"°\",\"kind\":\"number\",\"decimals\":0},{\"key\":\"pressure\",\"label\":\"Presión superficial\",\"unit\":\"hPa\",\"kind\":\"number\",\"decimals\":1,\"thresholdable\":true},{\"key\":\"precipitation\",\"label\":\"Precipitación (15 min)\",\"unit\":\"mm\",\"kind\":\"numbe",
+      "navegador": [
+        {
+          "path": "/",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 3763,
+          "tail": [
+            "Degradado Desconectado Incidente simulado 01 02 03 04 05 06 07 08 09 10 11 1"
+          ],
+          "pageerrors": 0
+        },
+        {
+          "path": "/dispositivos/DEV03",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 2864,
+          "tail": [],
+          "pageerrors": 0
+        },
+        {
+          "path": "/historico",
+          "status": "ok",
+          "rootChildren": 2,
+          "textLen": 3190,
+          "tail": [
+            "No se generan datos retroactivos"
+          ],
+          "pageerrors": 0
+        }
+      ],
+      "restauracion": "",
+      "recuperacion_s": "0.2",
+      "online_tras": "11/12"
+    }
+  ],
+  "fin": "2026-11-09T23:14:34.111Z",
+  "estado_final": "smartcitybga-web-1 Up 15 minutes (healthy)\nsmartcitybga-backend-1 Up 11 minutes (healthy)\nsmartcitybga-grafana-1 Up 2 minutes (healthy)\nsmartcitybga-devices-1 Up 34 minutes\nsmartcitybga-nodered-1 Up 3 minutes (healthy)\nsmartcitybga-mosquitto-1 Up 5 minutes (healthy)\nsmartcitybga-influxdb-1 Up 12 minutes (healthy)\n{\"status\":\"ok\",\"mqtt\":true,\"influxdb\":true,\"sqlite\":true,\"uptime_s\":690,\"mqtt_messages\":{\"received\":547,\"rejected\":0}}"
+}

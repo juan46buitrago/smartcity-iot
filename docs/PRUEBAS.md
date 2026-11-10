@@ -15,6 +15,9 @@
 | Integración (stack real) | Seguridad, API, broker/ACL, control bidireccional, LWT, persistencia y recuperación | **31/31** | `integracion-*.md / .json` |
 | Dependencias | `npm audit` | **0 vulnerabilidades** | `unitarias-final.txt` |
 
+> **2026-11-09:** simulación previa al lanzamiento (resiliencia, 5 usuarios simulados y regresión): ver
+> [`QA-LANZAMIENTO.md`](QA-LANZAMIENTO.md). Desde entonces el frontend también tiene pruebas (`npm test -w @scbga/frontend`).
+
 ## 2. Cómo ejecutarlas
 
 ```bash

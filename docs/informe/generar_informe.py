@@ -241,8 +241,22 @@ def incidents_figure(data: dict) -> str | None:
     return out.name
 
 
+def find_browser() -> str | None:
+    """Edge o Chrome en Windows, macOS o Linux (para las capturas y el PDF)."""
+    candidates = [
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+        shutil.which("msedge"),
+        shutil.which("google-chrome"),
+        shutil.which("chromium"),
+    ]
+    return next((b for b in candidates if b and Path(b).exists()), None)
+
+
 def screenshots() -> dict[str, str]:
-    browser = next((b for b in [r"C:\Program Files\Google\Chrome\Application\chrome.exe", r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe", shutil.which("msedge"), shutil.which("google-chrome"), shutil.which("chromium")] if b and Path(b).exists()), None)
+    browser = find_browser()
     shots = {}
     if not browser:
         return shots
@@ -312,6 +326,12 @@ SHOT_CAPTION = {
     "app-asistente": "App · Página del asistente (Nodo y agentes expertos)",
     "app-asistente-panel": "App · Nodo en el panel lateral: «resumen del día»",
 }
+
+
+def qa_section() -> str:
+    """Sección 9: simulación previa al lanzamiento. Texto estático en seccion-qa.html (resultados en docs/QA-LANZAMIENTO.md)."""
+    frag = HERE / "seccion-qa.html"
+    return frag.read_text(encoding="utf-8") if frag.exists() else ""
 
 
 def build_html(data: dict, figs: dict, shots: dict, preliminary: bool) -> str:
@@ -601,7 +621,9 @@ en <code>docs/BITACORA.md</code> (p. ej. ≈ 24 s el 08/11). No se generan datos
 Internet: anónimo y clave incorrecta rechazados, conexión TLS aceptada, orden desde la API confirmada en 466 ms. Copias de seguridad diarias de InfluxDB
 y SQLite con rotación de 7 días. Documentación completa en el repositorio (<code>README.md</code>, <code>docs/</code>).</p>
 
-<h2>9. Referencias</h2>
+{qa_section()}
+
+<h2>10. Referencias</h2>
 <ol class="refs">
 <li>OASIS. <i>MQTT Version 3.1.1</i> (2014) y <i>MQTT Version 5.0</i> (2019). https://mqtt.org/mqtt-specification/</li>
 <li>Eclipse Foundation. <i>Eclipse Mosquitto — documentación</i>. https://mosquitto.org/documentation/</li>
@@ -623,7 +645,7 @@ y SQLite con rotación de 7 días. Documentación completa en el repositorio (<c
 
 
 def to_pdf(html_file: Path, pdf_file: Path) -> bool:
-    browser = next((b for b in [r"C:\Program Files\Google\Chrome\Application\chrome.exe", r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe", shutil.which("msedge"), shutil.which("google-chrome"), shutil.which("chromium")] if b and Path(b).exists()), None)
+    browser = find_browser()
     if not browser:
         print("✘ No hay Edge/Chrome para generar el PDF; queda el HTML.")
         return False

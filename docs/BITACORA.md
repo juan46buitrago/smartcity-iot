@@ -228,3 +228,20 @@ backend (la captura sigue por Node-RED → InfluxDB) y la web: **sin hueco de ca
 - **Hallazgo:** la cuota mensual gratis de minutos de CI de Wokwi se agotó (el servicio permanente de la primera versión, con reinicios cada 5 min, la consumió). El encendido bajo demanda quedó verificado de extremo a extremo salvo la conexión del simulador: arranque, arriendo, apagado automático a los ~155 s sin espectadores, rechazo sin token (401) y freno ante fallos. Hasta que la cuota se renueve (o se use otra cuenta/plan) DEV11 se ejecuta con la extensión de VS Code o un ESP32 físico.
 - **Verificación:** typecheck y 100 pruebas en verde (21 + 22 + 56).
 - **Informe PDF actualizado** (`docs/informe/`, 23 páginas): portada institucional UNAB con logo y los tres integrantes, sección de Node-RED (flujos de persistencia y de automatización), tablero de Grafana, Nodo (identidad, voz, órdenes con confirmación, resumen del día), DEV11 bajo demanda con su limitación de cuota, y las capturas nuevas del sitio. Se regenera con `python docs/informe/generar_informe.py` (datos reales de producción; sigue marcado «preliminar» hasta completar 6 días de captura el 13/11).
+
+## 2026-11-09 · Simulación previa al lanzamiento (QA y resiliencia)
+
+- **Qué:** simulación completa de lanzamiento sobre la VM de Azure `vm-smartcity-iot` (IP pública **158.23.162.76**,
+  https://smartcitybga.duckdns.org): clasificación de la arquitectura, inyección de 9 fallos de servidor y 8 de red, cinco
+  usuarios simulados por agentes de IA (impaciente, escéptico, móvil con 3G, hablante no nativo y el que rompe cosas),
+  backlog priorizado, correcciones y regresión. Detalle completo en [`QA-LANZAMIENTO.md`](QA-LANZAMIENTO.md).
+- **Por qué:** comprobar antes de abrir el sitio que los fallos de dependencias quedan aislados, que el usuario recibe mensajes
+  útiles y que la interfaz no se rompe con datos inesperados ni con entradas hostiles.
+- **Cómo:** copia de seguridad previa en la VM. Producción solo se leyó y se navegó; los fallos de servidor y los payloads hostiles se
+  lanzaron en una réplica local del mismo commit, porque el sistema de permisos del agente bloqueó parar contenedores en la VM.
+- **Hallazgos principales:** 20 de 64 respuestas anómalas dejaban la app en blanco; un backend colgado congelaba la pantalla 59 s sin
+  aviso; InfluxDB caído daba «Error interno» tras 20 s; doble clic enviaba 2 órdenes; 3 errores 500 por parámetros; error de CSP en cada
+  página; faltaba identificar al operador, la privacidad y los términos; la sesión de operador duraba 30 días sin revocación; la instalación limpia fallaba en Linux/macOS (script de InfluxDB sin permiso
+  de ejecución) y la imagen de pruebas del backend fallaba (faltaban las muestras del firmware).
+- **Verificación:** 193 pruebas unitarias en verde (73 nuevas), regresión de los 5 usuarios y de los fallos sobre la réplica corregida:
+  0 de 64 pantallas en blanco. **No desplegado todavía en la VM** (pendiente de aprobación del propietario).
