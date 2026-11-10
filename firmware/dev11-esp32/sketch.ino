@@ -553,7 +553,7 @@ static bool connectMqtt() {
   if (!timeSynced()) return false;
   // Último testamento: si el nodo se cae, el broker publica «offline» (retenido, QoS1).
   JsonDocument will;
-  fillStatus(will, false, "conexión perdida (LWT)");
+  fillStatus(will, false, "se perdió la conexión con el broker");
   static char willBuf[256];
   serializeJson(will, willBuf, sizeof willBuf);
 

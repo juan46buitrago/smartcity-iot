@@ -128,7 +128,7 @@ export abstract class VirtualDevice {
       device_id: this.id,
       timestamp: new Date().toISOString(),
       connection: 'offline',
-      reason: 'conexión perdida (LWT)',
+      reason: 'se perdió la conexión con el broker',
       firmware: FIRMWARE,
     };
     this.client = mqtt.connect(url, {

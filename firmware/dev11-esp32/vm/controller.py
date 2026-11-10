@@ -122,7 +122,7 @@ def supervisor():
                 quick_fails = quick_fails + 1 if quick else 0
                 if quick_fails >= MAX_QUICK_FAILS:
                     reason = "el simulador no arranca"
-                    last_error = "Wokwi rechazó el simulador (cuota gratuita mensual de minutos agotada, token inválido o sin red). Mira el log del controlador."
+                    last_error = "Wokwi rechazó el simulador (cuota gratuita mensual de minutos agotada, token inválido o sin red). Vuelve a intentarlo más tarde; el administrador del sitio puede revisar el registro del controlador."
                 else:
                     log("el simulador terminó; se relanza (límite de la cuenta gratis)")
                     _spawn()

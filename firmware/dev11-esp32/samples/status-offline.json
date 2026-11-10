@@ -1,1 +1,1 @@
-{"device_id":"DEV11","timestamp":"2026-11-08T15:00:00Z","connection":"offline","reason":"conexión perdida (LWT)","firmware":"scbga-dev11/1.0"}
+{"device_id":"DEV11","timestamp":"2026-11-08T15:00:00Z","connection":"offline","reason":"se perdió la conexión con el broker","firmware":"scbga-dev11/1.0"}
