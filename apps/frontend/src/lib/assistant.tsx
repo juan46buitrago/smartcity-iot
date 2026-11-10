@@ -5,6 +5,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { api, ApiError } from './api';
 import { speak } from './speech';
+import { parseStoredChat } from './guards';
 import type { AiAgent, AiChatResponse, AiStatus } from './types';
 
 export type ChatMsg =
@@ -30,6 +31,9 @@ interface Ctx {
   clear: () => void;
 }
 
+/** Una respuesta del asistente puede encadenar varias llamadas al modelo; coincide con el límite de Nginx (60 s). */
+export const AI_TIMEOUT_MS = 60_000;
+
 const AssistantCtx = createContext<Ctx | null>(null);
 const STORE = 'scbga.assistant';
 
@@ -45,12 +49,10 @@ function friendly(err: unknown): string {
 
 function load(): { msgs: ChatMsg[]; agent: string } {
   try {
-    const raw = sessionStorage.getItem(STORE);
-    if (raw) return JSON.parse(raw);
+    return parseStoredChat(sessionStorage.getItem(STORE));
   } catch {
-    /* sin almacenamiento */
+    return parseStoredChat(null); // sin almacenamiento
   }
-  return { msgs: [], agent: 'general' };
 }
 
 export function AssistantProvider({ children }: { children: ReactNode }) {
@@ -61,12 +63,14 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const [msgs, setMsgs] = useState<ChatMsg[]>(initial.current.msgs);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<AiStatus | null>(null);
+  // Guarda síncrona contra el doble envío (dos clics en el mismo tic ven el mismo `busy`).
+  const inFlight = useRef(false);
   const nextId = useRef(Math.max(0, ...initial.current.msgs.map((m) => m.id)) + 1);
 
-  const loadStatus = useCallback(() => api<AiStatus>('/api/ai/status').then(setStatus).catch(() => setStatus(null)), []);
+  const loadStatus = useCallback(() => api<AiStatus>('/api/ai/status', { expect: ['all_time', 'last_24h'] }).then(setStatus).catch(() => setStatus(null)), []);
   useEffect(() => {
     void loadStatus();
-    api<AiAgent[]>('/api/ai/agents')
+    api<AiAgent[]>('/api/ai/agents', { expect: 'array' })
       .then((a) => a.length && setAgents(a))
       .catch(() => {});
   }, [loadStatus]);
@@ -85,20 +89,22 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   const ask = useCallback(
     async (question: string) => {
       const text = question.trim();
-      if (text.length < 2 || busy) return;
+      if (text.length < 2 || busy || inFlight.current) return;
+      inFlight.current = true;
       // Contexto mínimo: la decisión de la última respuesta del mismo agente (no el historial).
       const lastAi = [...msgs].reverse().find((m): m is Extract<ChatMsg, { role: 'ai' }> => m.role === 'ai');
       const previous = lastAi && lastAi.res.agent === agent.id ? lastAi.res.decision : null;
       setMsgs((m) => [...m.filter((x) => x.role !== 'error'), { id: nextId.current++, role: 'user', text, agent: agent.id }]);
       setBusy(true);
       try {
-        const res = await api<AiChatResponse>('/api/ai/chat', { body: { question: text, agent: agent.id, previous } });
+        const res = await api<AiChatResponse>('/api/ai/chat', { body: { question: text, agent: agent.id, previous }, expect: ['text'], timeoutMs: AI_TIMEOUT_MS });
         setMsgs((m) => [...m, { id: nextId.current++, role: 'ai', res }]);
         speak(res.text);
         void loadStatus();
       } catch (err) {
         setMsgs((m) => [...m, { id: nextId.current++, role: 'error', text: friendly(err), question: text, agent: agent.id }]);
       } finally {
+        inFlight.current = false;
         setBusy(false);
       }
     },

@@ -1,6 +1,7 @@
 import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
+import { ErrorBoundary, RouteErrorBoundary } from './components/ErrorBoundary';
 import { Layout } from './components/Layout';
 import { Nodo } from './components/Nodo';
 import './index.css';
@@ -29,12 +30,14 @@ document.documentElement.dataset.theme = initialTheme;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <ErrorBoundary>
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
           <LiveProvider>
             <AssistantProvider>
             <Layout>
+              <RouteErrorBoundary>
               <Suspense fallback={<p className="label py-10">Cargando módulo…</p>}>
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
@@ -48,11 +51,13 @@ createRoot(document.getElementById('root')!).render(
                   <Route path="*" element={<div className="flex items-center gap-4"><Nodo mood="thinking" size={72} /><p className="text-sm text-ink-3">Esa calle no está en el mapa. <Link to="/" className="font-semibold text-accent underline">Volver al panel</Link></p></div>} />
                 </Routes>
               </Suspense>
+              </RouteErrorBoundary>
             </Layout>
             </AssistantProvider>
           </LiveProvider>
         </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 );

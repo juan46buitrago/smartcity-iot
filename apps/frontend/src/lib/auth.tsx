@@ -61,6 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Cerrar o abrir sesión en otra pestaña se refleja aquí: no queda una pestaña operando con una sesión cerrada.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === KEY || e.key === null) setSession(readSession());
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   useEffect(() => {
     configureApi(
       () => session?.token ?? null,
@@ -72,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session, logout]);
 
   const login = useCallback(async (password: string) => {
-    const r = await api<{ token: string; user: string }>('/api/auth/login', { body: { password } });
+    const r = await api<{ token: string; user: string }>('/api/auth/login', { body: { password }, expect: ['token'] });
     const s = { user: r.user, token: r.token };
     setSession(s);
     try {

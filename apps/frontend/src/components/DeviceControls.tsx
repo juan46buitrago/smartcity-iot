@@ -4,7 +4,7 @@
  */
 import { INCIDENT_SEVERITIES, INCIDENT_TYPES, validateCommand, type CommandAction, type ParamSpec, type Threshold } from '@scbga/shared';
 import { CircleCheck, CircleX, Clock3, Lock, Power, RotateCcw, Siren } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { isOnline } from '../lib/live';
@@ -20,17 +20,21 @@ export function useCommand(device: DeviceView) {
   const toast = useToast();
   const [busy, setBusy] = useState<string | null>(null);
   const [last, setLast] = useState<CommandRecord | null>(null);
+  // Guarda síncrona: dos clics en el mismo tic leen el mismo estado `busy`; la referencia no.
+  const inFlight = useRef(false);
 
   const send = async (action: CommandAction, params: Record<string, unknown>, label: string) => {
     if (!user) return requestLogin();
+    if (inFlight.current) return;
     const check = validateCommand(device.id, action, params);
     if (!check.ok) {
       toast({ tone: 'error', title: 'Valor no válido', detail: check.error });
       return;
     }
+    inFlight.current = true;
     setBusy(label);
     try {
-      const rec = await api<CommandRecord>(`/api/devices/${device.id}/commands`, { body: { action, params }, auth: true });
+      const rec = await api<CommandRecord>(`/api/devices/${device.id}/commands`, { body: { action, params }, auth: true, expect: ['status'] });
       setLast(rec);
       if (rec.status === 'confirmed') toast({ tone: 'ok', title: `${device.id}: ${label}`, detail: `Confirmado por el dispositivo · config v${rec.config_version}` });
       else if (rec.status === 'rejected') toast({ tone: 'error', title: `${device.id} rechazó la orden`, detail: rec.error ?? undefined });
@@ -38,6 +42,7 @@ export function useCommand(device: DeviceView) {
     } catch (e) {
       toast({ tone: 'error', title: 'No se envió la orden', detail: (e as Error).message });
     } finally {
+      inFlight.current = false;
       setBusy(null);
     }
   };
@@ -307,7 +312,7 @@ export function DeviceControls({ device, sections = ['power', 'mode', 'interval'
           <Button variant="secondary" disabled={disabled} loading={busy === 'reinicio'} onClick={() => send('restart', {}, 'reinicio')}>
             <RotateCcw className="size-4" aria-hidden /> Reiniciar dispositivo
           </Button>
-          <p className="mt-2 text-xs text-ink-3">Desconexión ordenada y reconexión a los 3 s (verifica el estado de conexión y el LWT).</p>
+          <p className="mt-2 text-xs text-ink-3">Desconexión ordenada y reconexión a los 3 s (sirve para comprobar que el aviso de desconexión llega).</p>
         </Section>
       )}
 

@@ -5,6 +5,7 @@
 import { DEVICE_CATALOG, type DeviceConfig, type DeviceId, type DeviceStatus, type IncidentEvent, type Telemetry } from '@scbga/shared';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api } from './api';
+import { isLinkStale, LINK_STALE_AFTER_MS, parseLiveEvent, wellFormedDevices } from './liveData';
 import type { AlertRow, CommandRecord, DeviceView, FeedItem, Incident } from './types';
 
 type WsState = 'connecting' | 'open' | 'closed';
@@ -19,6 +20,8 @@ interface LiveState {
   feed: FeedItem[];
   ws: WsState;
   loaded: boolean;
+  /** Motivo del último fallo de carga inicial (null si la última carga fue bien). */
+  loadError: string | null;
   spark: (device: string, variable: string) => number[];
   track: { lat: number; lon: number }[];
   lastCommand: CommandRecord | null;
@@ -46,6 +49,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [ws, setWs] = useState<WsState>('connecting');
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [track, setTrack] = useState<{ lat: number; lon: number }[]>([]);
   const [lastCommand, setLastCommand] = useState<CommandRecord | null>(null);
   const sparks = useRef(new Map<string, number[]>());
@@ -71,14 +75,15 @@ export function LiveProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     const [devs, al, inc] = await Promise.all([
-      api<DeviceView[]>('/api/devices'),
-      api<AlertRow[]>('/api/alerts?status=activas&limit=200'),
-      api<{ items: Incident[] }>('/api/incidents?scope=active'),
+      api<DeviceView[]>('/api/devices', { expect: 'array' }),
+      api<AlertRow[]>('/api/alerts?status=activas&limit=200', { expect: 'array' }),
+      api<{ items: Incident[] }>('/api/incidents?scope=active', { expect: ['items'] }),
     ]);
-    setDevices(Object.fromEntries(devs.map((d) => [d.id, d])));
+    setDevices(Object.fromEntries(wellFormedDevices(devs).map((d) => [d.id, d])));
     setAlerts(al);
     setIncidents(inc.items);
     setLoaded(true);
+    setLoadError(null);
   }, []);
 
   /** Precarga de sparklines con la última hora del histórico. */
@@ -90,7 +95,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     const from = new Date(Date.now() - (6 * 3600_000)).toISOString();
     void Promise.allSettled(
       keys.map(async ([d, v]) => {
-        const r = await api<{ points: { v: number }[] }>(`/api/history/${d}/${v}?from=${encodeURIComponent(from)}&points=${SPARK_LEN}`);
+        const r = await api<{ points: { v: number }[] }>(`/api/history/${d}/${v}?from=${encodeURIComponent(from)}&points=${SPARK_LEN}`, { expect: ['points'] });
         const key = `${d}.${v}`;
         const live = sparks.current.get(key) ?? [];
         sparks.current.set(key, [...r.points.map((p) => p.v), ...live].slice(-SPARK_LEN));
@@ -103,6 +108,12 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     let retry = 0;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let disposed = false;
+    let lastMessageAt = Date.now();
+
+    const scheduleReconnect = () => {
+      if (disposed) return;
+      timer = setTimeout(connect, Math.min(15000, 1000 * 2 ** retry++));
+    };
 
     const connect = () => {
       setWs('connecting');
@@ -110,24 +121,37 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       socket = new WebSocket(`${proto}://${location.host}/ws`);
       socket.onopen = () => {
         retry = 0;
+        lastMessageAt = Date.now();
         setWs('open');
-        void refresh().catch(() => {});
+        void refresh().catch((e) => setLoadError((e as Error).message));
       };
       socket.onclose = () => {
         setWs('closed');
-        if (disposed) return;
-        timer = setTimeout(connect, Math.min(15000, 1000 * 2 ** retry++));
+        scheduleReconnect();
       };
       socket.onmessage = (m) => {
-        let ev: { type: string; data: any };
+        lastMessageAt = Date.now();
+        const ev = parseLiveEvent(String(m.data));
+        if (!ev) return;
         try {
-          ev = JSON.parse(m.data);
-        } catch {
-          return;
+          handle(ev);
+        } catch (err) {
+          // Un evento con datos inesperados se descarta: no debe interrumpir el resto del flujo en vivo.
+          console.warn('Evento en vivo descartado', ev.type, err);
         }
-        handle(ev);
       };
     };
+
+    // Un servidor colgado puede mantener la conexión abierta sin enviar nada: el latido lo delata.
+    const watchdog = setInterval(() => {
+      if (!socket || socket.readyState !== WebSocket.OPEN || !isLinkStale(lastMessageAt, Date.now())) return;
+      const stale = socket;
+      stale.onclose = null;
+      stale.onmessage = null;
+      stale.close();
+      setWs('closed');
+      scheduleReconnect();
+    }, LINK_STALE_AFTER_MS / 3);
 
     const patch = (id: string, fn: (d: DeviceView) => DeviceView) =>
       setDevices((ds) => (ds[id] ? { ...ds, [id]: fn(ds[id]!) } : ds));
@@ -199,10 +223,11 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    void refresh().catch(() => {});
+    void refresh().catch((e) => setLoadError((e as Error).message));
     connect();
     return () => {
       disposed = true;
+      clearInterval(watchdog);
       if (timer) clearTimeout(timer);
       socket?.close();
     };
@@ -211,7 +236,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   const list = useMemo(() => Object.values(devices).sort((a, b) => a.id.localeCompare(b.id)), [devices]);
   const spark = useCallback((d: string, v: string) => sparks.current.get(`${d}.${v}`) ?? [], []);
 
-  const value: LiveState = { devices, list, alerts, incidents, feed, ws, loaded, spark, track, lastCommand, refresh };
+  const value: LiveState = { devices, list, alerts, incidents, feed, ws, loaded, loadError, spark, track, lastCommand, refresh };
   return <LiveCtx.Provider value={value}>{children}</LiveCtx.Provider>;
 }
 
