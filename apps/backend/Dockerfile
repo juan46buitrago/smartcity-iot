@@ -15,6 +15,8 @@ RUN npm run build -w @scbga/shared && npm run build -w @scbga/backend
 
 # ---------- pruebas (docker build --target test) ----------
 FROM build AS test
+# Las pruebas del contrato MQTT validan las muestras que publica el firmware DEV11.
+COPY firmware/dev11-esp32/samples firmware/dev11-esp32/samples
 RUN npx -w @scbga/shared vitest run && npx -w @scbga/backend vitest run
 
 # ---------- dependencias de producción ----------
